@@ -75,7 +75,7 @@ export default function Landing() {
 
       {/* Hero Section */}
       <HeroSection
-        title="Where Beauty Meets Convenienve"
+        title="Where Beauty Meets Convenience"
         subtitle="The first unified platform, revolutionizing beauty & wellness booking."
         description="Connecting Faciliies and Consumers."
         primaryCta={{
