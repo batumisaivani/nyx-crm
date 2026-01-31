@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@variant dark (&:is(.dark *));
+
+/* Hide scrollbar for wheel picker */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
