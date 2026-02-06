@@ -38,7 +38,7 @@ export default function HeroSection({
     return () => clearInterval(interval)
   }, [desktopScreenshotCount])
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-20 pb-10">
+    <section className="relative overflow-hidden py-20 px-6">
       {/* Retro Grid Background */}
       <RetroGrid className="z-0" angle={65} />
 
@@ -46,15 +46,16 @@ export default function HeroSection({
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/30 rounded-full blur-3xl animate-pulse" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-pink-600/30 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
 
-      <div className="relative z-10 w-full px-6">
-        <div className="relative flex items-center">
-          {/* Left Content */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-left max-w-[500px] ml-24"
-          >
+      <div className="relative z-10 w-full">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            {/* Left Content */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className="text-left"
+            >
             {/* Title */}
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
@@ -139,14 +140,67 @@ export default function HeroSection({
             </motion.div>
           </motion.div>
 
-          {/* Right - Mockup Display */}
-          {showMockup && (
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5, duration: 1 }}
-              className="absolute left-[764px] top-1/2 -translate-y-1/2 hidden lg:block"
-            >
+            {/* Right - Mockup Display */}
+            {showMockup && (
+              <motion.div
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.5, duration: 1 }}
+                className="relative"
+              >
+              {/* Desktop Mockup Behind */}
+              <motion.div
+                animate={{
+                  y: [0, -15, 0],
+                  rotateY: [0, -5, 0],
+                }}
+                transition={{
+                  duration: 7,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: 0.5,
+                }}
+                className="relative z-10 flex justify-center"
+              >
+                <div className="bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg p-2 shadow-2xl border border-purple-700 w-[630px]">
+                  <div className="bg-gray-900 rounded-md overflow-hidden">
+                    {/* Screenshot Carousel */}
+                    <div className="relative h-[395px] bg-purple-950 rounded-md">
+                      <AnimatePresence mode="wait">
+                        <motion.img
+                          key={`desktop-${currentDesktopIndex}`}
+                          src={`/screenshots/crm-desktop-${currentDesktopIndex + 1}.png`}
+                          alt={`Nyxie CRM Dashboard Screenshot ${currentDesktopIndex + 1}`}
+                          className="absolute inset-0 w-full h-full object-cover"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.5 }}
+                          onError={(e) => {
+                            e.target.style.display = 'none'
+                          }}
+                        />
+                      </AnimatePresence>
+                      {/* Progress indicators */}
+                      {desktopScreenshotCount > 1 && (
+                        <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5 z-10">
+                          {[...Array(desktopScreenshotCount)].map((_, index) => (
+                            <div
+                              key={index}
+                              className={`h-1 rounded-full transition-all duration-300 ${
+                                index === currentDesktopIndex
+                                  ? 'w-6 bg-pink-400'
+                                  : 'w-1 bg-pink-700'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
               {/* Floating Phone Mockup */}
               <motion.div
                 animate={{
@@ -158,7 +212,7 @@ export default function HeroSection({
                   repeat: Infinity,
                   ease: "easeInOut",
                 }}
-                className="relative z-20 ml-92"
+                className="absolute right-0 top-0 z-20"
               >
                 <div className="bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg p-2 shadow-2xl border border-purple-700 w-[213px]">
                   <div className="bg-gray-900 rounded-md overflow-hidden relative">
@@ -202,63 +256,11 @@ export default function HeroSection({
                 </div>
               </motion.div>
 
-              {/* Desktop Mockup Behind */}
-              <motion.div
-                animate={{
-                  y: [0, -15, 0],
-                  rotateY: [0, -5, 0],
-                }}
-                transition={{
-                  duration: 7,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: 0.5,
-                }}
-                className="absolute top-20 -left-20 z-10"
-              >
-                <div className="bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg p-2 shadow-2xl border border-purple-700 w-[630px]">
-                  <div className="bg-gray-900 rounded-md overflow-hidden">
-                    {/* Screenshot Carousel */}
-                    <div className="relative h-[395px] bg-purple-950 rounded-md">
-                      <AnimatePresence mode="wait">
-                        <motion.img
-                          key={`desktop-${currentDesktopIndex}`}
-                          src={`/screenshots/crm-desktop-${currentDesktopIndex + 1}.png`}
-                          alt={`Nyxie CRM Dashboard Screenshot ${currentDesktopIndex + 1}`}
-                          className="absolute inset-0 w-full h-full object-cover"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          transition={{ duration: 0.5 }}
-                          onError={(e) => {
-                            e.target.style.display = 'none'
-                          }}
-                        />
-                      </AnimatePresence>
-                      {/* Progress indicators */}
-                      {desktopScreenshotCount > 1 && (
-                        <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5 z-10">
-                          {[...Array(desktopScreenshotCount)].map((_, index) => (
-                            <div
-                              key={index}
-                              className={`h-1 rounded-full transition-all duration-300 ${
-                                index === currentDesktopIndex
-                                  ? 'w-6 bg-pink-400'
-                                  : 'w-1 bg-pink-700'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-
               {/* Glow effects */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl -z-10"></div>
             </motion.div>
           )}
+          </div>
         </div>
       </div>
     </section>
