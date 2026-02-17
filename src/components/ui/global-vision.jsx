@@ -1,4 +1,5 @@
-import { motion } from 'motion/react'
+import { motion, AnimatePresence } from 'motion/react'
+import { useState, useCallback } from 'react'
 
 // Simplified dot-matrix world map coordinates (col, row) on a 72x36 grid
 // Each dot represents ~5 degrees. Land masses only.
@@ -273,6 +274,175 @@ function WorldDotMap() {
   )
 }
 
+// --- Gamified Discount Spinner ---
+
+const PRIZES = [
+  { label: '5%', full: '5% Off next visit', color: '#7c3aed' },
+  { label: '2x', full: '2x NyxCoins bonus', color: '#5b21b6' },
+  { label: '15%', full: '15% Off any service', color: '#7c3aed' },
+  { label: 'RETRY', full: 'Spin again!', color: '#5b21b6' },
+  { label: '10%', full: '10% Off next visit', color: '#7c3aed' },
+  { label: 'FREE', full: 'Free add-on service', color: '#5b21b6' },
+  { label: '20%', full: '20% Off any service', color: '#7c3aed' },
+  { label: '5%', full: '5% Off next visit', color: '#5b21b6' },
+]
+
+const SEG_COUNT = PRIZES.length
+const SEG_ANGLE = 360 / SEG_COUNT
+
+function segPath(i) {
+  const a1 = ((i * SEG_ANGLE - 90) * Math.PI) / 180
+  const a2 = (((i + 1) * SEG_ANGLE - 90) * Math.PI) / 180
+  const r = 48, cx = 50, cy = 50
+  return `M${cx},${cy} L${cx + r * Math.cos(a1)},${cy + r * Math.sin(a1)} A${r},${r} 0 0,1 ${cx + r * Math.cos(a2)},${cy + r * Math.sin(a2)} Z`
+}
+
+function textPos(i) {
+  const mid = (((i + 0.5) * SEG_ANGLE - 90) * Math.PI) / 180
+  const r = 34
+  return { x: 50 + r * Math.cos(mid), y: 50 + r * Math.sin(mid), angle: (i + 0.5) * SEG_ANGLE }
+}
+
+function SpinnerWheel() {
+  const [rotation, setRotation] = useState(0)
+  const [spinning, setSpinning] = useState(false)
+  const [result, setResult] = useState(null)
+
+  const spin = useCallback(() => {
+    if (spinning) return
+    setSpinning(true)
+    setResult(null)
+
+    const extraSpins = (5 + Math.random() * 3) * 360
+    const offset = Math.random() * 360
+    const newRotation = rotation + extraSpins + offset
+    setRotation(newRotation)
+
+    setTimeout(() => {
+      const final = newRotation % 360
+      const idx = Math.floor(final / SEG_ANGLE) % SEG_COUNT
+      setResult(PRIZES[idx])
+      setSpinning(false)
+    }, 4000)
+  }, [spinning, rotation])
+
+  return (
+    <div className="flex flex-col items-center">
+      <div className="relative w-full aspect-square max-w-[190px]">
+        {/* Pointer triangle */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-0.5 z-20">
+          <div className="w-0 h-0 border-l-[7px] border-r-[7px] border-t-[12px] border-l-transparent border-r-transparent border-t-purple-400 drop-shadow-[0_0_6px_rgba(168,85,247,0.5)]" />
+        </div>
+
+        {/* Outer glow ring */}
+        <div className="absolute inset-0 rounded-full shadow-[0_0_30px_rgba(147,51,234,0.15)]" />
+
+        {/* Wheel SVG */}
+        <svg
+          viewBox="0 0 100 100"
+          className="w-full h-full"
+          style={{
+            transform: `rotate(${rotation}deg)`,
+            transition: spinning
+              ? 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)'
+              : 'none',
+          }}
+        >
+          {/* Outer border */}
+          <circle cx="50" cy="50" r="49.5" fill="none" stroke="#a855f7" strokeWidth="0.5" opacity="0.3" />
+          <circle cx="50" cy="50" r="48" fill="none" stroke="#a855f7" strokeWidth="0.15" opacity="0.2" />
+
+          {/* Segments */}
+          {PRIZES.map((seg, i) => (
+            <g key={i}>
+              <path d={segPath(i)} fill={seg.color} stroke="#1a1025" strokeWidth="0.3" />
+              <text
+                x={textPos(i).x}
+                y={textPos(i).y}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fill="white"
+                fontSize="5"
+                fontWeight="700"
+                fontFamily="Inter, sans-serif"
+                opacity="0.9"
+                transform={`rotate(${textPos(i).angle}, ${textPos(i).x}, ${textPos(i).y})`}
+              >
+                {seg.label}
+              </text>
+            </g>
+          ))}
+
+          {/* Tick marks on outer edge */}
+          {PRIZES.map((_, i) => {
+            const angle = ((i * SEG_ANGLE - 90) * Math.PI) / 180
+            const r1 = 47.5, r2 = 49
+            return (
+              <line
+                key={`tick-${i}`}
+                x1={50 + r1 * Math.cos(angle)}
+                y1={50 + r1 * Math.sin(angle)}
+                x2={50 + r2 * Math.cos(angle)}
+                y2={50 + r2 * Math.sin(angle)}
+                stroke="#c084fc"
+                strokeWidth="0.3"
+                opacity="0.4"
+              />
+            )
+          })}
+
+          {/* Center hub */}
+          <circle cx="50" cy="50" r="11" fill="#1a1025" stroke="#a855f7" strokeWidth="0.4" opacity="0.8" />
+          <circle cx="50" cy="50" r="10" fill="url(#hubGrad)" />
+
+          <defs>
+            <radialGradient id="hubGrad" cx="50%" cy="40%" r="60%">
+              <stop offset="0%" stopColor="#2d1b4e" />
+              <stop offset="100%" stopColor="#1a1025" />
+            </radialGradient>
+          </defs>
+        </svg>
+
+        {/* SPIN button overlay */}
+        <button
+          onClick={spin}
+          disabled={spinning}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[22%] h-[22%] rounded-full flex items-center justify-center cursor-pointer z-10 group"
+        >
+          <span
+            className={`text-[10px] font-[Inter] font-bold uppercase tracking-wider transition-colors ${
+              spinning ? 'text-purple-600 animate-pulse' : 'text-purple-300 group-hover:text-white'
+            }`}
+          >
+            {spinning ? '...' : 'SPIN'}
+          </span>
+        </button>
+      </div>
+
+      {/* Result display */}
+      <div className="h-6 mt-2 flex items-center justify-center">
+        <AnimatePresence mode="wait">
+          {result && !spinning && (
+            <motion.p
+              key={result.full}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="text-xs font-semibold text-purple-300 font-[Inter]"
+            >
+              {result.full}
+            </motion.p>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <p className="text-[11px] text-[#7d7694] font-[Inter] font-medium tracking-wide">
+        Spin for a reward
+      </p>
+    </div>
+  )
+}
+
 const roadmapPhases = [
   {
     phase: 'Georgia',
@@ -385,6 +555,19 @@ export function GlobalVisionSection() {
             <WorldDotMap />
           </motion.div>
 
+          {/* Floating spinner — anchored bottom-left of the map */}
+          <motion.div
+            initial={{ opacity: 0, y: 30, rotate: 0 }}
+            whileInView={{ opacity: 1, y: 0, rotate: -3 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, delay: 0.5 }}
+            className="hidden md:block absolute -bottom-8 -left-4 lg:left-4 z-10 w-[220px] lg:w-[250px]"
+          >
+            <div className="bg-white/[0.03] backdrop-blur-sm border border-purple-500/10 rounded-2xl p-5 shadow-[0_8px_40px_rgba(0,0,0,0.4),0_0_60px_rgba(147,51,234,0.08)]">
+              <SpinnerWheel />
+            </div>
+          </motion.div>
+
           {/* Floating loyalty card — anchored bottom-right of the map */}
           <motion.div
             initial={{ opacity: 0, y: 30, rotate: 0 }}
@@ -399,7 +582,6 @@ export function GlobalVisionSection() {
                 alt="Nyxie Gold loyalty card — gamified rewards that travel with you"
                 className="w-full h-auto rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.4),0_0_60px_rgba(147,51,234,0.12)] border border-purple-500/15"
               />
-              {/* Subtle caption */}
               <div className="mt-3 text-center">
                 <p className="text-[11px] text-[#7d7694] font-[Inter] font-medium tracking-wide">
                   Gamified loyalty — everywhere.
@@ -408,22 +590,29 @@ export function GlobalVisionSection() {
             </div>
           </motion.div>
 
-          {/* Mobile: loyalty card inline below the map */}
+          {/* Mobile: spinner + loyalty card */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.5 }}
-            className="md:hidden mt-10 flex flex-col items-center"
+            className="md:hidden mt-10 grid grid-cols-2 gap-5 max-w-sm mx-auto items-start"
           >
-            <img
-              src="/loyalty-card.png"
-              alt="Nyxie Gold loyalty card"
-              className="w-[200px] h-auto rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.4),0_0_60px_rgba(147,51,234,0.12)] border border-purple-500/15 rotate-2"
-            />
-            <p className="mt-3 text-[11px] text-[#7d7694] font-[Inter] font-medium tracking-wide">
-              Gamified loyalty — everywhere.
-            </p>
+            {/* Spinner */}
+            <div className="bg-white/[0.03] backdrop-blur-sm border border-purple-500/10 rounded-2xl p-4">
+              <SpinnerWheel />
+            </div>
+            {/* Loyalty card */}
+            <div className="flex flex-col items-center pt-2">
+              <img
+                src="/loyalty-card.png"
+                alt="Nyxie Gold loyalty card"
+                className="w-full h-auto rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.4),0_0_60px_rgba(147,51,234,0.12)] border border-purple-500/15 rotate-2"
+              />
+              <p className="mt-3 text-[11px] text-[#7d7694] font-[Inter] font-medium tracking-wide">
+                Gamified loyalty
+              </p>
+            </div>
           </motion.div>
         </div>
 
