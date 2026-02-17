@@ -320,7 +320,7 @@ function SpinnerWheel() {
 
     setTimeout(() => {
       const final = newRotation % 360
-      const idx = Math.floor(final / SEG_ANGLE) % SEG_COUNT
+      const idx = Math.floor(((360 - final) % 360) / SEG_ANGLE) % SEG_COUNT
       setResult(PRIZES[idx])
       setSpinning(false)
     }, 4000)
