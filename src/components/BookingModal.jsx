@@ -75,10 +75,10 @@ export default function BookingModal({
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-[#120025] backdrop-blur-xl rounded-lg shadow-2xl border border-purple-700 max-w-5xl w-full max-h-[90vh] overflow-y-auto"
+        className="bg-[#120025] backdrop-blur-xl rounded-lg shadow-2xl border border-purple-500/10 max-w-5xl w-full max-h-[90vh] overflow-y-auto"
       >
         {/* Header */}
-        <div className="sticky top-0 bg-[#120025] border-b border-purple-700 px-4 py-3 flex items-center justify-between z-10">
+        <div className="sticky top-0 bg-[#120025] border-b border-purple-500/10 px-4 py-3 flex items-center justify-between z-10">
           <div className="flex items-center gap-3">
             {selectedSpecialistId && !initialData && (
               <button
@@ -88,7 +88,7 @@ export default function BookingModal({
                 <ChevronRight className="w-5 h-5 text-white rotate-180" />
               </button>
             )}
-            <h2 className="text-lg font-bold text-white font-[Calibri,sans-serif]">
+            <h2 className="text-lg font-bold text-white font-[Inter]">
               {initialData
                 ? 'Edit Booking'
                 : selectedSpecialistId
@@ -136,7 +136,7 @@ export default function BookingModal({
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.05 }}
                           onClick={() => setSelectedSpecialistId(specialist.id)}
-                          className="p-3 bg-purple-950/25 border-2 border-purple-700/50 rounded-lg hover:border-purple-500 hover:bg-purple-900/40 transition-all text-left group"
+                          className="p-3 bg-purple-950/25 border-2 border-purple-500/10 rounded-lg hover:border-purple-500 hover:bg-purple-900/40 transition-all text-left group"
                         >
                           <div className="flex items-center gap-3">
                             {specialist.image_url ? (
@@ -151,7 +151,7 @@ export default function BookingModal({
                               </div>
                             )}
                             <div className="flex-1">
-                              <h3 className="text-base font-semibold text-white font-[Calibri,sans-serif] mb-0.5">
+                              <h3 className="text-base font-semibold text-white font-[Inter] mb-0.5">
                                 {specialist.name}
                               </h3>
                               <p className="text-xs text-purple-300 mb-1">

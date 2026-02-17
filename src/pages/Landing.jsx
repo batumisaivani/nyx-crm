@@ -1,431 +1,296 @@
 import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
-import { Smartphone, Monitor, Calendar, TrendingUp, Users, Zap, CheckCircle, ArrowRight } from 'lucide-react'
-import HeroSection from '../components/ui/hero-section'
-import AnimatedCard from '../components/ui/AnimatedCard'
+import { Smartphone, Monitor, Calendar, TrendingUp, Users, Zap } from 'lucide-react'
+import { HeroSection, LogosSection } from '../components/ui/hero-new'
+import { Header } from '../components/ui/header'
+import Floating, { FloatingElement } from '../components/ui/floating'
+import { FeaturesSection } from '../components/ui/features-section'
+import { Pricing } from '../components/ui/pricing'
+import { FlickeringGrid } from '../components/ui/flickering-grid'
 
 export default function Landing() {
   const navigate = useNavigate()
 
-  const floatVariants = {
-    animate: {
-      y: [0, -20, 0],
-      transition: {
-        duration: 3,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }
-    }
-  }
-
-  const advantages = [
-    {
-      icon: <Smartphone className="w-6 h-6" />,
-      title: "Direct Customer Booking",
-      description: "Customers book directly through our mobile app - no phone calls, no manual scheduling"
-    },
-    {
-      icon: <TrendingUp className="w-6 h-6" />,
-      title: "Real-Time Synchronization",
-      description: "Instant updates between customer app and business CRM. Zero booking conflicts."
-    },
-    {
-      icon: <Users className="w-6 h-6" />,
-      title: "Customer Insights",
-      description: "Track preferences, history, and reviews - all in one unified platform"
-    },
-    {
-      icon: <Zap className="w-6 h-6" />,
-      title: "Automated Operations",
-      description: "Reduce manual work by 80%. Focus on service, not scheduling."
-    }
-  ]
-
-  const competitiveEdge = [
-    "Unlike traditional CRMs: We connect businesses directly with customers through our app",
-    "Unlike phone booking: 24/7 automated booking with zero staff involvement",
-    "Unlike competitors: Unified ecosystem - one platform for businesses and customers",
-    "Market advantage: First-mover in Georgia's beauty & wellness sector"
-  ]
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 dark:from-[#120025] dark:via-purple-950 dark:to-[#120025] text-white overflow-hidden">
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 backdrop-blur-xl border-b border-purple-700/20">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent"
-          >
-            Nyxie
-          </motion.div>
-          <motion.button
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate('/login')}
-            className="px-6 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg font-medium transition-colors"
-          >
-            CRM Login
-          </motion.button>
-        </div>
-      </nav>
-
-      {/* Hero Section */}
-      <HeroSection
-        title="Where Beauty Meets Convenience"
-        subtitle="The first unified platform, revolutionizing beauty & wellness booking."
-        description="Connecting Faciliies and Consumers."
-        primaryCta={{
-          text: "Nyxie For Business",
-          onClick: () => navigate('/login')
-        }}
-        secondaryCta={{
-          text: "Download Customer App",
-          onClick: () => window.location.href = '#'
-        }}
-        showMockup={true}
-        mobileScreenshotCount={7}  // Update this number based on how many mobile screenshots you upload
-        desktopScreenshotCount={13} // Update this number based on how many desktop screenshots you upload
-      />
+    <div className="flex w-full flex-col bg-black text-white overflow-hidden">
+      <Header />
+      <main className="grow">
+        <HeroSection />
+        <LogosSection />
+      </main>
 
       {/* Problem Statement */}
-      <section className="py-20 px-6">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
+      <section className="relative py-32 md:py-40 px-6 overflow-x-clip">
+        {/* Floating parallax cards */}
+        <Floating sensitivity={1.5} easingFactor={0.04} className="pointer-events-none z-10 hidden md:block">
+          {/* Top-left card */}
+          <FloatingElement depth={0.8} className="top-[8%] left-[3%]">
+            <div className="bg-white/5 backdrop-blur-sm border border-purple-500/10 rounded-xl p-4 shadow-lg rotate-[-6deg] w-48">
+              <div className="flex items-center gap-3 mb-2">
+                <Calendar className="w-4 h-4 text-purple-400" />
+                <span className="text-xs font-[Inter] font-medium text-white/70">Manual Scheduling</span>
+              </div>
+              <div className="h-1.5 bg-red-500/30 rounded-full w-full" />
+              <div className="h-1.5 bg-red-500/20 rounded-full w-3/4 mt-1.5" />
+            </div>
+          </FloatingElement>
+
+          {/* Top-right card */}
+          <FloatingElement depth={1.2} className="top-[5%] right-[5%]">
+            <div className="bg-white/5 backdrop-blur-sm border border-purple-500/10 rounded-xl p-4 shadow-lg rotate-[4deg] w-52">
+              <div className="flex items-center gap-3 mb-2">
+                <Users className="w-4 h-4 text-purple-400" />
+                <span className="text-xs font-[Inter] font-medium text-white/70">Client Retention</span>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-[Playfair] font-light text-red-400/80">60%</span>
+                <span className="text-[10px] font-[Inter] text-white/40">never return</span>
+              </div>
+            </div>
+          </FloatingElement>
+
+          {/* Bottom-left card */}
+          <FloatingElement depth={1.8} className="bottom-[10%] left-[5%]">
+            <div className="bg-white/5 backdrop-blur-sm border border-purple-500/10 rounded-xl p-4 shadow-lg rotate-[5deg] w-44">
+              <div className="flex items-center gap-3 mb-2">
+                <Zap className="w-4 h-4 text-purple-400" />
+                <span className="text-xs font-[Inter] font-medium text-white/70">Scattered Data</span>
+              </div>
+              <div className="grid grid-cols-3 gap-1">
+                <div className="h-6 bg-white/5 rounded border border-white/10" />
+                <div className="h-6 bg-white/5 rounded border border-white/10" />
+                <div className="h-6 bg-white/5 rounded border border-white/10" />
+              </div>
+            </div>
+          </FloatingElement>
+
+          {/* Bottom-right card */}
+          <FloatingElement depth={0.5} className="bottom-[8%] right-[3%]">
+            <div className="bg-white/5 backdrop-blur-sm border border-purple-500/10 rounded-xl p-4 shadow-lg rotate-[-3deg] w-48">
+              <div className="flex items-center gap-3 mb-2">
+                <TrendingUp className="w-4 h-4 text-purple-400" />
+                <span className="text-xs font-[Inter] font-medium text-white/70">Revenue Lost</span>
+              </div>
+              <div className="h-1.5 bg-white/10 rounded-full w-full" />
+              <div className="h-1.5 bg-red-500/25 rounded-full w-[60%] mt-1.5" />
+              <div className="h-1.5 bg-red-500/15 rounded-full w-[35%] mt-1.5" />
+            </div>
+          </FloatingElement>
+
+          {/* Mid-left small card */}
+          <FloatingElement depth={2} className="top-[45%] left-[1%]">
+            <div className="bg-white/5 backdrop-blur-sm border border-purple-500/15 rounded-lg p-3 shadow-lg rotate-[-8deg] w-36">
+              <div className="flex items-center gap-2">
+                <Smartphone className="w-3.5 h-3.5 text-purple-400/60" />
+                <span className="text-[10px] font-[Inter] text-white/50">No Mobile App</span>
+              </div>
+            </div>
+          </FloatingElement>
+
+          {/* Mid-right small card */}
+          <FloatingElement depth={1.5} className="top-[50%] right-[2%]">
+            <div className="bg-white/5 backdrop-blur-sm border border-purple-500/15 rounded-lg p-3 shadow-lg rotate-[7deg] w-40">
+              <div className="flex items-center gap-2">
+                <Monitor className="w-3.5 h-3.5 text-purple-400/60" />
+                <span className="text-[10px] font-[Inter] text-white/50">Outdated CRMs</span>
+              </div>
+            </div>
+          </FloatingElement>
+        </Floating>
+
+        {/* Center text */}
+        <div className="relative z-20 max-w-3xl mx-auto text-center">
+          <motion.p
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="text-center mb-16"
+            className="text-3xl md:text-4xl lg:text-5xl font-extralight leading-tight tracking-tight font-[Playfair] text-white/90"
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">The Problem</h2>
-            <div className="grid md:grid-cols-3 gap-8 mt-12">
-              <AnimatedCard className="p-6">
-                <h3 className="text-xl font-bold mb-3 text-red-300">Traditional CRMs</h3>
-                <p className="text-purple-200">
-                  Businesses still rely on phone calls and manual scheduling. Time-consuming, error-prone, limited to business hours.
-                </p>
-              </AnimatedCard>
-              <AnimatedCard className="p-6">
-                <h3 className="text-xl font-bold mb-3 text-red-300">Phone Booking Systems</h3>
-                <p className="text-purple-200">
-                  Customers wait on hold, calls during business hours only, no visibility into availability, high abandonment rates.
-                </p>
-              </AnimatedCard>
-              <AnimatedCard className="p-6">
-                <h3 className="text-xl font-bold mb-3 text-red-300">Disconnected Tools</h3>
-                <p className="text-purple-200">
-                  Separate booking platforms, CRMs, and communication tools. Data scattered, no unified customer view.
-                </p>
-              </AnimatedCard>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Product Showcase */}
-      <section className="py-20 px-6">
-        <div className="max-w-7xl mx-auto">
-          <motion.h2
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className="text-4xl md:text-5xl font-bold text-center mb-16"
-          >
-            Our Solution: Unified Ecosystem
-          </motion.h2>
-
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            {/* Mobile App Mockup */}
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-              className="relative"
-            >
-              <div className="relative z-10 flex justify-center items-center gap-8 h-[500px]">
-                {/* Left tilted mockup */}
-                <motion.div
-                  animate={{
-                    y: [0, -20, 0],
-                  }}
-                  transition={{
-                    duration: 3,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                  style={{ rotate: -8 }}
-                  className="relative"
-                >
-                  <div className="bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg p-2 shadow-2xl border border-purple-700 w-[213px]">
-                    <div className="bg-gray-900 rounded-md overflow-hidden relative">
-                      <div className="relative h-[444px] bg-black rounded-md">
-                        <img
-                          src="/screenshots/mobile-app-1.png"
-                          alt="Nyxie Mobile App"
-                          className="absolute inset-0 w-full h-full object-cover rounded-md"
-                          onError={(e) => {
-                            e.target.style.display = 'none'
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-
-                {/* Right tilted mockup */}
-                <motion.div
-                  animate={{
-                    y: [0, -20, 0],
-                  }}
-                  transition={{
-                    duration: 3.5,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                    delay: 1
-                  }}
-                  style={{ rotate: 8 }}
-                  className="relative"
-                >
-                  <div className="bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg p-2 shadow-2xl border border-purple-700 w-[213px]">
-                    <div className="bg-gray-900 rounded-md overflow-hidden relative">
-                      <div className="relative h-[444px] bg-black rounded-md">
-                        <img
-                          src="/screenshots/mobile-app-2.png"
-                          alt="Nyxie Mobile App"
-                          className="absolute inset-0 w-full h-full object-cover rounded-md"
-                          onError={(e) => {
-                            e.target.style.display = 'none'
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              </div>
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl -z-10"></div>
-            </motion.div>
-
-            {/* Features List */}
-            <div className="space-y-6">
-              <h3 className="text-3xl font-bold mb-6 flex items-center gap-3">
-                <Smartphone className="w-8 h-8 text-purple-400" />
-                Customer Mobile App
-              </h3>
-              <ul className="space-y-4">
-                {[
-                  "Browse salons & services in real-time",
-                  "Book appointments 24/7 instantly",
-                  "View specialist availability",
-                  "Manage bookings & view history",
-                  "Leave reviews & ratings"
-                ].map((feature, index) => (
-                  <motion.li
-                    key={index}
-                    initial={{ opacity: 0, x: 20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.1 }}
-                    className="flex items-start gap-3"
-                  >
-                    <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0 mt-1" />
-                    <span className="text-lg text-purple-100">{feature}</span>
-                  </motion.li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          {/* CRM Mockup */}
-          <div className="grid md:grid-cols-2 gap-12 items-center mt-20">
-            {/* Features List */}
-            <div className="space-y-6 order-2 md:order-1">
-              <h3 className="text-3xl font-bold mb-6 flex items-center gap-3">
-                <Monitor className="w-8 h-8 text-pink-400" />
-                Business CRM Dashboard
-              </h3>
-              <ul className="space-y-4">
-                {[
-                  "Automatic booking synchronization",
-                  "Real-time calendar management",
-                  "Customer insights & analytics",
-                  "Specialist scheduling",
-                  "Revenue tracking & reports"
-                ].map((feature, index) => (
-                  <motion.li
-                    key={index}
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.1 }}
-                    className="flex items-start gap-3"
-                  >
-                    <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0 mt-1" />
-                    <span className="text-lg text-purple-100">{feature}</span>
-                  </motion.li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Desktop Mockup */}
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-              className="relative order-1 md:order-2"
-            >
-              <motion.div
-                variants={floatVariants}
-                animate="animate"
-                className="relative z-10 flex justify-center"
-              >
-                <div className="bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg p-2 shadow-2xl border border-purple-700 w-[630px]">
-                  <div className="bg-gray-900 rounded-md overflow-hidden">
-                    <div className="relative h-[395px] bg-purple-950 rounded-md">
-                      <img
-                        src="/screenshots/crm-desktop-2.png"
-                        alt="Nyxie CRM Dashboard"
-                        className="absolute inset-0 w-full h-full object-cover"
-                        onError={(e) => {
-                          e.target.style.display = 'none'
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-600/20 rounded-full blur-3xl -z-10"></div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* Competitive Advantages */}
-      <section className="py-20 px-6">
-        <div className="max-w-7xl mx-auto">
-          <motion.h2
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className="text-4xl md:text-5xl font-bold text-center mb-16"
-          >
-            Our Competitive Edge
-          </motion.h2>
-
-          <div className="grid md:grid-cols-2 gap-8 mb-12">
-            {advantages.map((advantage, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-gradient-to-br from-purple-900/50 to-violet-900/50 backdrop-blur-xl rounded-xl p-6 border border-purple-700 shadow-xl"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="p-3 bg-purple-700 rounded-lg text-white">
-                    {advantage.icon}
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold mb-2">{advantage.title}</h3>
-                    <p className="text-purple-200">{advantage.description}</p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          <motion.div
+            The industry solved scheduling years ago.{' '}
+            <span className="italic">Nobody</span> ever built a system to make your clients actually stay.
+          </motion.p>
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="bg-gradient-to-r from-purple-800/50 to-pink-800/50 rounded-xl p-8 border border-purple-600"
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="mt-6 text-lg md:text-xl font-[Inter] font-light text-white/50 tracking-wide"
           >
-            <h3 className="text-2xl font-bold mb-6 text-center">Why We Win</h3>
-            <ul className="space-y-3">
-              {competitiveEdge.map((point, index) => (
-                <motion.li
-                  key={index}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className="flex items-start gap-3"
-                >
-                  <div className="w-2 h-2 bg-purple-400 rounded-full mt-2 flex-shrink-0"></div>
-                  <span className="text-lg">{point}</span>
-                </motion.li>
-              ))}
-            </ul>
-          </motion.div>
+            We're here to change that.
+          </motion.p>
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="py-20 px-6">
-        <div className="max-w-4xl mx-auto text-center">
+      {/* Product Showcase - Phone + CRM */}
+      <section className="relative py-24 md:py-32 px-6 overflow-hidden">
+        <div className="relative max-w-7xl mx-auto">
+          {/* Header */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.7 }}
+            className="text-center mb-16 md:mb-20"
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Ready to Transform Beauty & Wellness?
-            </h2>
-            <p className="text-xl text-purple-200 mb-12">
-              Join the revolution. Access our CRM or download the customer app.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => navigate('/login')}
-                className="px-10 py-5 bg-purple-800/50 border border-purple-600 rounded-lg font-bold text-xl hover:bg-purple-800/70 transition-colors"
-              >
-                Nyxie For Business
-              </motion.button>
-
-              <div className="flex gap-4">
-                <motion.a
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  href="#"
-                  className="px-8 py-5 bg-black rounded-lg font-semibold flex items-center gap-2 border border-purple-600"
-                >
-                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="white">
-                    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-                  </svg>
-                  App Store
-                </motion.a>
-
-                <motion.a
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  href="#"
-                  className="px-8 py-5 bg-black rounded-lg font-semibold flex items-center gap-2 border border-purple-600"
-                >
-                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="white">
-                    <path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.53,12.9 20.18,13.18L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z"/>
-                  </svg>
-                  Google Play
-                </motion.a>
-              </div>
+            <div className="text-[10px] tracking-[0.3em] uppercase text-purple-400 font-semibold mb-4 flex items-center justify-center gap-2.5 font-[Inter]">
+              <span className="w-[30px] h-px bg-gradient-to-r from-transparent via-purple-500 to-transparent" />
+              The Platform
+              <span className="w-[30px] h-px bg-gradient-to-r from-transparent via-purple-500 to-transparent" />
             </div>
+            <h2 className="font-[Playfair] text-[clamp(2rem,4.5vw,3.2rem)] font-normal leading-[1.15] mb-4 text-[#f0ecf9]">
+              Two sides. <em className="italic text-purple-300">One</em> platform.
+            </h2>
+            <p className="text-[0.95rem] text-[#b8b0ce] max-w-[520px] mx-auto leading-[1.7] font-light font-[Inter]">
+              Your customers browse and book through the app. You manage everything from the CRM.
+            </p>
           </motion.div>
+
+          {/* Visual composition */}
+          <div className="relative flex items-center justify-center min-h-[400px] md:min-h-[500px] lg:min-h-[580px]">
+
+            {/* CRM Dashboard - background, tilted */}
+            <motion.div
+              initial={{ opacity: 0, y: 40, scale: 0.95 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.1 }}
+              className="relative w-full max-w-4xl mx-auto"
+            >
+              {/* Label */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.6 }}
+                className="absolute -top-8 left-4 md:left-8 z-20 flex items-center gap-2"
+              >
+                <div className="w-2 h-2 rounded-full bg-purple-400" />
+                <span className="text-xs font-medium text-white/60 font-[Inter] tracking-wide uppercase">For your business</span>
+              </motion.div>
+
+              <div className="relative rounded-xl overflow-hidden border border-purple-500/10 shadow-[0_20px_80px_rgba(0,0,0,0.5),0_0_60px_rgba(147,108,255,0.08)]"
+                style={{ transform: 'perspective(1200px) rotateX(2deg)' }}
+              >
+                {/* Subtle gradient overlay at edges */}
+                <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+                <img
+                  src="/screenshots/crm-desktop-1.png"
+                  alt="Nyxie CRM Dashboard"
+                  className="w-full h-auto block"
+                />
+              </div>
+            </motion.div>
+
+            {/* Phone - foreground, overlapping from right */}
+            <motion.div
+              initial={{ opacity: 0, y: 60, x: 30 }}
+              whileInView={{ opacity: 1, y: 0, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.35 }}
+              className="absolute -bottom-12 -right-4 md:right-4 lg:right-12 z-20 w-[200px] md:w-[280px] lg:w-[340px]"
+            >
+              {/* Label */}
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.8 }}
+                className="absolute -top-8 right-4 z-20 flex items-center gap-2"
+              >
+                <span className="text-xs font-medium text-white/60 font-[Inter] tracking-wide uppercase">For your clients</span>
+                <div className="w-2 h-2 rounded-full bg-[#00EBFB]" />
+              </motion.div>
+
+              <img
+                src="/screenshots/phone-app.png"
+                alt="Nyxie Customer App"
+                className="w-full h-auto block drop-shadow-[0_20px_40px_rgba(0,0,0,0.5)]"
+              />
+            </motion.div>
+          </div>
         </div>
       </section>
+
+      <FeaturesSection />
+
+      <Pricing />
 
       {/* Footer */}
-      <footer className="py-8 px-6 border-t border-purple-700/20">
-        <div className="max-w-7xl mx-auto text-center text-purple-300">
-          <p>&copy; 2025 Nyxie. Revolutionizing the beauty & wellness industry.</p>
+      <footer className="w-full pt-0 pb-0">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between px-6 md:px-10 py-12 max-w-7xl mx-auto">
+          {/* Left - Logo & description */}
+          <div className="flex flex-col items-start gap-5 max-w-xs mb-8 md:mb-0">
+            <a href="/" className="hover:opacity-80 transition-opacity">
+              <img
+                src="/logo.png"
+                alt="Nyxie"
+                className="h-8 w-auto brightness-0 invert"
+              />
+            </a>
+            <p className="text-sm text-white/40 leading-relaxed font-[Inter]">
+              AI-powered CRM for beauty & wellness. Streamline operations, retain clients, grow revenue.
+            </p>
+            <div className="flex items-center gap-3">
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => navigate('/login')}
+                className="px-5 py-2.5 text-sm font-medium bg-gradient-to-r from-purple-600 via-violet-600 to-fuchsia-600 text-white rounded-lg shadow-[0_0_20px_rgba(147,51,234,0.3)] hover:shadow-[0_0_28px_rgba(147,51,234,0.5)] transition-all font-[Inter]"
+              >
+                Get Started
+              </motion.button>
+            </div>
+          </div>
+
+          {/* Right - Minimal real links */}
+          <div className="flex gap-16 md:gap-20">
+            <div className="flex flex-col gap-3">
+              <span className="text-sm font-medium text-white/80 mb-1 font-[Inter]">Product</span>
+              <button onClick={() => navigate('/login')} className="text-sm text-white/40 hover:text-white/70 transition-colors text-left font-[Inter]">Business CRM</button>
+              <a href="#" className="text-sm text-white/40 hover:text-white/70 transition-colors font-[Inter]">Mobile App</a>
+            </div>
+            <div className="flex flex-col gap-3">
+              <span className="text-sm font-medium text-white/80 mb-1 font-[Inter]">Download</span>
+              <a href="#" className="text-sm text-white/40 hover:text-white/70 transition-colors flex items-center gap-2 font-[Inter]">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                </svg>
+                App Store
+              </a>
+              <a href="#" className="text-sm text-white/40 hover:text-white/70 transition-colors flex items-center gap-2 font-[Inter]">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.53,12.9 20.18,13.18L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z"/>
+                </svg>
+                Google Play
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* FlickeringGrid with brand text */}
+        <div className="w-full h-48 md:h-64 relative mt-8 z-0">
+          <div className="absolute inset-0 bg-gradient-to-t from-transparent to-black z-10 from-40%" />
+          <div className="absolute inset-0 mx-6">
+            <FlickeringGrid
+              text="Nyxie"
+              fontSize={120}
+              fontWeight={300}
+              className="h-full w-full"
+              squareSize={2}
+              gridGap={3}
+              color="#a855f7"
+              maxOpacity={0.3}
+              flickerChance={0.1}
+            />
+          </div>
+        </div>
+
+        {/* Copyright */}
+        <div className="px-6 py-6 border-t border-purple-500/10">
+          <p className="text-center text-xs text-white/25 font-[Inter]">
+            &copy; 2025 Nyxie. All rights reserved.
+          </p>
         </div>
       </footer>
     </div>

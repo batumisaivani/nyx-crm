@@ -43,7 +43,7 @@ export default function TimePickerModal({ isOpen, onClose, openTime, closeTime, 
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-gray-900/95 backdrop-blur-xl rounded-2xl border-2 border-purple-600 shadow-2xl shadow-purple-500/20 p-6 min-w-[320px] pointer-events-auto"
+              className="bg-black/95 backdrop-blur-xl rounded-2xl border-2 border-purple-600 shadow-2xl shadow-purple-500/20 p-6 min-w-[320px] pointer-events-auto"
             >
               {/* Header */}
               <div className="flex items-center justify-between mb-6">
@@ -79,7 +79,7 @@ export default function TimePickerModal({ isOpen, onClose, openTime, closeTime, 
               <div className="flex items-center space-x-3">
                 <button
                   onClick={handleCancel}
-                  className="flex-1 px-4 py-2.5 bg-gray-800/50 border-2 border-gray-700 text-gray-300 rounded-lg hover:bg-gray-800/70 transition-all font-medium"
+                  className="flex-1 px-4 py-2.5 bg-white/5/50 border-2 border-purple-500/10 text-gray-300 rounded-lg hover:bg-white/5/70 transition-all font-medium"
                 >
                   Cancel
                 </button>

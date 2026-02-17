@@ -2,6 +2,208 @@
 
 @variant dark (&:is(.dark *));
 
+/* Canela Trial Light font */
+@font-face {
+  font-family: 'Canela';
+  src: url('/fonts/Canela-Light-Trial.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Dark theme CSS variables for shadcn-style components */
+:root {
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #0a0a0a;
+  --card-foreground: #ffffff;
+  --popover: #0a0a0a;
+  --popover-foreground: #ffffff;
+  --primary: #a855f7;
+  --primary-foreground: #ffffff;
+  --secondary: #1a1a2e;
+  --secondary-foreground: #ffffff;
+  --muted: #1a1a1a;
+  --muted-foreground: #a1a1aa;
+  --accent: #7c3aed;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #7c3aed40;
+  --input: #7c3aed40;
+  --ring: #a855f7;
+  --radius: 0.5rem;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+/* Base styles */
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-weight: 400;
+}
+
+/* Tailwind v4 theme extensions */
+@theme {
+  --font-playfair: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --color-background: #000000;
+  --color-foreground: #ffffff;
+  --color-card: #0a0a0a;
+  --color-card-foreground: #ffffff;
+  --color-primary: #a855f7;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #1a1a2e;
+  --color-secondary-foreground: #ffffff;
+  --color-muted: #1a1a1a;
+  --color-muted-foreground: #a1a1aa;
+  --color-accent: #7c3aed;
+  --color-accent-foreground: #ffffff;
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #ffffff;
+  --color-border: rgba(124, 58, 237, 0.25);
+  --color-input: rgba(124, 58, 237, 0.25);
+  --color-ring: #a855f7;
+}
+
+/* ═══ Features Section Panels ═══ */
+.feat-panel {
+  background: rgba(14, 11, 28, 0.7);
+  border: 1px solid rgba(147, 108, 255, 0.1);
+  border-radius: 18px;
+  backdrop-filter: blur(24px);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  position: relative;
+}
+.feat-panel:hover {
+  border-color: rgba(147, 108, 255, 0.22);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35), 0 0 80px rgba(147, 108, 255, 0.05);
+}
+.feat-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+}
+.feat-panel-1::before { background: linear-gradient(90deg, transparent, #00EBFB, transparent); }
+.feat-panel-2::before { background: linear-gradient(90deg, transparent, #d8b4fe, transparent); }
+.feat-panel-3::before { background: linear-gradient(90deg, transparent, #fda4af, transparent); }
+.feat-panel-1:hover { border-color: rgba(0, 235, 251, 0.15); }
+.feat-panel-2:hover { border-color: rgba(216, 180, 254, 0.15); }
+.feat-panel-3:hover { border-color: rgba(253, 164, 175, 0.15); }
+
+.feat-panel-head {
+  padding: 1.1rem 1.25rem 0.85rem;
+  border-bottom: 1px solid rgba(147, 108, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.feat-panel-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  font-family: 'Inter', sans-serif;
+  color: #f0ecf9;
+}
+.feat-tag {
+  font-size: 7.5px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.55rem;
+  border-radius: 100px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: 'Inter', sans-serif;
+}
+.feat-tag-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.feat-tag-user { background: rgba(0, 235, 251, 0.06); color: #00EBFB; border: 1px solid rgba(0, 235, 251, 0.12); }
+.feat-tag-ai { background: rgba(159, 122, 234, 0.05); color: #c4b5fd; border: 1px solid rgba(196, 181, 253, 0.12); }
+.feat-tag-biz { background: rgba(253, 164, 175, 0.06); color: #fda4af; border: 1px solid rgba(253, 164, 175, 0.12); }
+
+.feat-phone {
+  width: 220px;
+  background: #0b0820;
+  border-radius: 24px;
+  border: 1.5px solid rgba(147, 108, 255, 0.08);
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(147, 108, 255, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.feat-heatmap-pulse {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(244, 114, 182, 0.25), transparent);
+  animation: featHeatPulse 2s ease-in-out infinite;
+}
+@keyframes featHeatPulse {
+  0%, 100% { transform: scale(0.8); opacity: 0.3; }
+  50% { transform: scale(1.3); opacity: 0.7; }
+}
+
+/* Intelligence step numbers */
+.feat-sn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  font-family: 'Inter', sans-serif;
+  position: relative;
+}
+.feat-sn::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  opacity: 0.1;
+}
+.feat-sn-1 { background: linear-gradient(135deg, rgba(196,181,253,0.15), rgba(159,122,234,0.08)); color: #c4b5fd; box-shadow: 0 0 12px rgba(196,181,253,0.08); }
+.feat-sn-1::after { box-shadow: 0 0 0 1.5px #c4b5fd; }
+.feat-sn-2 { background: linear-gradient(135deg, rgba(103,232,249,0.12), rgba(0,200,213,0.06)); color: #00EBFB; box-shadow: 0 0 12px rgba(103,232,249,0.06); }
+.feat-sn-2::after { box-shadow: 0 0 0 1.5px #00EBFB; }
+.feat-sn-3 { background: linear-gradient(135deg, rgba(253,164,175,0.1), rgba(251,113,133,0.06)); color: #fda4af; box-shadow: 0 0 12px rgba(253,164,175,0.06); }
+.feat-sn-3::after { box-shadow: 0 0 0 1.5px #fda4af; }
+.feat-sn-4 { background: linear-gradient(135deg, rgba(216,180,254,0.12), rgba(192,132,252,0.06)); color: #d8b4fe; box-shadow: 0 0 12px rgba(216,180,254,0.06); }
+.feat-sn-4::after { box-shadow: 0 0 0 1.5px #d8b4fe; }
+
 /* Hide scrollbar for wheel picker */
 .scrollbar-hide {
   -ms-overflow-style: none;  /* IE and Edge */

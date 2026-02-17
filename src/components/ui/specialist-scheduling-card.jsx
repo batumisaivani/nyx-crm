@@ -560,7 +560,7 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
       className="overflow-hidden"
     >
       {/* Specialist Profile Header */}
-      <div className="p-4 border-b border-purple-700">
+      <div className="p-4 border-b border-purple-500/10">
         <div className="grid grid-cols-2 gap-4 divide-x divide-purple-700">
           {/* Left Side: Specialist & Service */}
           <div className="pr-4 space-y-2">
@@ -583,7 +583,7 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
                   initial={{ x: -20, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
                   transition={{ delay: 0.3 }}
-                  className="text-lg font-bold text-white font-[Calibri,sans-serif]"
+                  className="text-lg font-bold text-white font-[Inter]"
                 >
                   {specialist.name}
                 </motion.h3>
@@ -627,7 +627,7 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
                       const service = services.find(s => s.id === e.target.value)
                       setSelectedService(service)
                     }}
-                    className="w-full px-3 py-1.5 text-sm bg-purple-950/25 border border-purple-700/50 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 h-9"
+                    className="w-full px-3 py-1.5 text-sm bg-purple-950/25 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 h-9"
                   >
                     <option value="" disabled className="bg-purple-950 text-gray-400">Select Service *</option>
                     {services.map((service) => (
@@ -640,11 +640,11 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
                   {/* Service Details */}
                   {selectedService && (
                     <div className="mt-2 flex items-center gap-2 text-sm font-semibold">
-                      <div className="flex-1 flex items-center justify-center gap-1 px-2 py-1 bg-purple-950/25 border border-purple-700/50 rounded-md text-purple-300">
+                      <div className="flex-1 flex items-center justify-center gap-1 px-2 py-1 bg-purple-950/25 border border-purple-500/10 rounded-md text-purple-300">
                         <Coins className="w-4 h-4" />
                         <span>{selectedService.price} ₾</span>
                       </div>
-                      <div className="flex-1 flex items-center justify-center gap-1 px-2 py-1 bg-purple-950/25 border border-purple-700/50 rounded-md text-purple-300">
+                      <div className="flex-1 flex items-center justify-center gap-1 px-2 py-1 bg-purple-950/25 border border-purple-500/10 rounded-md text-purple-300">
                         <Clock className="w-4 h-4" />
                         <span>{selectedService.duration_minutes} min</span>
                       </div>
@@ -677,13 +677,13 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
                   setTimeout(() => setShowCustomerDropdown(false), 200)
                 }}
                 placeholder="Customer Name *"
-                className="w-full px-3 py-1.5 text-sm bg-purple-950/25 border border-purple-700/50 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 placeholder-gray-400 h-9"
+                className="w-full px-3 py-1.5 text-sm bg-purple-950/25 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 placeholder-gray-400 h-9"
                 autoComplete="off"
               />
 
               {/* Customer Dropdown */}
               {showCustomerDropdown && filteredCustomers.length > 0 && (
-                <div className="absolute z-50 w-full mt-1 bg-purple-950/95 border border-purple-700 rounded-lg shadow-xl max-h-32 overflow-y-auto">
+                <div className="absolute z-50 w-full mt-1 bg-purple-950/95 border border-purple-500/10 rounded-lg shadow-xl max-h-32 overflow-y-auto">
                   {filteredCustomers.map((customer, index) => (
                     <button
                       key={index}
@@ -704,7 +704,7 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
                 value={customerPhone}
                 onChange={(e) => setCustomerPhone(e.target.value)}
                 placeholder="Phone Number *"
-                className="w-full px-3 py-1.5 text-sm bg-purple-950/25 border border-purple-700/50 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 placeholder-gray-400 h-9"
+                className="w-full px-3 py-1.5 text-sm bg-purple-950/25 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 placeholder-gray-400 h-9"
               />
             </div>
           </motion.div>
@@ -717,7 +717,7 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
         <div className="flex items-center justify-center gap-6 mb-3">
           <button
             onClick={goToPreviousWeek}
-            className="p-1.5 rounded-full bg-purple-900/30 border border-purple-700 text-white hover:bg-purple-900/50 transition-all"
+            className="p-1.5 rounded-full bg-purple-900/30 border border-purple-500/10 text-white hover:bg-purple-900/50 transition-all"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
@@ -728,14 +728,14 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
             animate={{ opacity: 1, y: 0 }}
             className="text-center"
           >
-            <div className="text-white text-sm font-semibold font-[Calibri,sans-serif]">
+            <div className="text-white text-sm font-semibold font-[Inter]">
               {getMonthName(weekDays[0])} {getDayNumber(weekDays[0])} - {getMonthName(weekDays[6])} {getDayNumber(weekDays[6])}
             </div>
           </motion.div>
 
           <button
             onClick={goToNextWeek}
-            className="p-1.5 rounded-full bg-purple-900/30 border border-purple-700 text-white hover:bg-purple-900/50 transition-all"
+            className="p-1.5 rounded-full bg-purple-900/30 border border-purple-500/10 text-white hover:bg-purple-900/50 transition-all"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -764,10 +764,10 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
                 className={`
                   p-2 rounded-lg border-2 transition-all text-center
                   ${isSelected
-                    ? 'border-purple-500 bg-purple-900/40 shadow-lg shadow-purple-500/30'
+                    ? 'border-purple-500 bg-purple-900/40 shadow-lg shadow-purple-500/20'
                     : disabled || slotsCount === 0
-                      ? 'border-purple-700/30 bg-purple-950/10'
-                      : 'border-purple-700/50 bg-purple-950/25 hover:border-purple-600'
+                      ? 'border-purple-500/[0.06] bg-purple-950/10'
+                      : 'border-purple-500/10 bg-purple-950/25 hover:border-purple-500/40'
                   }
                   ${disabled || slotsCount === 0
                     ? 'cursor-not-allowed'
@@ -792,7 +792,7 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
 
         {/* Time Slots - Only show available slots */}
         {selectedDate && (
-          <div className="border-t border-purple-700 pt-3 mt-3">
+          <div className="border-t border-purple-500/10 pt-3 mt-3">
             {availableSlots[selectedDate] && availableSlots[selectedDate].length > 0 ? (
               <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-1.5">
                 {availableSlots[selectedDate].map((time) => {
@@ -805,8 +805,8 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
                       className={`
                         px-2 py-1.5 rounded-lg border-2 transition-all text-xs font-medium cursor-pointer
                         ${isSelected
-                          ? 'border-purple-500 bg-purple-900/40 text-white shadow-lg shadow-purple-500/30'
-                          : 'border-purple-700/50 bg-purple-950/25 text-purple-200 hover:border-purple-600'
+                          ? 'border-purple-500 bg-purple-900/40 text-white shadow-lg shadow-purple-500/20'
+                          : 'border-purple-500/10 bg-purple-950/25 text-purple-200 hover:border-purple-500/40'
                         }
                       `}
                     >
@@ -824,7 +824,7 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
         )}
 
         {!selectedDate && (
-          <div className="border-t border-purple-700 pt-3 mt-3">
+          <div className="border-t border-purple-500/10 pt-3 mt-3">
             <div className="text-center py-8 text-purple-300">
               Select a date to view available times
             </div>
@@ -839,7 +839,7 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.3 }}
-              className="border-t border-purple-700 pt-3 mt-3 pb-0"
+              className="border-t border-purple-500/10 pt-3 mt-3 pb-0"
             >
               <div className="grid grid-cols-3 gap-2 text-purple-200 text-xs mb-3">
                 <div className="flex items-center gap-1.5 justify-start">
@@ -896,7 +896,7 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
                       setSelectedDate(null)
                       setSelectedTime(null)
                     }}
-                    className="flex-1 px-3 py-1.5 border border-purple-700 text-purple-200 rounded-lg hover:bg-purple-800/30 transition-all flex items-center justify-center gap-1 text-xs"
+                    className="flex-1 px-3 py-1.5 border border-purple-500/10 text-purple-200 rounded-lg hover:bg-purple-800/30 transition-all flex items-center justify-center gap-1 text-xs"
                   >
                     <X className="w-3 h-3" />
                     Cancel
@@ -928,7 +928,7 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
             <motion.div
               initial={{ y: -50 }}
               animate={{ y: 0 }}
-              className="bg-gradient-to-r from-purple-900/95 to-violet-900/95 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6 text-center"
+              className="bg-gradient-to-r from-purple-900/95 to-violet-900/95 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 text-center"
             >
               <motion.div
                 initial={{ scale: 0 }}
@@ -938,7 +938,7 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
               >
                 <Check className="w-7 h-7 text-white" />
               </motion.div>
-              <h3 className="text-lg font-bold text-white mb-1 font-[Calibri,sans-serif]">
+              <h3 className="text-lg font-bold text-white mb-1 font-[Inter]">
                 {initialBookingData ? 'Edit saved' : 'Booking Confirmed!'}
               </h3>
               <p className="text-purple-200 text-sm">

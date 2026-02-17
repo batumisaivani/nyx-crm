@@ -81,7 +81,7 @@ export default function AnimatedCard({ children, className = '', as = 'div' }) {
 
             {/* Right light beam */}
             <motion.div
-              className="absolute top-0 right-0 h-[50%] w-[3px] bg-gradient-to-b from-transparent via-pink-500 to-transparent"
+              className="absolute top-0 right-0 h-[50%] w-[3px] bg-gradient-to-b from-transparent via-violet-500 to-transparent"
               initial={{ filter: "blur(2px)" }}
               animate={{
                 top: ["-50%", "100%"],
@@ -145,7 +145,7 @@ export default function AnimatedCard({ children, className = '', as = 'div' }) {
 
             {/* Left light beam */}
             <motion.div
-              className="absolute bottom-0 left-0 h-[50%] w-[3px] bg-gradient-to-b from-transparent via-pink-500 to-transparent"
+              className="absolute bottom-0 left-0 h-[50%] w-[3px] bg-gradient-to-b from-transparent via-violet-500 to-transparent"
               initial={{ filter: "blur(2px)" }}
               animate={{
                 bottom: ["-50%", "100%"],
@@ -188,7 +188,7 @@ export default function AnimatedCard({ children, className = '', as = 'div' }) {
               }}
             />
             <motion.div
-              className="absolute top-0 right-0 h-[6px] w-[6px] rounded-full bg-pink-400/60 blur-[2px]"
+              className="absolute top-0 right-0 h-[6px] w-[6px] rounded-full bg-violet-400/60 blur-[2px]"
               animate={{
                 opacity: [0.2, 0.4, 0.2]
               }}
@@ -212,7 +212,7 @@ export default function AnimatedCard({ children, className = '', as = 'div' }) {
               }}
             />
             <motion.div
-              className="absolute bottom-0 left-0 h-[4px] w-[4px] rounded-full bg-pink-400/40 blur-[1px]"
+              className="absolute bottom-0 left-0 h-[4px] w-[4px] rounded-full bg-violet-400/40 blur-[1px]"
               animate={{
                 opacity: [0.2, 0.4, 0.2]
               }}
@@ -226,10 +226,10 @@ export default function AnimatedCard({ children, className = '', as = 'div' }) {
           </div>
 
           {/* Card border glow */}
-          <div className="absolute -inset-[0.5px] rounded-lg bg-gradient-to-r from-purple-500/10 via-pink-500/20 to-purple-500/10 opacity-0 group-hover:opacity-70 transition-opacity duration-500 pointer-events-none" />
+          <div className="absolute -inset-[0.5px] rounded-lg bg-gradient-to-r from-purple-500/10 via-violet-500/20 to-purple-500/10 opacity-0 group-hover:opacity-70 transition-opacity duration-500 pointer-events-none" />
 
           {/* Glass card background - tender, transparent */}
-          <div className={`relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl overflow-hidden ${className}`}>
+          <div className={`relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/[0.08] shadow-2xl overflow-hidden ${className}`}>
             {/* Subtle card inner patterns */}
             <div className="absolute inset-0 opacity-[0.02] pointer-events-none"
               style={{

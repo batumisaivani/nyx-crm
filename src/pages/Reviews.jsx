@@ -201,7 +201,7 @@ export default function Reviews() {
           <span
             key={star}
             className={`text-xl ${
-              star <= rating ? 'text-yellow-400' : 'text-gray-600'
+              star <= rating ? 'text-yellow-400' : 'text-gray-400'
             }`}
           >
             ★
@@ -233,7 +233,7 @@ export default function Reviews() {
     <div className="w-full -mt-4">
       {/* Header */}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-white font-[Calibri,sans-serif]">Reviews & Ratings</h2>
+        <h2 className="text-2xl font-bold text-white font-[Inter]">Reviews & Ratings</h2>
         <p className="text-gray-300 mt-1">Manage customer feedback and build trust</p>
       </div>
 
@@ -266,7 +266,7 @@ export default function Reviews() {
             {[5, 4, 3, 2, 1].map((star) => (
               <div key={star} className="flex items-center space-x-2">
                 <span className="text-xs text-gray-300 w-6">{star}★</span>
-                <div className="flex-1 bg-gray-700 rounded-full h-1.5">
+                <div className="flex-1 bg-white/10 rounded-full h-1.5">
                   <div
                     className="bg-gradient-to-r from-yellow-400 to-yellow-500 h-1.5 rounded-full transition-all"
                     style={{
@@ -351,7 +351,7 @@ export default function Reviews() {
       </div>
 
       {/* Filters */}
-      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6 mb-6">
+      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 mb-6">
         <div className="flex items-center space-x-4 flex-wrap gap-3">
           <div className="flex items-center space-x-2">
             <Filter className="w-5 h-5 text-purple-300" />
@@ -362,8 +362,8 @@ export default function Reviews() {
               onClick={() => setFilterRating('all')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 filterRating === 'all'
-                  ? 'bg-purple-900/30 border border-purple-700 text-white'
-                  : 'bg-gray-900/30 border border-purple-700/30 text-gray-200 hover:border-purple-600'
+                  ? 'bg-purple-900/30 border border-purple-500/10 text-white'
+                  : 'bg-black/30 border border-purple-500/[0.06] text-gray-200 hover:border-purple-500/40'
               }`}
             >
               All
@@ -374,8 +374,8 @@ export default function Reviews() {
                 onClick={() => setFilterRating(rating.toString())}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   filterRating === rating.toString()
-                    ? 'bg-purple-900/30 border border-purple-700 text-white'
-                    : 'bg-gray-900/30 border border-purple-700/30 text-gray-200 hover:border-purple-600'
+                    ? 'bg-purple-900/30 border border-purple-500/10 text-white'
+                    : 'bg-black/30 border border-purple-500/[0.06] text-gray-200 hover:border-purple-500/40'
                 }`}
               >
                 {rating}★
@@ -388,9 +388,9 @@ export default function Reviews() {
       {/* Reviews List */}
       <div className="space-y-4">
         {reviews.length === 0 ? (
-          <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-16 text-center">
+          <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-16 text-center">
             <Star className="w-16 h-16 mx-auto mb-4 text-purple-300" />
-            <h3 className="text-xl font-semibold text-white mb-2 font-[Calibri,sans-serif]">No reviews yet</h3>
+            <h3 className="text-xl font-semibold text-white mb-2 font-[Inter]">No reviews yet</h3>
             <p className="text-gray-300">
               {filterRating === 'all'
                 ? 'Your customers haven\'t left any reviews yet'
@@ -401,15 +401,15 @@ export default function Reviews() {
           reviews.map((review) => (
             <div
               key={review.id}
-              className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6 hover:shadow-purple-500/20 transition-all"
+              className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 hover:shadow-purple-500/20 transition-all"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-purple-500/30">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 via-violet-500 to-fuchsia-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-purple-500/20">
                     {review.customer_name?.charAt(0).toUpperCase() || 'U'}
                   </div>
                   <div>
-                    <div className="font-semibold text-white font-[Calibri,sans-serif]">
+                    <div className="font-semibold text-white font-[Inter]">
                       {review.customer_name || 'Anonymous'}
                     </div>
                     <div className="text-xs text-gray-300">{review.customer_email}</div>
@@ -451,13 +451,13 @@ export default function Reviews() {
                     onChange={(e) => setReplyText(e.target.value)}
                     placeholder="Write your reply..."
                     rows={3}
-                    className="w-full px-4 py-3 bg-purple-950/25 border border-purple-700/50 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/90 transition-all placeholder-gray-400"
+                    className="w-full px-4 py-3 bg-purple-950/25 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/90 transition-all placeholder-gray-400"
                   />
                   <div className="flex space-x-2 mt-2">
                     <button
                       onClick={() => handleReply(review.id)}
                       disabled={submitting}
-                      className="px-4 py-2 bg-purple-900/30 border border-purple-700 text-white rounded-lg hover:bg-purple-900/40 disabled:opacity-50 text-sm font-medium transition-all"
+                      className="px-4 py-2 bg-purple-900/30 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/40 disabled:opacity-50 text-sm font-medium transition-all"
                     >
                       {submitting ? 'Posting...' : 'Post Reply'}
                     </button>
@@ -467,7 +467,7 @@ export default function Reviews() {
                         setReplyText('')
                       }}
                       disabled={submitting}
-                      className="px-4 py-2 bg-gray-900/30 border border-purple-700/30 text-gray-200 rounded-lg hover:border-purple-600 text-sm font-medium transition-all"
+                      className="px-4 py-2 bg-black/30 border border-purple-500/[0.06] text-gray-200 rounded-lg hover:border-purple-500/40 text-sm font-medium transition-all"
                     >
                       Cancel
                     </button>

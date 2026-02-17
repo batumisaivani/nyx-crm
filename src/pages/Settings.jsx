@@ -3,11 +3,11 @@ import { Globe, Palette, LifeBuoy, Sparkles, Rocket, MessageCircle, Mail, Video,
 
 export default function Settings() {
   const [language, setLanguage] = useState(localStorage.getItem('language') || 'en')
-  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light')
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark')
 
   // Apply theme on mount
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') || 'light'
+    const savedTheme = localStorage.getItem('theme') || 'dark'
     if (savedTheme === 'dark') {
       document.documentElement.classList.add('dark')
     } else {
@@ -75,16 +75,16 @@ export default function Settings() {
     <div className="w-full -mt-4">
       {/* Header */}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-white font-[Calibri,sans-serif]">Settings & Support</h2>
+        <h2 className="text-2xl font-bold text-white font-[Inter]">Settings & Support</h2>
         <p className="text-gray-300 mt-1">Customize your experience and get help</p>
       </div>
 
       {/* Language Settings */}
-      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6 mb-6">
+      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 mb-6">
         <div className="flex items-center mb-6">
           <Globe className="w-6 h-6 text-purple-300 mr-3" />
           <div>
-            <h3 className="text-xl font-semibold text-white font-[Calibri,sans-serif]">Language</h3>
+            <h3 className="text-xl font-semibold text-white font-[Inter]">Language</h3>
             <p className="text-sm text-gray-300">Choose your preferred language</p>
           </div>
         </div>
@@ -94,8 +94,8 @@ export default function Settings() {
             onClick={() => handleLanguageChange('en')}
             className={`relative w-full p-4 rounded-xl border-2 transition-all transform hover:scale-105 ${
               language === 'en'
-                ? 'border-purple-500 bg-purple-900/40 text-white shadow-lg shadow-purple-500/30'
-                : 'border-purple-700/50 bg-purple-950/25 text-gray-300 hover:border-purple-600'
+                ? 'border-purple-500 bg-purple-900/40 text-white shadow-lg shadow-purple-500/20'
+                : 'border-purple-500/10 bg-purple-950/25 text-gray-300 hover:border-purple-500/40'
             }`}
           >
             <div className="text-3xl mb-2">🇬🇧</div>
@@ -107,8 +107,8 @@ export default function Settings() {
             onClick={() => handleLanguageChange('ka')}
             className={`relative w-full p-4 rounded-xl border-2 transition-all transform hover:scale-105 ${
               language === 'ka'
-                ? 'border-purple-500 bg-purple-900/40 text-white shadow-lg shadow-purple-500/30'
-                : 'border-purple-700/50 bg-purple-950/25 text-gray-300 hover:border-purple-600'
+                ? 'border-purple-500 bg-purple-900/40 text-white shadow-lg shadow-purple-500/20'
+                : 'border-purple-500/10 bg-purple-950/25 text-gray-300 hover:border-purple-500/40'
             }`}
           >
             <div className="text-3xl mb-2">🇬🇪</div>
@@ -130,11 +130,11 @@ export default function Settings() {
       </div>
 
       {/* Theme Settings */}
-      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6 mb-6">
+      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 mb-6">
         <div className="flex items-center mb-6">
           <Palette className="w-6 h-6 text-purple-300 mr-3" />
           <div>
-            <h3 className="text-xl font-semibold text-white font-[Calibri,sans-serif]">Appearance</h3>
+            <h3 className="text-xl font-semibold text-white font-[Inter]">Appearance</h3>
             <p className="text-sm text-gray-300">Customize how Nyxie CRM looks</p>
           </div>
         </div>
@@ -144,8 +144,8 @@ export default function Settings() {
             onClick={() => handleThemeChange('light')}
             className={`relative w-full p-4 rounded-xl border-2 transition-all transform hover:scale-105 ${
               theme === 'light'
-                ? 'border-purple-500 bg-purple-900/40 text-white shadow-lg shadow-purple-500/30'
-                : 'border-purple-700/50 bg-purple-950/25 text-gray-300 hover:border-purple-600'
+                ? 'border-purple-500 bg-purple-900/40 text-white shadow-lg shadow-purple-500/20'
+                : 'border-purple-500/10 bg-purple-950/25 text-gray-300 hover:border-purple-500/40'
             }`}
           >
             <div className="mb-2 flex justify-center">
@@ -159,8 +159,8 @@ export default function Settings() {
             onClick={() => handleThemeChange('dark')}
             className={`relative w-full p-4 rounded-xl border-2 transition-all transform hover:scale-105 ${
               theme === 'dark'
-                ? 'border-purple-500 bg-purple-900/40 text-white shadow-lg shadow-purple-500/30'
-                : 'border-purple-700/50 bg-purple-950/25 text-gray-300 hover:border-purple-600'
+                ? 'border-purple-500 bg-purple-900/40 text-white shadow-lg shadow-purple-500/20'
+                : 'border-purple-500/10 bg-purple-950/25 text-gray-300 hover:border-purple-500/40'
             }`}
           >
             <div className="mb-2 flex justify-center">
@@ -173,11 +173,11 @@ export default function Settings() {
       </div>
 
       {/* Support Section */}
-      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6 mb-6">
+      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 mb-6">
         <div className="flex items-center mb-6">
           <LifeBuoy className="w-6 h-6 text-purple-300 mr-3" />
           <div>
-            <h3 className="text-xl font-semibold text-white font-[Calibri,sans-serif]">Support & Help</h3>
+            <h3 className="text-xl font-semibold text-white font-[Inter]">Support & Help</h3>
             <p className="text-sm text-gray-300">Get assistance from our team</p>
           </div>
         </div>
@@ -188,7 +188,7 @@ export default function Settings() {
             return (
               <div
                 key={index}
-                className="relative p-4 border-2 border-purple-700/50 rounded-xl hover:border-purple-600 transition-all bg-purple-950/25"
+                className="relative p-4 border-2 border-purple-500/10 rounded-xl hover:border-purple-500/40 transition-all bg-purple-950/25"
               >
                 <div className="flex items-start space-x-3">
                   <IconComponent className="w-6 h-6 text-purple-300 flex-shrink-0 mt-0.5" />
@@ -209,7 +209,7 @@ export default function Settings() {
           })}
         </div>
 
-        <div className="mt-6 p-4 bg-gradient-to-r from-purple-900/15 to-pink-900/15 border border-purple-700 rounded-xl">
+        <div className="mt-6 p-4 bg-gradient-to-r from-purple-900/15 to-pink-900/15 border border-purple-500/10 rounded-xl">
           <div className="flex items-start space-x-3">
             <Rocket className="w-5 h-5 text-purple-300 flex-shrink-0 mt-0.5" />
             <div>
@@ -224,7 +224,7 @@ export default function Settings() {
       </div>
 
       {/* About Section */}
-      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6">
+      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
         <div className="text-center">
           <p className="text-sm text-gray-300">Nyxie CRM, Version 1.0.0</p>
         </div>

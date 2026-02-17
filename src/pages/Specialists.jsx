@@ -917,7 +917,7 @@ export default function Specialists() {
   return (
     <div className="w-full -mt-4">
       {/* Tabs */}
-      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl mb-6">
+      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl mb-6">
         <div className="flex overflow-x-auto">
           {tabs.map((tab, index) => {
             const Icon = tab.Icon
@@ -934,7 +934,7 @@ export default function Specialists() {
                 } ${
                   index === tabs.length - 1 ? 'rounded-tr-lg' : ''
                 } ${
-                  index < tabs.length - 1 ? 'border-r border-purple-700/15' : ''
+                  index < tabs.length - 1 ? 'border-r border-purple-500/[0.06]' : ''
                 }`}
               >
                 <div className="flex items-center justify-center space-x-2">
@@ -977,7 +977,7 @@ export default function Specialists() {
           <div className="flex items-center space-x-2">
             <button
               onClick={handleAdd}
-              className="px-4 py-2 bg-purple-900/15 border border-purple-700 text-white rounded-lg hover:bg-purple-900/20 font-medium transition-all flex items-center space-x-2"
+              className="px-4 py-2 bg-purple-900/15 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/20 font-medium transition-all flex items-center space-x-2"
             >
               <Plus className="w-5 h-5" />
               <span>Add Specialist</span>
@@ -988,8 +988,8 @@ export default function Specialists() {
                   onClick={() => setViewMode('grid')}
                   className={`p-2 rounded-lg transition-all border ${
                     viewMode === 'grid'
-                      ? 'bg-purple-900/15 border-purple-700 text-white'
-                      : 'border-purple-700/15 bg-gray-900/15 text-gray-200 hover:border-purple-600'
+                      ? 'bg-purple-900/15 border-purple-500/20 text-white'
+                      : 'border-purple-500/[0.06] bg-black/15 text-gray-200 hover:border-purple-500/40'
                   }`}
                   title="Grid View"
                 >
@@ -999,8 +999,8 @@ export default function Specialists() {
                   onClick={() => setViewMode('list')}
                   className={`p-2 rounded-lg transition-all border ${
                     viewMode === 'list'
-                      ? 'bg-purple-900/15 border-purple-700 text-white'
-                      : 'border-purple-700/15 bg-gray-900/15 text-gray-200 hover:border-purple-600'
+                      ? 'bg-purple-900/15 border-purple-500/20 text-white'
+                      : 'border-purple-500/[0.06] bg-black/15 text-gray-200 hover:border-purple-500/40'
                   }`}
                   title="List View"
                 >
@@ -1015,9 +1015,9 @@ export default function Specialists() {
 
       {/* Working Hours Tab - Weekly Grid */}
       {activeTab === 'hours' && (
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6 overflow-x-auto">
+        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 overflow-x-auto">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold text-white flex items-center font-[Calibri,sans-serif]">
+            <h3 className="text-lg font-bold text-white flex items-center font-[Inter]">
               <Clock className="w-6 h-6 mr-2 text-purple-300" />
               Weekly Schedule
             </h3>
@@ -1034,23 +1034,23 @@ export default function Specialists() {
               </button>
               <button
                 onClick={goToCurrentWeek}
-                className="px-4 py-2 text-sm font-medium text-white bg-purple-900/15 border border-purple-700 hover:bg-purple-900/20 rounded-full transition-all"
+                className="px-4 py-2 text-sm font-medium text-white bg-purple-900/15 border border-purple-500/10 hover:bg-purple-900/20 rounded-full transition-all"
               >
                 This Week
               </button>
               <div className="flex items-center">
                 <button
                   onClick={() => changeWeek(-1)}
-                  className="p-2 text-white bg-purple-900/15 border border-purple-700 hover:bg-purple-900/20 rounded-l-full transition-all"
+                  className="p-2 text-white bg-purple-900/15 border border-purple-500/10 hover:bg-purple-900/20 rounded-l-full transition-all"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
-                <div className="px-6 py-2 bg-purple-950/12 border-t border-b border-purple-700/50 text-white text-sm font-semibold min-w-[180px] text-center">
+                <div className="px-6 py-2 bg-purple-950/12 border-t border-b border-purple-500/10 text-white text-sm font-semibold min-w-[180px] text-center">
                   {formatWeekRange(selectedWeekStart)}
                 </div>
                 <button
                   onClick={() => changeWeek(1)}
-                  className="p-2 text-white bg-purple-900/15 border border-purple-700 hover:bg-purple-900/20 rounded-r-full transition-all"
+                  className="p-2 text-white bg-purple-900/15 border border-purple-500/10 hover:bg-purple-900/20 rounded-r-full transition-all"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </button>
@@ -1084,7 +1084,7 @@ export default function Specialists() {
               {/* Table Body */}
               <div className="space-y-2">
                 {specialists.map((specialist) => (
-                  <div key={specialist.id} className="grid gap-2 items-center p-2 bg-gray-900/15 border border-purple-500/20 rounded-lg hover:bg-purple-900/10 transition-all" style={{gridTemplateColumns: '200px repeat(7, 1fr)'}}>
+                  <div key={specialist.id} className="grid gap-2 items-center p-2 bg-black/15 border border-purple-500/10 rounded-lg hover:bg-purple-900/10 transition-all" style={{gridTemplateColumns: '200px repeat(7, 1fr)'}}>
                     {/* Specialist Name & Photo */}
                     <div className="flex items-center gap-2 justify-between">
                       <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -1098,7 +1098,7 @@ export default function Specialists() {
                       <button
                         type="button"
                         onClick={() => copyFacilityHoursToSpecialist(specialist.id)}
-                        className="p-1.5 bg-purple-900/15 border border-purple-700 text-purple-300 rounded-lg hover:bg-purple-900/25 hover:border-purple-600 transition-all flex-shrink-0"
+                        className="p-1.5 bg-purple-900/15 border border-purple-500/10 text-purple-300 rounded-lg hover:bg-purple-900/25 hover:border-purple-500/40 transition-all flex-shrink-0"
                         title="Copy facility hours"
                       >
                         <Copy className="w-3.5 h-3.5" />
@@ -1115,8 +1115,8 @@ export default function Specialists() {
                           key={day.value}
                           className={`group p-1.5 rounded-lg space-y-1 min-h-[50px] flex flex-col ${
                             notWorking
-                              ? 'bg-gray-900/20 border border-gray-700/50'
-                              : 'bg-purple-950/12 border border-purple-700/50'
+                              ? 'bg-black/20 border border-purple-500/[0.06]'
+                              : 'bg-purple-950/12 border border-purple-500/10'
                           }`}
                         >
                           {notWorking ? (
@@ -1124,7 +1124,7 @@ export default function Specialists() {
                               <button
                                 type="button"
                                 onClick={() => toggleNotWorking(specialist.id, dayIndex)}
-                                className="w-full px-2 py-2 bg-gray-800/20 border border-gray-600/50 text-gray-400 rounded hover:bg-gray-800/30 hover:border-gray-500 transition-all text-[10px] flex items-center justify-center gap-1"
+                                className="w-full px-2 py-2 bg-white/5 border border-purple-500/[0.06] text-gray-400 rounded hover:bg-white/10 hover:border-gray-500 transition-all text-[10px] flex items-center justify-center gap-1"
                                 title="Mark as working"
                               >
                                 <Ban className="w-3 h-3" />
@@ -1140,7 +1140,7 @@ export default function Specialists() {
                                     <button
                                       type="button"
                                       onClick={() => openTimePicker(specialist.id, dayIndex, shift.id, shift)}
-                                      className="flex-1 px-2 py-1.5 bg-purple-900/15 border border-purple-700/30 text-white rounded hover:bg-purple-900/25 hover:border-purple-600 transition-all text-xs text-center"
+                                      className="flex-1 px-2 py-1.5 bg-purple-900/15 border border-purple-500/[0.06] text-white rounded hover:bg-purple-900/25 hover:border-purple-500/40 transition-all text-xs text-center"
                                     >
                                       <div className="font-medium whitespace-nowrap">
                                         {shift.open_time} - {shift.close_time}
@@ -1174,7 +1174,7 @@ export default function Specialists() {
                                 <button
                                   type="button"
                                   onClick={() => toggleNotWorking(specialist.id, dayIndex)}
-                                  className="flex-1 px-1.5 py-0.5 bg-gray-900/15 border border-gray-700/50 text-gray-400 rounded hover:bg-gray-900/25 hover:border-gray-600 transition-all text-[10px] flex items-center justify-center gap-0.5"
+                                  className="flex-1 px-1.5 py-0.5 bg-black/15 border border-purple-500/[0.06] text-gray-400 rounded hover:bg-black/25 hover:border-purple-500/10 transition-all text-[10px] flex items-center justify-center gap-0.5"
                                   title="Mark as not working"
                                 >
                                   <Ban className="w-2.5 h-2.5" />
@@ -1196,8 +1196,8 @@ export default function Specialists() {
 
       {/* Vacations Tab */}
       {activeTab === 'vacations' && (
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6">
-          <h3 className="text-lg font-bold text-white mb-6 flex items-center font-[Calibri,sans-serif]">
+        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
+          <h3 className="text-lg font-bold text-white mb-6 flex items-center font-[Inter]">
             <Plane className="w-6 h-6 mr-2 text-purple-300" />
             Specialist Vacations
           </h3>
@@ -1215,8 +1215,8 @@ export default function Specialists() {
 
       {/* Salaries Tab */}
       {activeTab === 'salaries' && (
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6">
-          <h3 className="text-lg font-bold text-white mb-6 flex items-center font-[Calibri,sans-serif]">
+        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
+          <h3 className="text-lg font-bold text-white mb-6 flex items-center font-[Inter]">
             <DollarSign className="w-6 h-6 mr-2 text-purple-300" />
             Specialist Salaries
           </h3>
@@ -1234,9 +1234,9 @@ export default function Specialists() {
 
       {/* Add/Edit Form */}
       {showAddForm && (
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg shadow-2xl p-6 mb-6 border border-purple-700">
+        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg shadow-2xl p-6 mb-6 border border-purple-500/10">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-white flex items-center space-x-2 font-[Calibri,sans-serif]">
+            <h3 className="text-lg font-bold text-white flex items-center space-x-2 font-[Inter]">
               {editingSpecialist ? <Edit className="w-5 h-5 text-purple-300" /> : <Plus className="w-5 h-5 text-purple-300" />}
               <span>{editingSpecialist ? 'Edit Specialist' : 'Add New Specialist'}</span>
             </h3>
@@ -1258,7 +1258,7 @@ export default function Specialists() {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-700/50 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/45 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/45 transition-all placeholder-gray-400"
                   placeholder="e.g., Nino Kapanadze"
                   required
                 />
@@ -1272,7 +1272,7 @@ export default function Specialists() {
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   rows={2}
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-700/50 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/45 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/45 transition-all placeholder-gray-400"
                   placeholder="Tell customers about this specialist..."
                 />
               </div>
@@ -1287,7 +1287,7 @@ export default function Specialists() {
                   onChange={(e) => setExperienceYears(e.target.value)}
                   min="0"
                   step="1"
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-700/50 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/45 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/45 transition-all placeholder-gray-400"
                   placeholder="5"
                 />
               </div>
@@ -1309,7 +1309,7 @@ export default function Specialists() {
                       type="file"
                       accept="image/*"
                       onChange={handleImageChange}
-                      className="w-full px-4 py-3 bg-purple-950/12 border border-purple-700/50 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/45 transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-700 file:text-white hover:file:bg-purple-600"
+                      className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/45 transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-700 file:text-white hover:file:bg-purple-600"
                     />
                     <p className="text-xs text-gray-400 mt-1">
                       Upload a photo (max 5MB). Leave empty for default avatar.
@@ -1321,11 +1321,11 @@ export default function Specialists() {
 
             {/* Services Selection */}
             {services.length > 0 && (
-              <div className="border-t border-purple-700/50 pt-4 mt-4">
+              <div className="border-t border-purple-500/10 pt-4 mt-4">
                 <label className="block text-sm font-medium text-gray-300 mb-3">
                   Assign Services
                 </label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 bg-purple-950/10 rounded-lg border border-purple-700/30">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 bg-purple-950/10 rounded-lg border border-purple-500/[0.06]">
                   {services.map((service) => (
                     <label
                       key={service.id}
@@ -1353,14 +1353,14 @@ export default function Specialists() {
               <button
                 type="button"
                 onClick={resetForm}
-                className="px-6 py-2 border border-purple-700/50 text-gray-200 rounded-lg hover:bg-purple-900/15 transition-all"
+                className="px-6 py-2 border border-purple-500/10 text-gray-200 rounded-lg hover:bg-purple-900/15 transition-all"
                 disabled={uploading}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-8 py-3 bg-purple-900/15 border border-purple-700 text-white rounded-lg hover:bg-purple-900/20 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
+                className="px-8 py-3 bg-purple-900/15 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/20 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
                 disabled={uploading}
               >
                 {uploading ? 'Saving...' : (editingSpecialist ? 'Update Specialist' : 'Add Specialist')}
@@ -1372,17 +1372,17 @@ export default function Specialists() {
 
       {/* Specialists List */}
       {activeTab === 'specialists' && specialists.length === 0 ? (
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg shadow-2xl p-12 text-center border border-purple-700">
+        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg shadow-2xl p-12 text-center border border-purple-500/10">
           <div className="flex justify-center mb-4">
             <Users className="w-16 h-16 text-purple-300" />
           </div>
-          <h3 className="text-lg font-bold text-white mb-2 font-[Calibri,sans-serif]">No Specialists Yet</h3>
+          <h3 className="text-lg font-bold text-white mb-2 font-[Inter]">No Specialists Yet</h3>
           <p className="text-gray-300 mb-6">
             Start by adding your first team member to appear in the mobile app
           </p>
           <button
             onClick={handleAdd}
-            className="px-8 py-3 bg-purple-900/15 border border-purple-700 text-white rounded-lg hover:bg-purple-900/20 font-medium transition-all transform hover:scale-105"
+            className="px-8 py-3 bg-purple-900/15 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/20 font-medium transition-all transform hover:scale-105"
           >
             Add Your First Specialist
           </button>
@@ -1394,7 +1394,7 @@ export default function Specialists() {
             return (
             <div
               key={specialist.id}
-              className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl transition-all p-4"
+              className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl transition-all p-4"
             >
 
               {/* Profile Image */}
@@ -1411,7 +1411,7 @@ export default function Specialists() {
 
               {/* Name and Rating */}
               <div className="text-center mb-3">
-                <h3 className="text-base font-bold text-white mb-2 line-clamp-1 font-[Calibri,sans-serif]">
+                <h3 className="text-base font-bold text-white mb-2 line-clamp-1 font-[Inter]">
                   {specialist.name}
                 </h3>
                 <div className="flex items-center justify-center space-x-1 mb-2">
@@ -1439,7 +1439,7 @@ export default function Specialists() {
                     {specialist.specialist_services.map((ss) => (
                       <span
                         key={ss.service_id}
-                        className="inline-block px-2 py-1 text-xs bg-purple-950/25 text-purple-200 rounded-full font-medium border border-purple-700/50"
+                        className="inline-block px-2 py-1 text-xs bg-purple-950/25 text-purple-200 rounded-full font-medium border border-purple-500/10"
                       >
                         {ss.services?.name || 'Unknown'}
                       </span>
@@ -1466,9 +1466,9 @@ export default function Specialists() {
         </div>
       ) : activeTab === 'specialists' ? (
         /* List/Table View */
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl overflow-hidden">
+        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl overflow-hidden">
           {/* Table Header */}
-          <div className="grid grid-cols-10 gap-4 px-6 py-4 bg-purple-950/25 border-b border-purple-700/50">
+          <div className="grid grid-cols-10 gap-4 px-6 py-4 bg-purple-950/25 border-b border-purple-500/10">
             <div className="col-span-3 text-sm font-bold text-purple-200">Specialist</div>
             <div className="col-span-3 text-sm font-bold text-purple-200">Bio</div>
             <div className="col-span-1 text-sm font-bold text-purple-200 text-center">Rating</div>
@@ -1490,7 +1490,7 @@ export default function Specialists() {
                       e.target.src = 'https://via.placeholder.com/150?text=' + encodeURIComponent(specialist.name)
                     }}
                   />
-                  <span className="text-white font-medium font-[Calibri,sans-serif]">
+                  <span className="text-white font-medium font-[Inter]">
                     {specialist.name}
                   </span>
                 </div>
@@ -1509,7 +1509,7 @@ export default function Specialists() {
                       specialist.specialist_services.slice(0, 2).map((ss) => (
                         <span
                           key={ss.service_id}
-                          className="inline-block px-2 py-1 text-xs bg-purple-950/25 text-purple-200 rounded-full font-medium border border-purple-700/50"
+                          className="inline-block px-2 py-1 text-xs bg-purple-950/25 text-purple-200 rounded-full font-medium border border-purple-500/10"
                         >
                           {ss.services?.name || 'Unknown'}
                         </span>

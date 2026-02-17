@@ -481,11 +481,11 @@ export default function Profile() {
     <div className="w-full -mt-4">
       {/* Header */}
       <div className="mb-4">
-        <h2 className="text-2xl font-bold text-white font-[Calibri,sans-serif]">Facility Profile</h2>
+        <h2 className="text-2xl font-bold text-white font-[Inter]">Facility Profile</h2>
       </div>
 
         {/* Tabs */}
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl mb-6">
+        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl mb-6">
           <div className="flex overflow-x-auto">
             {tabs.map((tab, index) => {
               const Icon = tab.Icon
@@ -502,7 +502,7 @@ export default function Profile() {
                   } ${
                     index === tabs.length - 1 ? 'rounded-tr-lg' : ''
                   } ${
-                    index < tabs.length - 1 ? 'border-r border-purple-700/15' : ''
+                    index < tabs.length - 1 ? 'border-r border-purple-500/[0.06]' : ''
                   }`}
                 >
                   <div className="flex items-center justify-center space-x-2">
@@ -518,8 +518,8 @@ export default function Profile() {
       {/* Basic Information Tab */}
       {activeTab === 'basic' && (
         <form onSubmit={handleSave} className="space-y-6">
-          <div className="relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6">
-            <h3 className="text-lg font-bold text-white mb-6 flex items-center font-[Calibri,sans-serif]">
+          <div className="relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
+            <h3 className="text-lg font-bold text-white mb-6 flex items-center font-[Inter]">
               <Building2 className="w-6 h-6 mr-2 text-purple-300" />
               Basic Information
             </h3>
@@ -533,7 +533,7 @@ export default function Profile() {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-700/25 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
                   placeholder="e.g., Glamour Beauty Salon"
                   required
                 />
@@ -547,7 +547,7 @@ export default function Profile() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={4}
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-700/25 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
                   placeholder="Tell customers about your facility, your team, and what makes you special..."
                 />
                 <p className="mt-1 text-xs text-gray-400">{description.length} characters</p>
@@ -561,7 +561,7 @@ export default function Profile() {
                   type="text"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-700/25 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
                   placeholder="123 Main Street"
                   required
                 />
@@ -575,7 +575,7 @@ export default function Profile() {
                   type="text"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-700/25 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
                   placeholder="Tbilisi"
                   required
                 />
@@ -589,7 +589,7 @@ export default function Profile() {
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-700/25 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
                   placeholder="+995 XXX XXX XXX"
                   required
                 />
@@ -598,8 +598,8 @@ export default function Profile() {
           </div>
 
           {/* Social Media */}
-          <div className="relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6">
-            <h3 className="text-lg font-bold text-white mb-6 flex items-center font-[Calibri,sans-serif]">
+          <div className="relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
+            <h3 className="text-lg font-bold text-white mb-6 flex items-center font-[Inter]">
               <Globe className="w-6 h-6 mr-2 text-purple-300" />
               Social Media & Website
             </h3>
@@ -615,7 +615,7 @@ export default function Profile() {
                     type="text"
                     value={instagramUrl}
                     onChange={(e) => setInstagramUrl(e.target.value)}
-                    className="w-full pl-8 pr-4 py-3 bg-purple-950/12 border border-purple-700/25 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
+                    className="w-full pl-8 pr-4 py-3 bg-purple-950/12 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
                     placeholder="your_salon"
                   />
                 </div>
@@ -629,7 +629,7 @@ export default function Profile() {
                   type="url"
                   value={facebookUrl}
                   onChange={(e) => setFacebookUrl(e.target.value)}
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-700/25 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
                   placeholder="https://facebook.com/..."
                 />
               </div>
@@ -642,7 +642,7 @@ export default function Profile() {
                   type="url"
                   value={websiteUrl}
                   onChange={(e) => setWebsiteUrl(e.target.value)}
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-700/25 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
                   placeholder="https://..."
                 />
               </div>
@@ -654,7 +654,7 @@ export default function Profile() {
             <button
               type="submit"
               disabled={saving || !salonId}
-              className="px-8 py-3 bg-purple-900/10 border border-purple-700 text-white rounded-lg hover:bg-purple-900/15 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
+              className="px-8 py-3 bg-purple-900/10 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/15 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
             >
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
@@ -666,8 +666,8 @@ export default function Profile() {
       {activeTab === 'categories' && (
         <div className="space-y-6">
           {/* Service Categories */}
-          <div className="relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6">
-            <h3 className="text-lg font-bold text-white mb-2 flex items-center font-[Calibri,sans-serif]">
+          <div className="relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
+            <h3 className="text-lg font-bold text-white mb-2 flex items-center font-[Inter]">
               <Scissors className="w-6 h-6 mr-2 text-purple-300" />
               Service Categories
             </h3>
@@ -681,8 +681,8 @@ export default function Profile() {
                   onClick={() => toggleCategory(category)}
                   className={`p-3 rounded-xl border transition-all transform hover:scale-105 ${
                     categories.includes(category)
-                      ? 'bg-purple-900/10 border-purple-700 text-white'
-                      : 'border-purple-700/15 bg-gray-900/10 text-gray-200 hover:border-purple-600'
+                      ? 'bg-purple-900/10 border-purple-500/20 text-white'
+                      : 'border-purple-500/[0.06] bg-black/10 text-gray-200 hover:border-purple-500/40'
                   }`}
                 >
                   <div className="text-center">
@@ -706,8 +706,8 @@ export default function Profile() {
           </div>
 
           {/* Price Range */}
-          <div className="relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6">
-            <h3 className="text-lg font-bold text-white mb-2 flex items-center font-[Calibri,sans-serif]">
+          <div className="relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
+            <h3 className="text-lg font-bold text-white mb-2 flex items-center font-[Inter]">
               <DollarSign className="w-6 h-6 mr-2 text-purple-300" />
               Price Range
             </h3>
@@ -726,8 +726,8 @@ export default function Profile() {
                   onClick={() => setPriceRange(option.value)}
                   className={`p-4 rounded-xl border transition-all transform hover:scale-105 ${
                     priceRange === option.value
-                      ? 'bg-purple-900/10 border-purple-700 text-white'
-                      : 'border-purple-700/15 bg-gray-900/10 text-gray-200 hover:border-purple-600'
+                      ? 'bg-purple-900/10 border-purple-500/20 text-white'
+                      : 'border-purple-500/[0.06] bg-black/10 text-gray-200 hover:border-purple-500/40'
                   }`}
                 >
                   <div className="flex justify-center gap-0.5 mb-2">
@@ -743,8 +743,8 @@ export default function Profile() {
           </div>
 
           {/* Amenities */}
-          <div className="relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6">
-            <h3 className="text-lg font-bold text-white mb-2 flex items-center font-[Calibri,sans-serif]">
+          <div className="relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
+            <h3 className="text-lg font-bold text-white mb-2 flex items-center font-[Inter]">
               <Target className="w-6 h-6 mr-2 text-purple-300" />
               Amenities & Features
             </h3>
@@ -760,8 +760,8 @@ export default function Profile() {
                     onClick={() => toggleAmenity(amenity.key)}
                     className={`p-4 rounded-xl border transition-all transform hover:scale-105 text-left ${
                       amenities[amenity.key]
-                        ? 'bg-purple-900/10 border-purple-700 text-white'
-                        : 'border-purple-700/15 bg-gray-900/10 text-gray-200 hover:border-purple-600'
+                        ? 'bg-purple-900/10 border-purple-500/20 text-white'
+                        : 'border-purple-500/[0.06] bg-black/10 text-gray-200 hover:border-purple-500/40'
                     }`}
                   >
                     <div className="flex items-center space-x-3">
@@ -780,7 +780,7 @@ export default function Profile() {
               type="button"
               onClick={handleSave}
               disabled={saving || !salonId}
-              className="px-8 py-3 bg-purple-900/10 border border-purple-700 text-white rounded-lg hover:bg-purple-900/15 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
+              className="px-8 py-3 bg-purple-900/10 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/15 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
             >
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
@@ -792,8 +792,8 @@ export default function Profile() {
       {activeTab === 'hours' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Working Hours Section */}
-          <div className="lg:col-span-2 relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6">
-            <h3 className="text-lg font-bold text-white mb-2 flex items-center font-[Calibri,sans-serif]">
+          <div className="lg:col-span-2 relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
+            <h3 className="text-lg font-bold text-white mb-2 flex items-center font-[Inter]">
               <Clock className="w-6 h-6 mr-2 text-purple-300" />
               Working Hours
             </h3>
@@ -804,7 +804,7 @@ export default function Profile() {
               const hours = workingHours[day.value] || { open_time: '09:00', close_time: '18:00', is_closed: false }
 
               return (
-                <div key={day.value} className="flex items-center space-x-4 p-4 bg-gray-900/10 border border-purple-500/10 rounded-lg min-h-[64px]">
+                <div key={day.value} className="flex items-center space-x-4 p-4 bg-black/10 border border-purple-500/10 rounded-lg min-h-[64px]">
                   <div className="w-32 flex-shrink-0">
                     <span className="text-sm font-semibold text-white">{day.label}</span>
                   </div>
@@ -814,7 +814,7 @@ export default function Profile() {
                       type="checkbox"
                       checked={hours.is_closed}
                       onChange={(e) => handleHoursChange(day.value, 'is_closed', e.target.checked)}
-                      className="w-4 h-4 text-purple-600 border-purple-400 rounded focus:ring-purple-500 bg-gray-900/15"
+                      className="w-4 h-4 text-purple-600 border-purple-400 rounded focus:ring-purple-500 bg-black/15"
                     />
                     <span className="ml-2 text-sm text-gray-300 font-medium w-16">Closed</span>
                   </label>
@@ -828,13 +828,13 @@ export default function Profile() {
                         <button
                           type="button"
                           onClick={() => openTimePicker(day.value, 'hours')}
-                          className="p-2 bg-purple-900/10 border border-purple-700 text-purple-300 rounded-lg hover:bg-purple-900/15 transition-all"
+                          className="p-2 bg-purple-900/10 border border-purple-500/10 text-purple-300 rounded-lg hover:bg-purple-900/15 transition-all"
                         >
                           <Clock className="w-4 h-4" />
                         </button>
                       </>
                     ) : (
-                      <span className="text-gray-500 italic text-sm">No hours set for this day</span>
+                      <span className="text-gray-400 italic text-sm">No hours set for this day</span>
                     )}
                   </div>
                 </div>
@@ -847,7 +847,7 @@ export default function Profile() {
                 type="button"
                 onClick={saveWorkingHours}
                 disabled={saving}
-                className="px-8 py-3 bg-purple-900/10 border border-purple-700 text-white rounded-lg hover:bg-purple-900/15 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
+                className="px-8 py-3 bg-purple-900/10 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/15 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
               >
                 {saving ? 'Saving...' : 'Save Working Hours'}
               </button>
@@ -855,8 +855,8 @@ export default function Profile() {
           </div>
 
           {/* Weekly Summary Card */}
-          <div className="relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6">
-            <h3 className="text-lg font-bold text-white mb-4 flex items-center font-[Calibri,sans-serif]">
+          <div className="relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center font-[Inter]">
               <TrendingUp className="w-5 h-5 mr-2 text-purple-300" />
               Weekly Summary
             </h3>
@@ -894,10 +894,10 @@ export default function Profile() {
                   <div key={day.value} className="flex items-center justify-between text-sm">
                     <span className="text-gray-300">{day.short}</span>
                     {isClosed ? (
-                      <span className="text-gray-500 italic">Closed</span>
+                      <span className="text-gray-400 italic">Closed</span>
                     ) : (
                       <div className="flex items-center gap-2">
-                        <div className="w-20 h-2 bg-gray-800 rounded-full overflow-hidden">
+                        <div className="w-20 h-2 bg-white/5 rounded-full overflow-hidden">
                           <div
                             className="h-full bg-gradient-to-r from-purple-800/15 via-purple-900/15 to-violet-900/15"
                             style={{ width: `${(dailyHours / 24) * 100}%` }}
@@ -949,7 +949,7 @@ export default function Profile() {
               </button>
 
               {/* Custom Time Setter */}
-              <div className="p-3 bg-purple-900/8 rounded-lg border border-purple-600/15 mt-3">
+              <div className="p-3 bg-purple-900/8 rounded-lg border border-purple-500/[0.06] mt-3">
                 <p className="text-xs text-gray-300 mb-2 font-medium">Set All Days To:</p>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="flex-1 text-white font-medium text-sm text-center">
@@ -958,7 +958,7 @@ export default function Profile() {
                   <button
                     type="button"
                     onClick={() => openTimePicker(null, 'custom')}
-                    className="p-2 bg-purple-900/10 border border-purple-700 text-purple-300 rounded-lg hover:bg-purple-900/15 transition-all"
+                    className="p-2 bg-purple-900/10 border border-purple-500/10 text-purple-300 rounded-lg hover:bg-purple-900/15 transition-all"
                   >
                     <Clock className="w-4 h-4" />
                   </button>
@@ -971,10 +971,10 @@ export default function Profile() {
 
       {/* Gallery Tab */}
       {activeTab === 'gallery' && (
-        <div className="relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6">
+        <div className="relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h3 className="text-lg font-bold text-white flex items-center font-[Calibri,sans-serif]">
+              <h3 className="text-lg font-bold text-white flex items-center font-[Inter]">
                 <Camera className="w-6 h-6 mr-2 text-purple-300" />
                 Photo Gallery
               </h3>
@@ -986,12 +986,12 @@ export default function Profile() {
                   type="button"
                   onClick={fixImageUrls}
                   disabled={saving}
-                  className="px-6 py-3 bg-purple-900/15 border border-purple-700 text-white rounded-lg hover:bg-purple-900/20 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
+                  className="px-6 py-3 bg-purple-900/15 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/20 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
                 >
                   {saving ? 'Fixing...' : 'Fix Image URLs'}
                 </button>
               )}
-              <label className="px-6 py-3 bg-purple-900/15 border border-purple-700 text-white rounded-lg hover:bg-purple-900/20 cursor-pointer font-medium transition-all transform hover:scale-105">
+              <label className="px-6 py-3 bg-purple-900/15 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/20 cursor-pointer font-medium transition-all transform hover:scale-105">
                 <input
                   type="file"
                   accept="image/*"
@@ -1006,7 +1006,7 @@ export default function Profile() {
           </div>
 
           {galleryImages.length === 0 ? (
-            <div className="text-center py-16 border border-dashed border-purple-700/15 rounded-xl bg-gray-900/10">
+            <div className="text-center py-16 border border-dashed border-purple-500/[0.06] rounded-xl bg-black/10">
               <Camera className="w-16 h-16 mx-auto mb-4 text-purple-300" />
               <p className="text-gray-200 text-lg font-medium">No photos yet</p>
               <p className="text-gray-400 text-sm mt-2">Upload photos to showcase your facility</p>
@@ -1016,7 +1016,7 @@ export default function Profile() {
               {galleryImages.map((image) => {
                 console.log('Rendering image:', image.id, image.image_url)
                 return (
-                  <div key={image.id} className="relative group bg-gray-900/15 border border-purple-500/10 rounded-xl overflow-hidden">
+                  <div key={image.id} className="relative group bg-black/15 border border-purple-500/10 rounded-xl overflow-hidden">
                     <img
                       src={image.image_url}
                       alt="Gallery"

@@ -343,19 +343,19 @@ export default function Reports() {
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-white font-[Calibri,sans-serif]">Analytics & Reports</h2>
+          <h2 className="text-2xl font-bold text-white font-[Inter]">Analytics & Reports</h2>
           <p className="text-gray-300 mt-1">Insights and performance metrics</p>
         </div>
         <button
           onClick={exportToCSV}
-          className="px-8 py-3 bg-purple-900/30 border border-purple-700 text-white rounded-lg hover:bg-purple-900/40 font-medium transition-all transform hover:scale-105"
+          className="px-8 py-3 bg-purple-900/30 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/40 font-medium transition-all transform hover:scale-105"
         >
           📥 Export CSV
         </button>
       </div>
 
       {/* Date Range Selector */}
-      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6 mb-8 overflow-visible z-[1000]">
+      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 mb-8 overflow-visible z-[1000]">
         <div className="flex items-center gap-3 overflow-visible">
           <div className="flex items-center space-x-2">
             <Calendar className="w-5 h-5 text-purple-300" />
@@ -368,8 +368,8 @@ export default function Reports() {
                 onClick={() => setDateRange(range)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   dateRange === range
-                    ? 'bg-purple-900/30 border border-purple-700 text-white'
-                    : 'bg-gray-900/30 border border-purple-700/30 text-gray-200 hover:border-purple-600'
+                    ? 'bg-purple-900/30 border border-purple-500/10 text-white'
+                    : 'bg-black/30 border border-purple-500/[0.06] text-gray-200 hover:border-purple-500/40'
                 }`}
               >
                 {range === 'custom' ? 'Custom' : `${range} Days`}
@@ -404,7 +404,7 @@ export default function Reports() {
                     setCustomEndDate('')
                     setOpenCalendar(null)
                   }}
-                  className="px-3 py-2 bg-gray-900/30 border border-purple-700/30 text-gray-200 rounded-lg hover:border-purple-600 text-xs font-medium transition-all"
+                  className="px-3 py-2 bg-black/30 border border-purple-500/[0.06] text-gray-200 rounded-lg hover:border-purple-500/40 text-xs font-medium transition-all"
                 >
                   Reset
                 </button>
@@ -478,10 +478,10 @@ export default function Reports() {
       </div>
 
       {/* Revenue Trend */}
-      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6 mb-6 z-[1]">
+      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 mb-6 z-[1]">
         <div className="flex items-center space-x-3 mb-4">
           <TrendingUp className="w-5 h-5 text-purple-300" />
-          <h2 className="text-lg font-semibold text-white font-[Calibri,sans-serif]">Revenue Trend</h2>
+          <h2 className="text-lg font-semibold text-white font-[Inter]">Revenue Trend</h2>
         </div>
         {revenueData.trend.length > 0 ? (
           <div className="space-y-3">
@@ -489,7 +489,7 @@ export default function Reports() {
               <div key={index}>
                 <div className="flex items-center gap-4">
                   <div className="text-sm text-gray-300 w-28 font-medium">{item.date}</div>
-                  <div className="flex-1 bg-gray-900/30 rounded-full h-7 overflow-hidden border border-purple-700/30">
+                  <div className="flex-1 bg-black/30 rounded-full h-7 overflow-hidden border border-purple-500/[0.06]">
                     <div
                       className="bg-gradient-to-r from-purple-800/100 via-purple-900/100 to-violet-900/100 h-full rounded-full flex items-center justify-end px-3 shadow-lg"
                       style={{
@@ -501,7 +501,7 @@ export default function Reports() {
                   </div>
                 </div>
                 {index < revenueData.trend.length - 1 && (
-                  <div className="ml-28 border-b border-purple-700/20 my-2" />
+                  <div className="ml-28 border-b border-purple-500/[0.06] my-2" />
                 )}
               </div>
             ))}
@@ -512,14 +512,14 @@ export default function Reports() {
       </div>
 
       {/* Booking Status Breakdown */}
-      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6 mb-6 z-[1]">
+      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 mb-6 z-[1]">
         <div className="flex items-center space-x-3 mb-4">
           <ClipboardList className="w-5 h-5 text-purple-300" />
-          <h2 className="text-lg font-semibold text-white font-[Calibri,sans-serif]">Booking Status</h2>
+          <h2 className="text-lg font-semibold text-white font-[Inter]">Booking Status</h2>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {Object.entries(bookingsData.byStatus).map(([status, count]) => (
-            <div key={status} className="text-center p-4 bg-purple-900/30 border border-purple-700/50 rounded-lg">
+            <div key={status} className="text-center p-4 bg-purple-900/30 border border-purple-500/10 rounded-lg">
               <p className="text-2xl font-bold text-white">{count}</p>
               <p className="text-sm text-purple-300 mt-1 capitalize">{status}</p>
             </div>
@@ -530,15 +530,15 @@ export default function Reports() {
       {/* Two Column Layout for Services and Specialists */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 relative z-[1]">
         {/* Top Services */}
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6">
+        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
           <div className="flex items-center space-x-3 mb-4">
             <BarChart3 className="w-5 h-5 text-purple-300" />
-            <h2 className="text-lg font-semibold text-white font-[Calibri,sans-serif]">Top Services</h2>
+            <h2 className="text-lg font-semibold text-white font-[Inter]">Top Services</h2>
           </div>
           {servicesData.length > 0 ? (
             <div className="space-y-3">
               {servicesData.slice(0, 5).map((service, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-purple-900/30 border border-purple-700/50 rounded-lg">
+                <div key={index} className="flex items-center justify-between p-3 bg-purple-900/30 border border-purple-500/10 rounded-lg">
                   <div className="flex-1">
                     <p className="font-medium text-white">{service.name}</p>
                     <p className="text-sm text-purple-300">{service.bookings} bookings</p>
@@ -555,15 +555,15 @@ export default function Reports() {
         </div>
 
         {/* Top Specialists */}
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6">
+        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
           <div className="flex items-center space-x-3 mb-4">
             <TrendingUp className="w-5 h-5 text-purple-300" />
-            <h2 className="text-lg font-semibold text-white font-[Calibri,sans-serif]">Top Specialists</h2>
+            <h2 className="text-lg font-semibold text-white font-[Inter]">Top Specialists</h2>
           </div>
           {specialistsData.length > 0 ? (
             <div className="space-y-3">
               {specialistsData.slice(0, 5).map((specialist, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-purple-900/30 border border-purple-700/50 rounded-lg">
+                <div key={index} className="flex items-center justify-between p-3 bg-purple-900/30 border border-purple-500/10 rounded-lg">
                   <div className="flex-1">
                     <p className="font-medium text-white">{specialist.name}</p>
                     <p className="text-sm text-purple-300">{specialist.bookings} bookings</p>
@@ -582,15 +582,15 @@ export default function Reports() {
 
       {/* Promo Performance */}
       {promoData.promoUsage.length > 0 && (
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6 mb-6 z-[1]">
+        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 mb-6 z-[1]">
           <div className="flex items-center space-x-3 mb-4">
             <Gift className="w-5 h-5 text-pink-400" />
-            <h2 className="text-lg font-semibold text-white font-[Calibri,sans-serif]">Promo Code Performance</h2>
+            <h2 className="text-lg font-semibold text-white font-[Inter]">Promo Code Performance</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-purple-700">
+                <tr className="border-b border-purple-500/10">
                   <th className="text-left py-3 px-4 text-sm font-medium text-purple-200">Promo Code</th>
                   <th className="text-left py-3 px-4 text-sm font-medium text-purple-200">Uses</th>
                   <th className="text-left py-3 px-4 text-sm font-medium text-purple-200">Total Discount</th>
@@ -598,7 +598,7 @@ export default function Reports() {
               </thead>
               <tbody>
                 {promoData.promoUsage.map((promo, index) => (
-                  <tr key={index} className="border-b border-purple-700/30">
+                  <tr key={index} className="border-b border-purple-500/[0.06]">
                     <td className="py-3 px-4 font-medium text-white">{promo.code}</td>
                     <td className="py-3 px-4 text-gray-300">{promo.uses}</td>
                     <td className="py-3 px-4 text-green-400 font-semibold">
@@ -614,15 +614,15 @@ export default function Reports() {
 
       {/* Specialist Utilisation Rate */}
       {specialistUtilisation.length > 0 && (
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6 mb-6 z-[1]">
+        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 mb-6 z-[1]">
           <div className="flex items-center space-x-3 mb-4">
             <TrendingUp className="w-5 h-5 text-purple-300" />
-            <h2 className="text-lg font-semibold text-white font-[Calibri,sans-serif]">Specialist Utilisation Rate</h2>
+            <h2 className="text-lg font-semibold text-white font-[Inter]">Specialist Utilisation Rate</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-purple-700/50">
+                <tr className="border-b border-purple-500/10">
                   <th className="text-left py-3 px-4 text-sm font-semibold text-purple-200">Specialist</th>
                   <th className="text-center py-3 px-4 text-sm font-semibold text-purple-200">Day</th>
                   <th className="text-center py-3 px-4 text-sm font-semibold text-purple-200">Week</th>
@@ -632,25 +632,25 @@ export default function Reports() {
               </thead>
               <tbody>
                 {specialistUtilisation.map((specialist, index) => (
-                  <tr key={index} className="border-b border-purple-700/30 hover:bg-purple-900/30 transition-all">
+                  <tr key={index} className="border-b border-purple-500/[0.06] hover:bg-purple-900/30 transition-all">
                     <td className="py-3 px-4 text-white font-medium">{specialist.name}</td>
                     <td className="py-3 px-4 text-center">
-                      <span className="inline-block px-3 py-1 bg-purple-900/30 border border-purple-700/50 rounded-full text-white font-bold text-sm">
+                      <span className="inline-block px-3 py-1 bg-purple-900/30 border border-purple-500/10 rounded-full text-white font-bold text-sm">
                         {specialist.day}%
                       </span>
                     </td>
                     <td className="py-3 px-4 text-center">
-                      <span className="inline-block px-3 py-1 bg-purple-900/30 border border-purple-700/50 rounded-full text-white font-bold text-sm">
+                      <span className="inline-block px-3 py-1 bg-purple-900/30 border border-purple-500/10 rounded-full text-white font-bold text-sm">
                         {specialist.week}%
                       </span>
                     </td>
                     <td className="py-3 px-4 text-center">
-                      <span className="inline-block px-3 py-1 bg-purple-900/30 border border-purple-700/50 rounded-full text-white font-bold text-sm">
+                      <span className="inline-block px-3 py-1 bg-purple-900/30 border border-purple-500/10 rounded-full text-white font-bold text-sm">
                         {specialist.month}%
                       </span>
                     </td>
                     <td className="py-3 px-4 text-center">
-                      <span className="inline-block px-3 py-1 bg-purple-900/30 border border-purple-700/50 rounded-full text-white font-bold text-sm">
+                      <span className="inline-block px-3 py-1 bg-purple-900/30 border border-purple-500/10 rounded-full text-white font-bold text-sm">
                         {specialist.quarter}%
                       </span>
                     </td>
@@ -664,14 +664,14 @@ export default function Reports() {
 
       {/* Peak Hours */}
       {peakHours.length > 0 && (
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6 z-[1]">
+        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 z-[1]">
           <div className="flex items-center space-x-3 mb-4">
             <ClipboardList className="w-5 h-5 text-purple-300" />
-            <h2 className="text-lg font-semibold text-white font-[Calibri,sans-serif]">Peak Booking Hours</h2>
+            <h2 className="text-lg font-semibold text-white font-[Inter]">Peak Booking Hours</h2>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {peakHours.slice(0, 12).map((hour, index) => (
-              <div key={index} className="text-center p-3 bg-purple-900/30 border border-purple-700/50 rounded-lg">
+              <div key={index} className="text-center p-3 bg-purple-900/30 border border-purple-500/10 rounded-lg">
                 <p className="text-lg font-bold text-white">{hour.count}</p>
                 <p className="text-sm text-purple-300 mt-1">{hour.hour}</p>
               </div>

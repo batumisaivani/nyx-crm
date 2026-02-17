@@ -6,7 +6,7 @@ function WheelPickerWrapper({ className, ...props }) {
   return (
     <WheelPickerPrimitive.WheelPickerWrapper
       className={cn(
-        "w-full rounded-lg border-2 border-purple-600 bg-gray-900/50 px-1",
+        "w-full rounded-lg border-2 border-purple-600 bg-black/50 px-1",
         "*:data-rwp:first:*:data-rwp-highlight-wrapper:rounded-s-md",
         "*:data-rwp:last:*:data-rwp-highlight-wrapper:rounded-e-md",
         className

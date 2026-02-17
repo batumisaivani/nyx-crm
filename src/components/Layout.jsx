@@ -39,11 +39,11 @@ export default function Layout({ children }) {
   ]
 
   return (
-    <div className="h-screen bg-gray-200 dark:bg-[#120025] flex flex-col overflow-hidden">
+    <div className="h-screen bg-black flex flex-col overflow-hidden">
       {/* Top Navigation Bar */}
-      <div className="h-14 bg-gray-200 dark:bg-[#120025] shadow-lg flex items-center justify-between px-5 flex-shrink-0 border-b border-gray-300 dark:border-gray-800 relative">
+      <div className="h-14 bg-black shadow-lg flex items-center justify-between px-5 flex-shrink-0 border-b border-purple-500/10 relative">
         {/* Subtle purple glow on border */}
-        <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-purple-500/20 to-transparent pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-purple-500/30 to-transparent pointer-events-none"></div>
         {/* Brand Name - Left */}
         <div className="flex items-center space-x-3">
           <img
@@ -54,53 +54,53 @@ export default function Layout({ children }) {
               e.target.style.display = 'none'
             }}
           />
-          <h1 className="text-lg font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 dark:from-purple-400 dark:via-pink-400 dark:to-purple-400 bg-clip-text text-transparent">
+          <h1 className="text-lg font-light font-[Playfair] text-white tracking-wide">
             Nyxie CRM
           </h1>
         </div>
 
         {/* Profile Menu - Right */}
         <div className="relative group">
-          <button className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-800 transition-all relative">
+          <button className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-white/5 transition-all relative">
             <div className="relative">
-              <div className="w-7 h-7 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold text-xs shadow-lg shadow-purple-500/30">
+              <div className="w-7 h-7 bg-gradient-to-br from-purple-500 to-fuchsia-500 rounded-full flex items-center justify-center text-white font-semibold text-xs shadow-lg shadow-purple-500/30">
                 {user?.email?.[0]?.toUpperCase() || 'U'}
               </div>
             </div>
-            <span className="text-gray-900 dark:text-white text-sm font-medium hidden md:block">{user?.email?.split('@')[0]}</span>
+            <span className="text-white text-sm font-medium hidden md:block">{user?.email?.split('@')[0]}</span>
           </button>
 
           {/* Dropdown Menu */}
-          <div className="absolute right-0 mt-2 w-64 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-lg shadow-xl border border-purple-200/30 dark:border-purple-500/20 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-              <p className="text-sm font-medium text-gray-900 dark:text-white">{user?.email}</p>
-              <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">Owner Account</p>
+          <div className="absolute right-0 mt-2 w-64 bg-black/95 backdrop-blur-xl rounded-lg shadow-xl border border-purple-500/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+            <div className="p-4 border-b border-purple-500/10">
+              <p className="text-sm font-medium text-white">{user?.email}</p>
+              <p className="text-xs text-purple-400 mt-1">Owner Account</p>
             </div>
 
             <div className="p-2">
-              <button className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors text-left">
+              <button className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-purple-900/30 transition-colors text-left">
                 <span className="text-lg">💳</span>
                 <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">Billing Plan</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Free Trial</p>
+                  <p className="text-sm font-medium text-white">Billing Plan</p>
+                  <p className="text-xs text-gray-400">Free Trial</p>
                 </div>
               </button>
 
-              <button className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors text-left">
+              <button className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-purple-900/30 transition-colors text-left">
                 <span className="text-lg">🔔</span>
                 <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">Notifications</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">No new notifications</p>
+                  <p className="text-sm font-medium text-white">Notifications</p>
+                  <p className="text-xs text-gray-400">No new notifications</p>
                 </div>
               </button>
 
-              <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2">
+              <div className="border-t border-purple-500/10 mt-2 pt-2">
                 <button
                   onClick={handleSignOut}
-                  className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors text-left"
+                  className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-red-900/30 transition-colors text-left"
                 >
                   <span className="text-lg">🚪</span>
-                  <p className="text-sm font-medium text-red-600 dark:text-red-400">Sign Out</p>
+                  <p className="text-sm font-medium text-red-400">Sign Out</p>
                 </button>
               </div>
             </div>
@@ -110,7 +110,7 @@ export default function Layout({ children }) {
 
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar - Compact with hover expand */}
-        <div className="w-20 hover:w-[175px] bg-gray-200 dark:bg-[#120025] shadow-lg border-r border-gray-300 dark:border-gray-800 flex flex-col transition-all duration-300 group">
+        <div className="w-20 hover:w-[175px] bg-black shadow-lg border-r border-purple-500/10 flex flex-col transition-all duration-300 group">
         {/* Navigation - Scrollable */}
         <nav className="flex-1 p-3 pt-4 space-y-1 overflow-y-auto">
           {navigation.map((item) => {
@@ -126,10 +126,10 @@ export default function Layout({ children }) {
                   relative flex items-center justify-center group-hover:justify-start px-3 py-3 rounded-lg text-xs font-medium transition-all duration-200
                   ${
                     isActive
-                      ? 'bg-purple-900 text-white'
+                      ? 'bg-gradient-to-r from-purple-600/80 via-violet-600/80 to-fuchsia-600/80 text-white shadow-lg shadow-purple-500/20'
                       : isDisabled
-                      ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
+                      ? 'text-gray-600 cursor-not-allowed'
+                      : 'text-gray-400 hover:bg-white/5 hover:text-white'
                   }
                 `}
                 onClick={(e) => isDisabled && e.preventDefault()}
@@ -150,8 +150,7 @@ export default function Layout({ children }) {
 
         {/* Main Content - Scrollable */}
         <div className="flex-1 overflow-hidden">
-          {/* Page Content - Scrollable with Light Background */}
-          <main className="h-full p-8 overflow-y-auto bg-gray-200 dark:bg-[#120025]">
+          <main className="h-full p-8 overflow-y-auto bg-black">
             {children}
           </main>
         </div>

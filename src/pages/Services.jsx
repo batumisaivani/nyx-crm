@@ -175,12 +175,12 @@ export default function Services() {
         <div className="mb-3">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <h2 className="text-2xl font-bold text-white font-[Calibri,sans-serif]">Services</h2>
+              <h2 className="text-2xl font-bold text-white font-[Inter]">Services</h2>
               <p className="text-gray-300 mt-1">Manage your service catalog</p>
             </div>
             <button
               onClick={handleAdd}
-              className="px-8 py-3 bg-purple-900/30 border border-purple-700 text-white rounded-lg hover:bg-purple-900/40 font-medium transition-all transform hover:scale-105 flex items-center space-x-2"
+              className="px-8 py-3 bg-purple-900/30 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/40 font-medium transition-all transform hover:scale-105 flex items-center space-x-2"
             >
               <span>+</span>
               <span>Add Service</span>
@@ -217,8 +217,8 @@ export default function Services() {
                   onClick={() => setSelectedCategory('All')}
                   className={`px-4 py-2 rounded-xl text-sm font-medium transition-all transform hover:scale-105 whitespace-nowrap border ${
                     selectedCategory === 'All'
-                      ? 'bg-purple-900/30 border-purple-700 text-white'
-                      : 'border-purple-700/30 bg-gray-900/30 text-gray-200 hover:border-purple-600'
+                      ? 'bg-purple-900/30 border-purple-500/20 text-white'
+                      : 'border-purple-500/[0.06] bg-black/30 text-gray-200 hover:border-purple-500/40'
                   }`}
                 >
                   All ({services.length})
@@ -229,8 +229,8 @@ export default function Services() {
                     onClick={() => setSelectedCategory(cat)}
                     className={`px-4 py-2 rounded-xl text-sm font-medium transition-all transform hover:scale-105 whitespace-nowrap border ${
                       selectedCategory === cat
-                        ? 'bg-purple-900/30 border-purple-700 text-white'
-                        : 'border-purple-700/30 bg-gray-900/30 text-gray-200 hover:border-purple-600'
+                        ? 'bg-purple-900/30 border-purple-500/20 text-white'
+                        : 'border-purple-500/[0.06] bg-black/30 text-gray-200 hover:border-purple-500/40'
                     }`}
                   >
                     {cat} ({services.filter(s => s.category === cat).length})
@@ -244,8 +244,8 @@ export default function Services() {
                   onClick={() => setViewMode('grid')}
                   className={`p-2 rounded-lg transition-all border ${
                     viewMode === 'grid'
-                      ? 'bg-purple-900/30 border-purple-700 text-white'
-                      : 'border-purple-700/30 bg-gray-900/30 text-gray-200 hover:border-purple-600'
+                      ? 'bg-purple-900/30 border-purple-500/20 text-white'
+                      : 'border-purple-500/[0.06] bg-black/30 text-gray-200 hover:border-purple-500/40'
                   }`}
                   title="Grid View"
                 >
@@ -255,8 +255,8 @@ export default function Services() {
                   onClick={() => setViewMode('list')}
                   className={`p-2 rounded-lg transition-all border ${
                     viewMode === 'list'
-                      ? 'bg-purple-900/30 border-purple-700 text-white'
-                      : 'border-purple-700/30 bg-gray-900/30 text-gray-200 hover:border-purple-600'
+                      ? 'bg-purple-900/30 border-purple-500/20 text-white'
+                      : 'border-purple-500/[0.06] bg-black/30 text-gray-200 hover:border-purple-500/40'
                   }`}
                   title="List View"
                 >
@@ -269,9 +269,9 @@ export default function Services() {
 
       {/* Add/Edit Form */}
       {showAddForm && (
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg shadow-2xl p-6 mb-6 border border-purple-700">
+        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg shadow-2xl p-6 mb-6 border border-purple-500/10">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-white flex items-center space-x-2 font-[Calibri,sans-serif]">
+            <h3 className="text-lg font-bold text-white flex items-center space-x-2 font-[Inter]">
               {editingService ? <Edit className="w-5 h-5 text-purple-300" /> : <Plus className="w-5 h-5 text-purple-300" />}
               <span>{editingService ? 'Edit Service' : 'Add New Service'}</span>
             </h3>
@@ -293,7 +293,7 @@ export default function Services() {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-3 bg-purple-950/25 border border-purple-700/50 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/50 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/25 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/50 transition-all placeholder-gray-400"
                   placeholder="e.g., Women's Haircut"
                   required
                 />
@@ -307,7 +307,7 @@ export default function Services() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={2}
-                  className="w-full px-4 py-3 bg-purple-950/25 border border-purple-700/50 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/50 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/25 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/50 transition-all placeholder-gray-400"
                   placeholder="Describe your service..."
                 />
               </div>
@@ -319,7 +319,7 @@ export default function Services() {
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-4 py-3 bg-purple-950/25 border border-purple-700/50 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/50 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/25 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/50 transition-all placeholder-gray-400"
                   required
                 >
                   {SERVICE_CATEGORIES.map((cat) => (
@@ -340,7 +340,7 @@ export default function Services() {
                   onChange={(e) => setPrice(e.target.value)}
                   min="0"
                   step="0.01"
-                  className="w-full px-4 py-3 bg-purple-950/25 border border-purple-700/50 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/50 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/25 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/50 transition-all placeholder-gray-400"
                   placeholder="50.00"
                   required
                 />
@@ -356,7 +356,7 @@ export default function Services() {
                   onChange={(e) => setDuration(e.target.value)}
                   min="1"
                   step="1"
-                  className="w-full px-4 py-3 bg-purple-950/25 border border-purple-700/50 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/50 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/25 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/50 transition-all placeholder-gray-400"
                   placeholder="60"
                   required
                 />
@@ -367,13 +367,13 @@ export default function Services() {
               <button
                 type="button"
                 onClick={resetForm}
-                className="px-6 py-2 border border-purple-700/50 text-gray-200 rounded-lg hover:bg-purple-900/30 transition-all"
+                className="px-6 py-2 border border-purple-500/10 text-gray-200 rounded-lg hover:bg-purple-900/30 transition-all"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-8 py-3 bg-purple-900/30 border border-purple-700 text-white rounded-lg hover:bg-purple-900/40 font-medium transition-all transform hover:scale-105"
+                className="px-8 py-3 bg-purple-900/30 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/40 font-medium transition-all transform hover:scale-105"
               >
                 {editingService ? 'Update Service' : 'Add Service'}
               </button>
@@ -384,17 +384,17 @@ export default function Services() {
 
       {/* Services List */}
       {services.length === 0 ? (
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg shadow-2xl p-12 text-center border border-purple-700">
+        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg shadow-2xl p-12 text-center border border-purple-500/10">
           <div className="flex justify-center mb-4">
             <Scissors className="w-16 h-16 text-purple-300" />
           </div>
-          <h3 className="text-lg font-bold text-white mb-2 font-[Calibri,sans-serif]">No Services Yet</h3>
+          <h3 className="text-lg font-bold text-white mb-2 font-[Inter]">No Services Yet</h3>
           <p className="text-gray-200 mb-6">
             Start by adding your first service to appear in the mobile app
           </p>
           <button
             onClick={handleAdd}
-            className="px-8 py-3 bg-purple-900/30 border border-purple-700 text-white rounded-lg hover:bg-purple-900/40 font-medium transition-all transform hover:scale-105"
+            className="px-8 py-3 bg-purple-900/30 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/40 font-medium transition-all transform hover:scale-105"
           >
             Add Your First Service
           </button>
@@ -403,13 +403,13 @@ export default function Services() {
         /* Grid View */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredServices.map((service) => (
-            <div key={service.id} className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl transition-all p-4">
+            <div key={service.id} className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl transition-all p-4">
               {/* Header */}
               <div className="mb-3">
-                <h3 className="text-base font-bold text-white mb-2 line-clamp-1 font-[Calibri,sans-serif]">
+                <h3 className="text-base font-bold text-white mb-2 line-clamp-1 font-[Inter]">
                   {service.name}
                 </h3>
-                <span className="inline-block px-2 py-1 text-xs bg-purple-950/30 text-purple-200 rounded-full font-medium border border-purple-700/50">
+                <span className="inline-block px-2 py-1 text-xs bg-purple-950/30 text-purple-200 rounded-full font-medium border border-purple-500/10">
                   {service.category}
                 </span>
               </div>
@@ -425,7 +425,7 @@ export default function Services() {
               )}
 
               {/* Price & Duration - More Prominent */}
-              <div className="bg-purple-950/30 rounded-lg p-3 mb-3 border border-purple-700/50">
+              <div className="bg-purple-950/30 rounded-lg p-3 mb-3 border border-purple-500/10">
                 <div className="flex items-center justify-between text-white">
                   <div>
                     <div className="text-xs text-purple-200">Price</div>
@@ -458,9 +458,9 @@ export default function Services() {
         </div>
       ) : (
         /* List/Table View */
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl overflow-hidden">
+        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl overflow-hidden">
           {/* Table Header */}
-          <div className="grid grid-cols-12 gap-4 px-6 py-4 bg-purple-950/30 border-b border-purple-700/50">
+          <div className="grid grid-cols-12 gap-4 px-6 py-4 bg-purple-950/30 border-b border-purple-500/10">
             <div className="col-span-3 text-sm font-bold text-purple-200">Service Name</div>
             <div className="col-span-2 text-sm font-bold text-purple-200">Category</div>
             <div className="col-span-3 text-sm font-bold text-purple-200">Description</div>
@@ -473,11 +473,11 @@ export default function Services() {
           <div className="divide-y divide-purple-700/30">
             {filteredServices.map((service) => (
               <div key={service.id} className="grid grid-cols-12 gap-4 px-6 py-4 hover:bg-purple-900/20 transition-all">
-                <div className="col-span-3 text-white font-medium font-[Calibri,sans-serif] flex items-center">
+                <div className="col-span-3 text-white font-medium font-[Inter] flex items-center">
                   {service.name}
                 </div>
                 <div className="col-span-2 flex items-center">
-                  <span className="inline-block px-2 py-1 text-xs bg-purple-950/30 text-purple-200 rounded-full font-medium border border-purple-700/50">
+                  <span className="inline-block px-2 py-1 text-xs bg-purple-950/30 text-purple-200 rounded-full font-medium border border-purple-500/10">
                     {service.category}
                   </span>
                 </div>

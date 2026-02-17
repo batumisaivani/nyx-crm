@@ -100,13 +100,13 @@ export default function CalendarPicker({ value, onChange, minDate, label, isOpen
           className={`
             h-7 w-7 rounded-lg text-xs font-medium transition-all
             ${disabled
-              ? 'text-gray-600 cursor-not-allowed opacity-40'
-              : 'hover:bg-purple-500/20 cursor-pointer'
+              ? 'text-gray-400 cursor-not-allowed opacity-40'
+              : 'hover:bg-purple-500/50/20 cursor-pointer'
             }
             ${selected
               ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30'
               : todayDate
-              ? 'bg-purple-900/30 text-purple-300 border border-purple-700'
+              ? 'bg-purple-900/30 text-purple-300 border border-purple-500/10'
               : 'text-gray-300'
             }
           `}
@@ -141,7 +141,7 @@ export default function CalendarPicker({ value, onChange, minDate, label, isOpen
       <button
         type="button"
         onClick={() => onToggle ? onToggle(!isCalendarOpen) : setShowCalendar(!showCalendar)}
-        className="w-full px-3 py-2 bg-purple-950/25 border border-purple-700/50 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all flex items-center justify-center text-sm"
+        className="w-full px-3 py-2 bg-purple-950/25 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all flex items-center justify-center text-sm"
       >
         <span className={value ? 'text-white' : 'text-gray-400'}>
           {formatDisplayDate()}
@@ -158,13 +158,13 @@ export default function CalendarPicker({ value, onChange, minDate, label, isOpen
           />
 
           {/* Calendar */}
-          <div className="absolute top-full mt-2 left-0 z-[99999] w-full min-w-[240px] bg-gradient-to-r from-purple-900/95 to-violet-900/95 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-2.5">
+          <div className="absolute top-full mt-2 left-0 z-[99999] w-full min-w-[240px] bg-gradient-to-r from-purple-900/95 to-violet-900/95 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-2.5">
             {/* Header */}
             <div className="flex items-center justify-between mb-2">
               <button
                 type="button"
                 onClick={handlePrevMonth}
-                className="p-1.5 hover:bg-purple-500/20 rounded-lg transition-all"
+                className="p-1.5 hover:bg-purple-500/50/20 rounded-lg transition-all"
               >
                 <ChevronLeft className="w-4 h-4 text-purple-300" />
               </button>
@@ -178,7 +178,7 @@ export default function CalendarPicker({ value, onChange, minDate, label, isOpen
               <button
                 type="button"
                 onClick={handleNextMonth}
-                className="p-1.5 hover:bg-purple-500/20 rounded-lg transition-all"
+                className="p-1.5 hover:bg-purple-500/50/20 rounded-lg transition-all"
               >
                 <ChevronRight className="w-4 h-4 text-purple-300" />
               </button>

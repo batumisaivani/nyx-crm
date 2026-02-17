@@ -147,9 +147,9 @@ export default function Customers() {
 
   const getCustomerLevel = (totalBookings) => {
     if (totalBookings >= 20) return { label: 'VIP', color: 'bg-yellow-100 text-yellow-800 border-yellow-300' }
-    if (totalBookings >= 10) return { label: 'Loyal', color: 'bg-purple-100 text-purple-800 border-purple-300' }
+    if (totalBookings >= 10) return { label: 'Loyal', color: 'bg-purple-500/50/10 text-purple-300 border-purple-300' }
     if (totalBookings >= 5) return { label: 'Regular', color: 'bg-blue-100 text-blue-800 border-blue-300' }
-    return { label: 'New', color: 'bg-gray-100 text-gray-800 border-gray-300' }
+    return { label: 'New', color: 'bg-white/5 text-white border-purple-500/15' }
   }
 
   if (loading) {
@@ -164,7 +164,7 @@ export default function Customers() {
     <div className="w-full -mt-4">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white font-[Calibri,sans-serif]">Customer Management</h1>
+        <h1 className="text-2xl font-bold text-white font-[Inter]">Customer Management</h1>
         <p className="text-gray-300 mt-1">Manage and track your customers</p>
       </div>
 
@@ -200,7 +200,7 @@ export default function Customers() {
       </div>
 
       {/* Search and Filters */}
-      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg shadow-2xl p-6 mb-6 border border-purple-700">
+      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg shadow-2xl p-6 mb-6 border border-purple-500/10">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-purple-300" />
@@ -209,14 +209,14 @@ export default function Customers() {
               placeholder="Search by name, email, or phone..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-purple-950/25 border border-purple-700/50 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/90 transition-all placeholder-gray-400"
+              className="w-full pl-10 pr-4 py-3 bg-purple-950/25 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/90 transition-all placeholder-gray-400"
             />
           </div>
           <div className="flex gap-2">
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-3 bg-purple-950/25 border border-purple-700/50 text-white rounded-lg focus:ring-2 focus:ring-purple-500 transition-all"
+              className="px-4 py-3 bg-purple-950/25 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 transition-all"
             >
               <option value="recent">Recent First</option>
               <option value="name">Name A-Z</option>
@@ -228,10 +228,10 @@ export default function Customers() {
       </div>
 
       {/* Customers Table */}
-      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl overflow-hidden">
+      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-purple-950/50 border-b border-purple-700/50">
+            <thead className="bg-purple-950/50 border-b border-purple-500/10">
               <tr>
                 <th className="text-left py-3 px-4 text-sm font-bold text-purple-200">Customer</th>
                 <th className="text-left py-3 px-4 text-sm font-bold text-purple-200">Contact</th>
@@ -255,7 +255,7 @@ export default function Customers() {
                   return (
                     <tr key={customer.id} className="hover:bg-purple-900/30 transition-all">
                       <td className="py-3 px-4">
-                        <div className="font-medium text-white font-[Calibri,sans-serif]">{customer.name}</div>
+                        <div className="font-medium text-white font-[Inter]">{customer.name}</div>
                         <div className="text-sm text-gray-300">
                           Customer since {formatDate(customer.firstVisit)}
                         </div>
@@ -299,12 +299,12 @@ export default function Customers() {
       {/* Customer Detail Modal */}
       {showDetailModal && selectedCustomer && (
         <div className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gradient-to-r from-purple-900/15 to-violet-900/15 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-purple-700">
+          <div className="bg-gradient-to-r from-purple-900/15 to-violet-900/15 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-purple-500/10">
             {/* Modal Header */}
-            <div className="bg-purple-900/30 p-6 border-b border-purple-700">
+            <div className="bg-purple-900/30 p-6 border-b border-purple-500/10">
               <div className="flex justify-between items-start">
                 <div>
-                  <h2 className="text-2xl font-bold text-white font-[Calibri,sans-serif]">{selectedCustomer.name}</h2>
+                  <h2 className="text-2xl font-bold text-white font-[Inter]">{selectedCustomer.name}</h2>
                   <p className="text-purple-200 mt-1">Customer Details & History</p>
                 </div>
                 <button
@@ -320,23 +320,23 @@ export default function Customers() {
             <div className="flex-1 overflow-y-auto p-6">
               {/* Customer Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div className="bg-purple-950/30 rounded-lg p-4 border border-purple-700/50">
+                <div className="bg-purple-950/30 rounded-lg p-4 border border-purple-500/10">
                   <p className="text-sm text-purple-200 font-medium">Total Bookings</p>
                   <p className="text-2xl font-bold text-white mt-1">{selectedCustomer.totalBookings}</p>
                 </div>
-                <div className="bg-purple-950/30 rounded-lg p-4 border border-purple-700/50">
+                <div className="bg-purple-950/30 rounded-lg p-4 border border-purple-500/10">
                   <p className="text-sm text-purple-200 font-medium">Total Spent</p>
                   <p className="text-2xl font-bold text-green-400 mt-1">
                     {selectedCustomer.totalRevenue.toFixed(2)} GEL
                   </p>
                 </div>
-                <div className="bg-purple-950/30 rounded-lg p-4 border border-purple-700/50">
+                <div className="bg-purple-950/30 rounded-lg p-4 border border-purple-500/10">
                   <p className="text-sm text-purple-200 font-medium">Avg per Booking</p>
                   <p className="text-2xl font-bold text-blue-400 mt-1">
                     {(selectedCustomer.totalRevenue / selectedCustomer.totalBookings).toFixed(2)} GEL
                   </p>
                 </div>
-                <div className="bg-purple-950/30 rounded-lg p-4 border border-purple-700/50">
+                <div className="bg-purple-950/30 rounded-lg p-4 border border-purple-500/10">
                   <p className="text-sm text-purple-200 font-medium">Cancelled</p>
                   <p className="text-2xl font-bold text-orange-400 mt-1">
                     {selectedCustomer.cancelledBookings}
@@ -345,7 +345,7 @@ export default function Customers() {
               </div>
 
               {/* Contact Info */}
-              <div className="bg-purple-950/30 rounded-lg p-4 mb-6 border border-purple-700/50">
+              <div className="bg-purple-950/30 rounded-lg p-4 mb-6 border border-purple-500/10">
                 <h3 className="font-semibold text-white mb-3">Contact Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                   <div>
@@ -382,7 +382,7 @@ export default function Customers() {
                   {customerBookings.map((booking) => (
                     <div
                       key={booking.id}
-                      className="bg-purple-950/30 border border-purple-700/50 rounded-lg p-4 hover:bg-purple-950/50 transition-all"
+                      className="bg-purple-950/30 border border-purple-500/10 rounded-lg p-4 hover:bg-purple-950/50 transition-all"
                     >
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
@@ -429,10 +429,10 @@ export default function Customers() {
             </div>
 
             {/* Modal Footer */}
-            <div className="border-t border-purple-700 p-4 bg-purple-900/30 flex justify-end">
+            <div className="border-t border-purple-500/10 p-4 bg-purple-900/30 flex justify-end">
               <button
                 onClick={closeCustomerDetail}
-                className="px-8 py-3 bg-purple-900/30 border border-purple-700 text-white rounded-lg hover:bg-purple-900/40 font-medium transition-all transform hover:scale-105"
+                className="px-8 py-3 bg-purple-900/30 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/40 font-medium transition-all transform hover:scale-105"
               >
                 Close
               </button>

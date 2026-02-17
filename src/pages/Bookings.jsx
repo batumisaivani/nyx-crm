@@ -174,12 +174,12 @@ export default function Bookings() {
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-white font-[Calibri,sans-serif]">Bookings</h2>
+          <h2 className="text-2xl font-bold text-white font-[Inter]">Bookings</h2>
           <p className="text-gray-300 mt-1">Manage your customer appointments</p>
         </div>
         <button
           onClick={handleNewBooking}
-          className="px-8 py-3 bg-purple-900/40 border border-purple-700 text-white rounded-lg hover:bg-purple-900/50 font-medium transition-all transform hover:scale-105"
+          className="px-8 py-3 bg-purple-900/40 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/50 font-medium transition-all transform hover:scale-105"
         >
           + New Booking
         </button>
@@ -206,7 +206,7 @@ export default function Bookings() {
       </div>
 
       {/* Filters */}
-      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg shadow-2xl p-6 mb-6 border border-purple-700">
+      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg shadow-2xl p-6 mb-6 border border-purple-500/10">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-200 mb-2">
@@ -215,7 +215,7 @@ export default function Bookings() {
             <select
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
-              className="w-full px-4 py-3 bg-purple-950/40 border border-purple-700/50 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/50 transition-all"
+              className="w-full px-4 py-3 bg-purple-950/40 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/50 transition-all"
             >
               <option value="upcoming">Upcoming</option>
               <option value="today">Today Only</option>
@@ -230,7 +230,7 @@ export default function Bookings() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-4 py-3 bg-purple-950/40 border border-purple-700/50 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/50 transition-all"
+              className="w-full px-4 py-3 bg-purple-950/40 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/50 transition-all"
             >
               {STATUS_OPTIONS.map(option => (
                 <option key={option.value} value={option.value}>
@@ -244,11 +244,11 @@ export default function Bookings() {
 
       {/* Bookings List */}
       {bookings.length === 0 ? (
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg shadow-2xl p-12 text-center border border-purple-700">
+        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg shadow-2xl p-12 text-center border border-purple-500/10">
           <div className="flex justify-center mb-4">
             <Calendar className="w-16 h-16 text-purple-300" />
           </div>
-          <h3 className="text-lg font-bold text-white mb-2 font-[Calibri,sans-serif]">No Bookings Found</h3>
+          <h3 className="text-lg font-bold text-white mb-2 font-[Inter]">No Bookings Found</h3>
           <p className="text-gray-200">
             {statusFilter !== 'all' || dateFilter !== 'all'
               ? 'Try adjusting your filters to see more bookings.'
@@ -260,12 +260,12 @@ export default function Bookings() {
           {bookings.map((booking) => (
             <div
               key={booking.id}
-              className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl transition-all p-6"
+              className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl transition-all p-6"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center space-x-3 mb-3">
-                    <div className="text-lg font-semibold text-white font-[Calibri,sans-serif] flex items-center gap-2">
+                    <div className="text-lg font-semibold text-white font-[Inter] flex items-center gap-2">
                       {booking.services?.name || 'Unknown Service'}
                       {booking.created_via === 'mobile' ? (
                         <span className="text-xs font-semibold px-2 py-1 bg-purple-700/40 border border-purple-500/40 rounded text-purple-100" title="Booked via Mobile App">App</span>
@@ -322,7 +322,7 @@ export default function Bookings() {
                   <select
                     value={booking.status}
                     onChange={(e) => updateBookingStatus(booking.id, e.target.value)}
-                    className="px-3 py-1.5 text-xs bg-purple-950/40 border border-purple-700/50 text-white rounded-lg focus:ring-2 focus:ring-purple-500 transition-all"
+                    className="px-3 py-1.5 text-xs bg-purple-950/40 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 transition-all"
                   >
                     <option value="pending">Pending</option>
                     <option value="confirmed">Confirmed</option>

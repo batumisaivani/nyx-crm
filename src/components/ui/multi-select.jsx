@@ -41,7 +41,7 @@ export function MultiSelect({
         <button
           ref={triggerRef}
           className={cn(
-            'flex h-8.5 w-full items-center justify-between gap-2 rounded-md border border-purple-700/50 bg-purple-950/25 px-3 py-1 text-sm text-white shadow-sm transition-all',
+            'flex h-8.5 w-full items-center justify-between gap-2 rounded-md border border-purple-500/10 bg-purple-950/25 px-3 py-1 text-sm text-white shadow-sm transition-all',
             'hover:bg-purple-950/40 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/30',
             'disabled:cursor-not-allowed disabled:opacity-50',
             className
@@ -69,7 +69,7 @@ export function MultiSelect({
           align="start"
           sideOffset={4}
           className={cn(
-            'z-50 w-[var(--radix-popover-trigger-width)] rounded-md border border-purple-700 bg-purple-950/95 backdrop-blur-xl p-1.5 shadow-xl',
+            'z-50 w-[var(--radix-popover-trigger-width)] rounded-md border border-purple-500/10 bg-purple-950/95 backdrop-blur-xl p-1.5 shadow-xl',
             'data-[state=open]:animate-in data-[state=closed]:animate-out',
             'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
             'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
