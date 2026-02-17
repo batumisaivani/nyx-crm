@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase'
 import AnimatedCard from '../components/ui/AnimatedCard'
 import RevenueCircle from '../components/ui/RevenueCircle'
 import ClassicLoader from '../components/ui/loader'
-import { Calendar, TrendingUp, Scissors, Users, Building2, CalendarDays, Brain, ChevronDown, ExternalLink, Send, Clock, Tag, Zap, Plus } from 'lucide-react'
+import { Calendar, TrendingUp, Scissors, Users, Building2, CalendarDays, Brain, ChevronDown, ExternalLink, Send, Clock, Tag, Zap, Plus, Sparkles, Shield, Settings, CheckCircle2, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { StoryViewer } from '../components/ui/StoryViewer'
 
@@ -24,6 +24,13 @@ export default function Dashboard() {
   const [nextBooking, setNextBooking] = useState(null)
   const [loading, setLoading] = useState(true)
   const [expandedItem, setExpandedItem] = useState(null)
+  const [autopilotEnabled, setAutopilotEnabled] = useState(false)
+  const [showGuardrails, setShowGuardrails] = useState(false)
+  const [guardrails, setGuardrails] = useState({
+    monthlyBudget: 200,
+    maxDiscount: 20,
+    clientFrequency: 2,
+  })
 
   useEffect(() => {
     if (facilityAccess?.salon_id) {
@@ -158,6 +165,33 @@ export default function Dashboard() {
     completed: 'bg-gradient-to-br from-emerald-900/50 to-green-900/50 border border-emerald-600/30 text-emerald-200',
     cancelled: 'bg-gradient-to-br from-rose-900/40 to-red-900/40 border border-rose-600/30 text-rose-200',
   }
+
+  const recommendedActions = [
+    {
+      id: 'ra1', text: 'Send 15% off to Ana', time: 'Suggested',
+      detail: 'She viewed Hair Coloring 3 times without booking. A discount could convert her.',
+      action: 'Create promo', link: '/promos', icon: Tag,
+      autopilot: { tool: 'Discount', cost: '$15', clvAtRisk: '$1,300', roi: '52x', status: 'Sent 2h ago' },
+    },
+    {
+      id: 'ra2', text: 'Re-engage Dato with loyalty offer', time: 'Suggested',
+      detail: 'Inactive for 30+ days. Send a personalized comeback offer to retain.',
+      action: 'Send offer', link: '/promos', icon: Send,
+      autopilot: { tool: 'NyxCoins bonus', cost: '$0', clvAtRisk: '$890', roi: '∞', status: 'Sent 5h ago' },
+    },
+    {
+      id: 'ra3', text: 'Add evening slots on Thursdays', time: 'Opportunity',
+      detail: '12 booking requests were declined last month due to no availability after 6 PM.',
+      action: 'Edit schedule', link: '/specialists', icon: Clock,
+      autopilot: { tool: 'Flagged', cost: '$0', note: 'Requires manual action', status: 'Needs review' },
+    },
+    {
+      id: 'ra4', text: 'Promote Nail Art — high demand', time: 'Trending',
+      detail: 'Search volume for nail art increased 40% this month in your area.',
+      action: 'Boost service', link: '/services', icon: Zap,
+      autopilot: { tool: 'Push notification', cost: '$0', clvAtRisk: '$2,100', roi: '∞', status: 'Queued' },
+    },
+  ]
 
   return (
     <Layout>
@@ -426,23 +460,71 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* Panel 3 — Recommended Actions */}
-                <div className="feat-panel feat-panel-3">
+                {/* Panel 3 — Recommended Actions + Autopilot */}
+                <div className={`feat-panel feat-panel-3 transition-all ${autopilotEnabled ? 'ring-1 ring-purple-500/20' : ''}`}>
                   <div className="feat-panel-head">
                     <span className="feat-panel-name">Recommended Actions</span>
-                    <span className="feat-tag feat-tag-biz">
-                      <span className="feat-tag-dot" style={{ background: '#fda4af' }} />
-                      ACTIONS
-                    </span>
+                    <div className="flex items-center gap-2">
+                      {autopilotEnabled && (
+                        <button onClick={() => setShowGuardrails(true)} className="text-gray-500 hover:text-purple-400 transition-colors cursor-pointer">
+                          <Settings className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => {
+                          const next = !autopilotEnabled
+                          setAutopilotEnabled(next)
+                          if (next) setShowGuardrails(true)
+                        }}
+                        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+                          autopilotEnabled
+                            ? 'bg-purple-500/20 text-purple-300 border border-purple-400/30 shadow-[0_0_12px_rgba(168,85,247,0.15)]'
+                            : 'bg-white/5 text-gray-500 border border-white/10 hover:border-white/20'
+                        }`}
+                      >
+                        <Sparkles className="w-3 h-3" />
+                        Autopilot {autopilotEnabled ? 'ON' : 'OFF'}
+                      </button>
+                    </div>
                   </div>
+
+                  {/* Budget usage bar */}
+                  <AnimatePresence>
+                    {autopilotEnabled && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-4 pt-3 pb-1">
+                          <div className="flex items-center justify-between text-[10px] mb-1.5">
+                            <span className="text-gray-500">Monthly budget used</span>
+                            <span className="text-purple-400 font-semibold">$47 / ${guardrails.monthlyBudget}</span>
+                          </div>
+                          <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${(47 / guardrails.monthlyBudget) * 100}%` }}
+                              transition={{ duration: 0.8, ease: 'easeOut' }}
+                              className="h-full bg-gradient-to-r from-purple-500 to-violet-500 rounded-full"
+                            />
+                          </div>
+                          <div className="flex items-center gap-3 mt-2 text-[10px] text-gray-500">
+                            <span>3 actions taken</span>
+                            <span className="text-emerald-400">2 converted</span>
+                            <span>1 pending</span>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
                   <div className="p-4 space-y-1">
-                    {[
-                      { id: 'ra1', text: 'Send 15% off to Ana', time: 'Suggested', detail: 'She viewed Hair Coloring 3 times without booking. A discount could convert her.', action: 'Create promo', link: '/promos', icon: Tag },
-                      { id: 'ra2', text: 'Re-engage Dato with loyalty offer', time: 'Suggested', detail: 'Inactive for 30+ days. Send a personalized comeback offer to retain.', action: 'Send offer', link: '/promos', icon: Send },
-                      { id: 'ra3', text: 'Add evening slots on Thursdays', time: 'Opportunity', detail: '12 booking requests were declined last month due to no availability after 6 PM.', action: 'Edit schedule', link: '/specialists', icon: Clock },
-                      { id: 'ra4', text: 'Promote Nail Art — high demand', time: 'Trending', detail: 'Search volume for nail art increased 40% this month in your area.', action: 'Boost service', link: '/services', icon: Zap },
-                    ].map((item, i) => {
+                    {recommendedActions.map((item, i) => {
                       const ActionIcon = item.icon
+                      const ap = item.autopilot
                       return (
                         <div key={item.id}>
                           <button
@@ -452,8 +534,13 @@ export default function Dashboard() {
                             <div className="feat-sn feat-sn-3">{i + 1}</div>
                             <div className="flex-1 min-w-0">
                               <p className="text-sm text-gray-200 truncate">{item.text}</p>
-                              <p className="text-[11px] text-gray-500">{item.time}</p>
+                              <p className="text-[11px] text-gray-500">
+                                {autopilotEnabled ? ap.status : item.time}
+                              </p>
                             </div>
+                            {autopilotEnabled && ap.status.includes('Sent') && (
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                            )}
                             <ChevronDown className={`w-3.5 h-3.5 text-gray-500 transition-transform flex-shrink-0 ${expandedItem === item.id ? 'rotate-180' : ''}`} />
                           </button>
                           <AnimatePresence>
@@ -467,10 +554,44 @@ export default function Dashboard() {
                               >
                                 <div className="ml-[42px] mb-2 pl-3 border-l border-rose-400/20">
                                   <p className="text-xs text-gray-400 mb-2">{item.detail}</p>
-                                  <Link to={item.link} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/10 text-[11px] font-semibold text-rose-300 hover:bg-rose-500/20 transition-colors">
-                                    <ActionIcon className="w-3 h-3" />
-                                    {item.action}
-                                  </Link>
+
+                                  {autopilotEnabled ? (
+                                    <div className="space-y-2">
+                                      {/* AI reasoning row */}
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/15">
+                                          <Sparkles className="w-2.5 h-2.5" />
+                                          {ap.tool}
+                                        </span>
+                                        <span className="text-[10px] text-gray-500">
+                                          Cost: <span className="text-gray-300">{ap.cost}</span>
+                                        </span>
+                                        {ap.clvAtRisk && (
+                                          <span className="text-[10px] text-gray-500">
+                                            CLV at risk: <span className="text-orange-400">{ap.clvAtRisk}</span>
+                                          </span>
+                                        )}
+                                        {ap.roi && (
+                                          <span className="text-[10px] text-gray-500">
+                                            ROI: <span className="text-emerald-400 font-semibold">{ap.roi}</span>
+                                          </span>
+                                        )}
+                                      </div>
+                                      {/* Status badge */}
+                                      <div className={`inline-flex items-center gap-1.5 text-[11px] font-semibold ${
+                                        ap.status.includes('Sent') ? 'text-emerald-400' :
+                                        ap.status === 'Queued' ? 'text-amber-400' : 'text-orange-400'
+                                      }`}>
+                                        {ap.status.includes('Sent') ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                                        {ap.status}
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <Link to={item.link} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/10 text-[11px] font-semibold text-rose-300 hover:bg-rose-500/20 transition-colors">
+                                      <ActionIcon className="w-3 h-3" />
+                                      {item.action}
+                                    </Link>
+                                  )}
                                 </div>
                               </motion.div>
                             )}
@@ -620,6 +741,125 @@ export default function Dashboard() {
           </>
         )}
       </div>
+      {/* Autopilot Guardrails Modal */}
+      <AnimatePresence>
+        {showGuardrails && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+            onClick={(e) => { if (e.target === e.currentTarget) setShowGuardrails(false) }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.2 }}
+              className="bg-[#1a1625] border border-purple-500/20 rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-purple-400" />
+                  <h3 className="text-lg font-bold text-white">Autopilot Guardrails</h3>
+                </div>
+                <button onClick={() => setShowGuardrails(false)} className="text-gray-400 hover:text-white transition-colors cursor-pointer">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-5">
+                {/* Monthly budget */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-gray-300">Monthly discount budget</span>
+                    <span className="text-sm font-bold text-purple-400">${guardrails.monthlyBudget}</span>
+                  </div>
+                  <input
+                    type="range" min="50" max="500" step="25"
+                    value={guardrails.monthlyBudget}
+                    onChange={(e) => setGuardrails(g => ({ ...g, monthlyBudget: +e.target.value }))}
+                    className="w-full accent-purple-500 cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[10px] text-gray-500 mt-1">
+                    <span>$50</span><span>$500</span>
+                  </div>
+                </div>
+
+                {/* Max discount */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-gray-300">Max discount per offer</span>
+                    <span className="text-sm font-bold text-purple-400">{guardrails.maxDiscount}%</span>
+                  </div>
+                  <input
+                    type="range" min="5" max="30" step="5"
+                    value={guardrails.maxDiscount}
+                    onChange={(e) => setGuardrails(g => ({ ...g, maxDiscount: +e.target.value }))}
+                    className="w-full accent-purple-500 cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[10px] text-gray-500 mt-1">
+                    <span>5%</span><span>30%</span>
+                  </div>
+                </div>
+
+                {/* Client frequency */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-gray-300">Max offers per client / month</span>
+                    <span className="text-sm font-bold text-purple-400">{guardrails.clientFrequency}x</span>
+                  </div>
+                  <input
+                    type="range" min="1" max="4" step="1"
+                    value={guardrails.clientFrequency}
+                    onChange={(e) => setGuardrails(g => ({ ...g, clientFrequency: +e.target.value }))}
+                    className="w-full accent-purple-500 cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[10px] text-gray-500 mt-1">
+                    <span>1x</span><span>4x</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Toolbox explainer */}
+              <div className="mt-5 p-3 rounded-lg bg-purple-500/5 border border-purple-500/10">
+                <p className="text-[11px] text-gray-400 leading-relaxed">
+                  <span className="text-purple-400 font-semibold">How it works: </span>
+                  AI exhausts free actions first — loyalty nudges, streak reminders, push notifications. Discounts are the last resort, and only when the expected return exceeds the cost. Every action is logged for full transparency.
+                </p>
+              </div>
+
+              {/* Action priority */}
+              <div className="mt-4 space-y-1.5">
+                <p className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold">Action priority (AI tries top-down)</p>
+                {[
+                  { label: 'Push notification', cost: 'Free', color: 'text-emerald-400' },
+                  { label: 'NyxCoins loyalty bonus', cost: 'Free', color: 'text-emerald-400' },
+                  { label: 'Streak-break warning', cost: 'Free', color: 'text-emerald-400' },
+                  { label: 'Personalized SMS', cost: '~$0.01', color: 'text-gray-400' },
+                  { label: 'Discount offer', cost: 'Budget', color: 'text-orange-400' },
+                ].map((tool, i) => (
+                  <div key={i} className="flex items-center justify-between py-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-gray-600 w-3">{i + 1}.</span>
+                      <span className="text-xs text-gray-300">{tool.label}</span>
+                    </div>
+                    <span className={`text-[10px] font-medium ${tool.color}`}>{tool.cost}</span>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                onClick={() => setShowGuardrails(false)}
+                className="mt-5 w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-sm font-semibold transition-colors cursor-pointer"
+              >
+                Save Guardrails
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </Layout>
   )
 }
