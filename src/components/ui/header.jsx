@@ -57,13 +57,6 @@ export function Header() {
                         </a>
                     ))}
                     <Button
-                        variant="outline"
-                        className="rounded-full bg-white/5 text-white border border-purple-500/25 hover:bg-white/10 hover:border-purple-500/40 transition-all cursor-pointer font-[Inter]"
-                        onClick={() => navigate('/login')}
-                    >
-                        Sign In
-                    </Button>
-                    <Button
                         className="rounded-full bg-gradient-to-r from-purple-600 via-violet-600 to-fuchsia-600 text-white hover:from-purple-500 hover:via-violet-500 hover:to-fuchsia-500 shadow-[0_0_24px_rgba(147,51,234,0.4)] hover:shadow-[0_0_32px_rgba(147,51,234,0.6)] transition-all cursor-pointer font-[Inter]"
                         onClick={() => navigate('/login')}
                     >
@@ -98,13 +91,6 @@ export function Header() {
                     ))}
                 </div>
                 <div className="flex flex-col gap-2">
-                    <Button
-                        variant="outline"
-                        className="w-full bg-transparent border-purple-500/40 text-white hover:bg-purple-500/10 font-[Inter]"
-                        onClick={() => navigate('/login')}
-                    >
-                        Sign In
-                    </Button>
                     <Button
                         className="w-full bg-purple-600 text-white hover:bg-purple-700 font-[Inter]"
                         onClick={() => navigate('/login')}

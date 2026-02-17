@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import {
@@ -18,6 +19,11 @@ export default function Layout({ children }) {
   const location = useLocation()
   const navigate = useNavigate()
   const { user, signOut } = useAuth()
+
+  useEffect(() => {
+    document.title = 'Nyxie CRM'
+    return () => { document.title = 'Nyxie' }
+  }, [])
 
   const handleSignOut = async () => {
     await signOut()

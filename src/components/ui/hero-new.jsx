@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { RocketIcon, ArrowRightIcon, PhoneCallIcon } from "lucide-react";
+import { RocketIcon, ArrowRightIcon, PhoneCallIcon, CheckIcon, LoaderIcon } from "lucide-react";
 import { LogoCloud } from "@/components/ui/logo-cloud";
 import { TextShimmer } from "@/components/ui/text-shimmer";
 import Floating, { FloatingElement } from "@/components/ui/floating";
@@ -8,6 +9,9 @@ import { useNavigate } from "react-router-dom";
 
 export function HeroSection() {
     const navigate = useNavigate();
+    const [waitlistOpen, setWaitlistOpen] = useState(false);
+    const [email, setEmail] = useState('');
+    const [waitlistStatus, setWaitlistStatus] = useState('idle'); // idle | sending | sent
 
     return (
         <section className="relative mx-auto w-full max-w-5xl">
@@ -67,20 +71,68 @@ export function HeroSection() {
                     <div className="absolute inset-y-0 right-8 w-px bg-linear-to-b from-transparent via-purple-500/12 to-purple-500/12 md:right-12" />
                 </div>
 
-                {/* Pill badge */}
-                <a
-                    className={cn(
-                        "group mx-auto flex w-fit items-center gap-3 rounded-full border border-purple-500/25 bg-white/5 px-3 py-1 shadow",
-                        "fade-in slide-in-from-bottom-10 animate-in fill-mode-backwards transition-all delay-500 duration-500 ease-out",
-                        "hover:bg-white/10 hover:border-purple-500/40"
-                    )}
-                    href="#"
-                >
-                    <RocketIcon className="size-3 text-purple-400" />
-                    <span className="text-xs text-white/70 font-[Inter]">waitlist is open</span>
-                    <span className="block h-5 border-l border-purple-500/25" />
-                    <ArrowRightIcon className="size-3 text-purple-400 duration-150 ease-out group-hover:translate-x-1" />
-                </a>
+                {/* Pill badge / Waitlist email input */}
+                {waitlistStatus === 'sent' ? (
+                    <div
+                        className={cn(
+                            "mx-auto flex w-fit items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 shadow",
+                            "fade-in slide-in-from-bottom-10 animate-in fill-mode-backwards delay-500 duration-500 ease-out"
+                        )}
+                    >
+                        <CheckIcon className="size-3 text-emerald-400" />
+                        <span className="text-xs text-emerald-300 font-[Inter]">You're on the list!</span>
+                    </div>
+                ) : waitlistOpen ? (
+                    <form
+                        onSubmit={async (e) => {
+                            e.preventDefault();
+                            if (!email.trim()) return;
+                            setWaitlistStatus('sending');
+                            // Simulate sending — replace with real API call
+                            await new Promise(r => setTimeout(r, 800));
+                            setWaitlistStatus('sent');
+                        }}
+                        className={cn(
+                            "mx-auto flex w-fit items-center gap-2 rounded-full border border-purple-500/30 bg-white/5 pl-4 pr-1.5 py-1 shadow",
+                            "fade-in animate-in fill-mode-backwards duration-300 ease-out"
+                        )}
+                    >
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Enter your email"
+                            autoFocus
+                            required
+                            className="bg-transparent text-xs text-white placeholder-white/30 outline-none w-48 font-[Inter]"
+                        />
+                        <button
+                            type="submit"
+                            disabled={waitlistStatus === 'sending'}
+                            className="flex items-center gap-1.5 rounded-full bg-purple-600 hover:bg-purple-500 disabled:opacity-50 px-3 py-1 text-xs text-white font-medium font-[Inter] transition-colors"
+                        >
+                            {waitlistStatus === 'sending' ? (
+                                <LoaderIcon className="size-3 animate-spin" />
+                            ) : (
+                                <>Join<ArrowRightIcon className="size-3" /></>
+                            )}
+                        </button>
+                    </form>
+                ) : (
+                    <button
+                        onClick={() => setWaitlistOpen(true)}
+                        className={cn(
+                            "group mx-auto flex w-fit items-center gap-3 rounded-full border border-purple-500/25 bg-white/5 px-3 py-1 shadow cursor-pointer",
+                            "fade-in slide-in-from-bottom-10 animate-in fill-mode-backwards transition-all delay-500 duration-500 ease-out",
+                            "hover:bg-white/10 hover:border-purple-500/40"
+                        )}
+                    >
+                        <RocketIcon className="size-3 text-purple-400" />
+                        <span className="text-xs text-white/70 font-[Inter]">waitlist is open</span>
+                        <span className="block h-5 border-l border-purple-500/25" />
+                        <ArrowRightIcon className="size-3 text-purple-400 duration-150 ease-out group-hover:translate-x-1" />
+                    </button>
+                )}
 
                 {/* Heading */}
                 <h1
@@ -139,36 +191,12 @@ export function LogosSection() {
 }
 
 const logos = [
-    {
-        src: "https://storage.efferd.com/logo/nvidia-wordmark.svg",
-        alt: "Nvidia Logo",
-    },
-    {
-        src: "https://storage.efferd.com/logo/supabase-wordmark.svg",
-        alt: "Supabase Logo",
-    },
-    {
-        src: "https://storage.efferd.com/logo/openai-wordmark.svg",
-        alt: "OpenAI Logo",
-    },
-    {
-        src: "https://storage.efferd.com/logo/turso-wordmark.svg",
-        alt: "Turso Logo",
-    },
-    {
-        src: "https://storage.efferd.com/logo/vercel-wordmark.svg",
-        alt: "Vercel Logo",
-    },
-    {
-        src: "https://storage.efferd.com/logo/github-wordmark.svg",
-        alt: "GitHub Logo",
-    },
-    {
-        src: "https://storage.efferd.com/logo/claude-wordmark.svg",
-        alt: "Claude AI Logo",
-    },
-    {
-        src: "https://storage.efferd.com/logo/clerk-wordmark.svg",
-        alt: "Clerk Logo",
-    },
+    { src: "/logos/loreal.svg", alt: "L'Oréal" },
+    { src: "/logos/sephora.svg", alt: "Sephora" },
+    { src: "/logos/aveda.svg", alt: "Aveda" },
+    { src: "/logos/olaplex.svg", alt: "Olaplex" },
+    { src: "/logos/kerastase.svg", alt: "Kérastase" },
+    { src: "/logos/moroccanoil.svg", alt: "Moroccanoil" },
+    { src: "/logos/wella.svg", alt: "Wella" },
+    { src: "/logos/dermalogica.svg", alt: "Dermalogica" },
 ];

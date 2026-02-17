@@ -8,6 +8,7 @@ import RevenueCircle from '../components/ui/RevenueCircle'
 import ClassicLoader from '../components/ui/loader'
 import { Calendar, TrendingUp, Scissors, Users, Building2, CalendarDays, Brain, ChevronDown, ExternalLink, Send, Clock, Tag, Zap, Plus } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { StoryViewer } from '../components/ui/StoryViewer'
 
 export default function Dashboard() {
   const { facilityAccess } = useAuth()
@@ -105,6 +106,52 @@ export default function Dashboard() {
     return timeString.substring(0, 5)
   }
 
+  const salonStories = [
+    {
+      username: 'NOOR HAIR',
+      avatar: '/salon-hero.jpg',
+      timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+      stories: [
+        { id: 'noor-1', type: 'image', src: '/stories/salon-1.jpg' },
+        { id: 'noor-2', type: 'image', src: '/stories/hair-1.jpg' },
+      ],
+    },
+    {
+      username: 'Ana',
+      avatar: '/user-ana.jpg',
+      timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+      stories: [
+        { id: 'ana-1', type: 'image', src: '/stories/hair-color-1.jpg' },
+        { id: 'ana-2', type: 'image', src: '/stories/model-1.jpg' },
+      ],
+    },
+    {
+      username: 'Nino',
+      avatar: '/user-nino.jpg',
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+      stories: [
+        { id: 'nino-1', type: 'image', src: '/stories/nails-1.jpg' },
+        { id: 'nino-2', type: 'image', src: '/stories/nails-2.jpg' },
+      ],
+    },
+    {
+      username: 'Dato',
+      avatar: '/user-dato.jpg',
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
+      stories: [
+        { id: 'dato-1', type: 'image', src: '/stories/model-2.jpg' },
+      ],
+    },
+    {
+      username: 'Lika',
+      avatar: '/user-lika.webp',
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
+      stories: [
+        { id: 'lika-1', type: 'image', src: '/stories/spa-1.jpg' },
+      ],
+    },
+  ]
+
   const STATUS_COLORS = {
     pending: 'bg-gradient-to-br from-yellow-800/60 to-yellow-900/60 border border-yellow-400/40 text-yellow-50',
     confirmed: 'bg-gradient-to-br from-blue-900/50 to-blue-800/50 border border-blue-500/30 text-blue-100',
@@ -121,6 +168,21 @@ export default function Dashboard() {
           </div>
         ) : (
           <>
+            {/* Stories Row */}
+            <div className="mb-6 -mx-2">
+              <div className="flex items-start gap-4 overflow-x-auto px-2 pb-2 scrollbar-hide">
+                {salonStories.map((storyGroup) => (
+                  <StoryViewer
+                    key={storyGroup.username}
+                    stories={storyGroup.stories}
+                    username={storyGroup.username}
+                    avatar={storyGroup.avatar}
+                    timestamp={storyGroup.timestamp}
+                  />
+                ))}
+              </div>
+            </div>
+
             {/* Hero: Image | Revenue | Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
               {/* Salon Image */}

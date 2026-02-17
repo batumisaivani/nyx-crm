@@ -29,6 +29,7 @@ export function FlickeringGrid({
 }) {
   const canvasRef = useRef(null)
   const containerRef = useRef(null)
+  const textMaskRef = useRef(null)
   const [isInView, setIsInView] = useState(false)
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 })
 
@@ -52,47 +53,63 @@ export function FlickeringGrid({
     [squareSize, gridGap, maxOpacity]
   )
 
-  const drawGrid = useCallback(
-    (ctx, w, h, cols, rows, squares, dpr) => {
-      ctx.clearRect(0, 0, w, h)
-
+  // Pre-compute the text mask once on resize — NOT every frame
+  const computeTextMask = useCallback(
+    (canvasW, canvasH, cols, rows, dpr) => {
+      if (!text) {
+        textMaskRef.current = null
+        return
+      }
       const maskCanvas = document.createElement('canvas')
-      maskCanvas.width = w
-      maskCanvas.height = h
+      maskCanvas.width = canvasW
+      maskCanvas.height = canvasH
       const maskCtx = maskCanvas.getContext('2d', { willReadFrequently: true })
       if (!maskCtx) return
 
-      if (text) {
-        maskCtx.save()
-        maskCtx.scale(dpr, dpr)
-        maskCtx.fillStyle = 'white'
-        maskCtx.font = `${fontWeight} ${fontSize}px "Playfair Display", "Playfair", Georgia, serif`
-        maskCtx.textAlign = 'center'
-        maskCtx.textBaseline = 'middle'
-        maskCtx.fillText(text, w / (2 * dpr), h / (2 * dpr))
-        maskCtx.restore()
-      }
+      maskCtx.save()
+      maskCtx.scale(dpr, dpr)
+      maskCtx.fillStyle = 'white'
+      maskCtx.font = `${fontWeight} ${fontSize}px "Playfair Display", "Playfair", Georgia, serif`
+      maskCtx.textAlign = 'center'
+      maskCtx.textBaseline = 'middle'
+      maskCtx.fillText(text, canvasW / (2 * dpr), canvasH / (2 * dpr))
+      maskCtx.restore()
 
-      const { r, g, b } = parsedColor
+      const mask = new Uint8Array(cols * rows)
+      const step = (squareSize + gridGap) * dpr
+      const sw = squareSize * dpr
       for (let i = 0; i < cols; i++) {
         for (let j = 0; j < rows; j++) {
-          const x = i * (squareSize + gridGap) * dpr
-          const y = j * (squareSize + gridGap) * dpr
-          const sw = squareSize * dpr
-          const sh = squareSize * dpr
-
-          const maskData = maskCtx.getImageData(x, y, sw, sh).data
-          const hasText = maskData.some((value, index) => index % 4 === 0 && value > 0)
-
-          const opacity = squares[i * rows + j]
-          const finalOpacity = hasText ? Math.min(1, opacity * 3 + 0.4) : opacity
-
-          ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${finalOpacity})`
-          ctx.fillRect(x, y, sw, sh)
+          const data = maskCtx.getImageData(i * step, j * step, sw, sw).data
+          mask[i * rows + j] = data.some((v, idx) => idx % 4 === 0 && v > 0) ? 1 : 0
         }
       }
+      textMaskRef.current = mask
     },
-    [parsedColor, squareSize, gridGap, text, fontSize, fontWeight]
+    [text, fontSize, fontWeight, squareSize, gridGap]
+  )
+
+  const drawGrid = useCallback(
+    (ctx, w, h, cols, rows, squares, dpr) => {
+      ctx.clearRect(0, 0, w, h)
+      const { r, g, b } = parsedColor
+      const mask = textMaskRef.current
+      const step = (squareSize + gridGap) * dpr
+      const sw = squareSize * dpr
+
+      ctx.fillStyle = `rgb(${r}, ${g}, ${b})`
+      for (let i = 0; i < cols; i++) {
+        for (let j = 0; j < rows; j++) {
+          const idx = i * rows + j
+          const opacity = squares[idx]
+          const hasText = mask ? mask[idx] : 0
+          ctx.globalAlpha = hasText ? Math.min(1, opacity * 3 + 0.4) : opacity
+          ctx.fillRect(i * step, j * step, sw, sw)
+        }
+      }
+      ctx.globalAlpha = 1
+    },
+    [parsedColor, squareSize, gridGap]
   )
 
   const updateSquares = useCallback(
@@ -122,6 +139,7 @@ export function FlickeringGrid({
       const newHeight = height || container.clientHeight
       setCanvasSize({ width: newWidth, height: newHeight })
       gridParams = setupCanvas(canvas, newWidth, newHeight)
+      computeTextMask(canvas.width, canvas.height, gridParams.cols, gridParams.rows, gridParams.dpr)
     }
 
     updateCanvasSize()
@@ -154,7 +172,7 @@ export function FlickeringGrid({
       resizeObserver.disconnect()
       intersectionObserver.disconnect()
     }
-  }, [setupCanvas, updateSquares, drawGrid, width, height, isInView])
+  }, [setupCanvas, computeTextMask, updateSquares, drawGrid, width, height, isInView])
 
   return (
     <div ref={containerRef} className={`h-full w-full ${className}`}>

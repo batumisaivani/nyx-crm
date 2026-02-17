@@ -1,4 +1,6 @@
-import { motion } from 'motion/react'
+import { motion, useScroll, useTransform } from 'motion/react'
+import { useRef } from 'react'
+
 import { useNavigate } from 'react-router-dom'
 import { Smartphone, Monitor, Calendar, TrendingUp, Users, Zap } from 'lucide-react'
 import { HeroSection, LogosSection } from '../components/ui/hero-new'
@@ -6,13 +8,94 @@ import { Header } from '../components/ui/header'
 import Floating, { FloatingElement } from '../components/ui/floating'
 import { FeaturesSection } from '../components/ui/features-section'
 import { Pricing } from '../components/ui/pricing'
+import { GlobalVisionSection } from '../components/ui/global-vision'
 import { FlickeringGrid } from '../components/ui/flickering-grid'
+
+function ProductShowcase() {
+  const scrollRef = useRef(null)
+  const { scrollYProgress } = useScroll({
+    target: scrollRef,
+    offset: ['start start', 'end end'],
+  })
+
+  const phoneX = useTransform(scrollYProgress, [0, 1], ['0%', '-100%'])
+  const crmX = useTransform(scrollYProgress, [0, 1], ['100%', '0%'])
+  const caption1Opacity = useTransform(scrollYProgress, [0, 0.4], [1, 0])
+  const caption2Opacity = useTransform(scrollYProgress, [0.6, 1], [0, 1])
+  const label1Opacity = useTransform(scrollYProgress, [0, 0.4], [1, 0])
+  const label2Opacity = useTransform(scrollYProgress, [0.6, 1], [0, 1])
+
+  return (
+    <section className="relative">
+      {/* Normal-flow header */}
+      <div className="text-center mb-6 px-6 pt-16">
+        <div className="text-[10px] tracking-[0.3em] uppercase text-purple-400 font-semibold mb-3 flex items-center justify-center gap-2.5 font-[Inter]">
+          <span className="w-[30px] h-px bg-gradient-to-r from-transparent via-purple-500 to-transparent" />
+          The Platform
+          <span className="w-[30px] h-px bg-gradient-to-r from-transparent via-purple-500 to-transparent" />
+        </div>
+        <h2 className="font-[Playfair] text-[clamp(2rem,4.5vw,3.2rem)] font-normal leading-[1.15] mb-3 text-[#f0ecf9]">
+          Two sides. <em className="italic text-purple-300">One</em> platform.
+        </h2>
+        <div className="relative h-7">
+          <motion.p
+            style={{ opacity: caption1Opacity }}
+            className="absolute inset-x-0 text-[0.95rem] text-[#b8b0ce] max-w-[520px] mx-auto leading-[1.7] font-light font-[Inter]"
+          >
+            Gamified booking & loyalty for your clients.
+          </motion.p>
+          <motion.p
+            style={{ opacity: caption2Opacity }}
+            className="absolute inset-x-0 text-[0.95rem] text-[#b8b0ce] max-w-[520px] mx-auto leading-[1.7] font-light font-[Inter]"
+          >
+            Intelligent CRM for your business.
+          </motion.p>
+        </div>
+      </div>
+
+      {/* Scroll-driven image area — only THIS div gets extra height */}
+      <div ref={scrollRef} className="relative h-[200vh]">
+        <div className="sticky top-0 h-screen flex items-center justify-center px-6">
+          <div className="relative w-full max-w-6xl aspect-[16/9] rounded-2xl overflow-hidden border border-purple-500/10">
+            {/* Phone app — slides out left */}
+            <motion.div style={{ x: phoneX }} className="absolute inset-0">
+              <img src="/phone-app.png" alt="Nyxie mobile app" className="w-full h-full object-cover" />
+            </motion.div>
+
+            {/* CRM dashboard — slides in from right */}
+            <motion.div style={{ x: crmX }} className="absolute inset-0">
+              <img src="/crm-dashboard.png" alt="Nyxie CRM Dashboard" className="w-full h-full object-cover object-top" />
+            </motion.div>
+
+            {/* Bottom label overlay */}
+            <div className="absolute bottom-12 left-0 right-0 z-10 flex justify-center pointer-events-none">
+              <motion.div
+                style={{ opacity: label1Opacity }}
+                className="absolute flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-black/60 backdrop-blur-md border border-purple-500/15"
+              >
+                <Smartphone className="w-4 h-4 text-purple-400" />
+                <span className="text-sm font-medium text-white/80 font-[Inter]">For your clients</span>
+              </motion.div>
+              <motion.div
+                style={{ opacity: label2Opacity }}
+                className="absolute flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-black/60 backdrop-blur-md border border-purple-500/15"
+              >
+                <Monitor className="w-4 h-4 text-purple-400" />
+                <span className="text-sm font-medium text-white/80 font-[Inter]">For your business</span>
+              </motion.div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
 
 export default function Landing() {
   const navigate = useNavigate()
 
   return (
-    <div className="flex w-full flex-col bg-black text-white overflow-hidden">
+    <div className="flex w-full flex-col bg-black text-white overflow-x-clip">
       <Header />
       <main className="grow">
         <HeroSection />
@@ -122,97 +205,12 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Product Showcase - Phone + CRM */}
-      <section className="relative py-24 md:py-32 px-6 overflow-hidden">
-        <div className="relative max-w-7xl mx-auto">
-          {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-            className="text-center mb-16 md:mb-20"
-          >
-            <div className="text-[10px] tracking-[0.3em] uppercase text-purple-400 font-semibold mb-4 flex items-center justify-center gap-2.5 font-[Inter]">
-              <span className="w-[30px] h-px bg-gradient-to-r from-transparent via-purple-500 to-transparent" />
-              The Platform
-              <span className="w-[30px] h-px bg-gradient-to-r from-transparent via-purple-500 to-transparent" />
-            </div>
-            <h2 className="font-[Playfair] text-[clamp(2rem,4.5vw,3.2rem)] font-normal leading-[1.15] mb-4 text-[#f0ecf9]">
-              Two sides. <em className="italic text-purple-300">One</em> platform.
-            </h2>
-            <p className="text-[0.95rem] text-[#b8b0ce] max-w-[520px] mx-auto leading-[1.7] font-light font-[Inter]">
-              Your customers browse and book through the app. You manage everything from the CRM.
-            </p>
-          </motion.div>
-
-          {/* Visual composition */}
-          <div className="relative flex items-center justify-center min-h-[400px] md:min-h-[500px] lg:min-h-[580px]">
-
-            {/* CRM Dashboard - background, tilted */}
-            <motion.div
-              initial={{ opacity: 0, y: 40, scale: 0.95 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.1 }}
-              className="relative w-full max-w-4xl mx-auto"
-            >
-              {/* Label */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.6 }}
-                className="absolute -top-8 left-4 md:left-8 z-20 flex items-center gap-2"
-              >
-                <div className="w-2 h-2 rounded-full bg-purple-400" />
-                <span className="text-xs font-medium text-white/60 font-[Inter] tracking-wide uppercase">For your business</span>
-              </motion.div>
-
-              <div className="relative rounded-xl overflow-hidden border border-purple-500/10 shadow-[0_20px_80px_rgba(0,0,0,0.5),0_0_60px_rgba(147,108,255,0.08)]"
-                style={{ transform: 'perspective(1200px) rotateX(2deg)' }}
-              >
-                {/* Subtle gradient overlay at edges */}
-                <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-                <img
-                  src="/screenshots/crm-desktop-1.png"
-                  alt="Nyxie CRM Dashboard"
-                  className="w-full h-auto block"
-                />
-              </div>
-            </motion.div>
-
-            {/* Phone - foreground, overlapping from right */}
-            <motion.div
-              initial={{ opacity: 0, y: 60, x: 30 }}
-              whileInView={{ opacity: 1, y: 0, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.35 }}
-              className="absolute -bottom-12 -right-4 md:right-4 lg:right-12 z-20 w-[200px] md:w-[280px] lg:w-[340px]"
-            >
-              {/* Label */}
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.8 }}
-                className="absolute -top-8 right-4 z-20 flex items-center gap-2"
-              >
-                <span className="text-xs font-medium text-white/60 font-[Inter] tracking-wide uppercase">For your clients</span>
-                <div className="w-2 h-2 rounded-full bg-[#00EBFB]" />
-              </motion.div>
-
-              <img
-                src="/screenshots/phone-app.png"
-                alt="Nyxie Customer App"
-                className="w-full h-auto block drop-shadow-[0_20px_40px_rgba(0,0,0,0.5)]"
-              />
-            </motion.div>
-          </div>
-        </div>
-      </section>
+      {/* Product Showcase - Scroll Crossfade */}
+      <ProductShowcase />
 
       <FeaturesSection />
+
+      <GlobalVisionSection />
 
       <Pricing />
 
