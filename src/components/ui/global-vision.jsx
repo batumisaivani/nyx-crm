@@ -522,27 +522,41 @@ export function GlobalVisionSection() {
   return (
     <section className="relative py-24 md:py-32 px-6">
       {/* Ambient purple gradients — no clipping, feathers into adjacent sections */}
-      <div aria-hidden="true" className="absolute -inset-[200px] pointer-events-none">
-        {/* Top-left — feathers up into Features section */}
-        <div className="absolute top-[5%] -left-[5%] w-[600px] h-[600px] rounded-full bg-purple-600/[0.12] blur-[180px]" />
-        {/* Top-right */}
-        <div className="absolute top-[8%] -right-[10%] w-[500px] h-[500px] rounded-full bg-violet-500/[0.1] blur-[160px]" />
-        {/* Left center — behind spinner */}
-        <div className="absolute top-[35%] -left-[3%] w-[400px] h-[400px] rounded-full bg-purple-500/[0.14] blur-[150px]" />
-        {/* Center — large diffuse wash behind map */}
-        <div className="absolute top-[25%] left-[20%] w-[700px] h-[500px] rounded-full bg-violet-600/[0.07] blur-[200px]" />
-        {/* Right center — behind loyalty card */}
-        <div className="absolute top-[40%] -right-[2%] w-[400px] h-[350px] rounded-full bg-fuchsia-500/[0.1] blur-[140px]" />
-        {/* Small accent — between map and spinner */}
-        <div className="absolute top-[50%] left-[10%] w-[250px] h-[250px] rounded-full bg-purple-400/[0.08] blur-[100px]" />
-        {/* Small accent — between map and card */}
-        <div className="absolute top-[48%] right-[12%] w-[200px] h-[200px] rounded-full bg-violet-400/[0.08] blur-[90px]" />
-        {/* Bottom-left — behind roadmap */}
-        <div className="absolute bottom-[10%] -left-[5%] w-[500px] h-[500px] rounded-full bg-indigo-500/[0.1] blur-[160px]" />
-        {/* Bottom-center — roadmap warmth */}
-        <div className="absolute bottom-[5%] left-[30%] w-[450px] h-[350px] rounded-full bg-purple-600/[0.08] blur-[150px]" />
-        {/* Bottom-right — feathers down into Pricing */}
-        <div className="absolute bottom-[0%] -right-[8%] w-[550px] h-[550px] rounded-full bg-violet-500/[0.1] blur-[180px]" />
+      <div aria-hidden="true" className="absolute -inset-[250px] pointer-events-none">
+        {/* === TOP LAYER — feathers into Features === */}
+        <div className="absolute top-[2%] left-[5%] w-[700px] h-[700px] rounded-full bg-purple-600/[0.14] blur-[200px]" />
+        <div className="absolute top-[0%] right-[0%] w-[600px] h-[600px] rounded-full bg-violet-500/[0.12] blur-[180px]" />
+        <div className="absolute top-[6%] left-[40%] w-[400px] h-[400px] rounded-full bg-purple-500/[0.08] blur-[150px]" />
+
+        {/* === UPPER-MID — around the header text === */}
+        <div className="absolute top-[14%] -left-[8%] w-[500px] h-[350px] rounded-full bg-fuchsia-600/[0.1] blur-[160px]" />
+        <div className="absolute top-[16%] right-[5%] w-[450px] h-[300px] rounded-full bg-violet-400/[0.1] blur-[140px]" />
+        <div className="absolute top-[18%] left-[25%] w-[350px] h-[350px] rounded-full bg-purple-400/[0.06] blur-[120px]" />
+
+        {/* === CENTER — the map area, rich but diffuse === */}
+        <div className="absolute top-[28%] left-[10%] w-[800px] h-[500px] rounded-full bg-violet-600/[0.08] blur-[220px]" />
+        <div className="absolute top-[32%] -left-[5%] w-[500px] h-[500px] rounded-full bg-purple-500/[0.16] blur-[170px]" />
+        <div className="absolute top-[30%] -right-[5%] w-[500px] h-[450px] rounded-full bg-purple-600/[0.14] blur-[160px]" />
+        <div className="absolute top-[35%] left-[45%] w-[300px] h-[300px] rounded-full bg-fuchsia-500/[0.07] blur-[130px]" />
+
+        {/* === ACCENTS — smaller pops of color around the widgets === */}
+        <div className="absolute top-[45%] left-[3%] w-[300px] h-[300px] rounded-full bg-purple-400/[0.12] blur-[110px]" />
+        <div className="absolute top-[42%] right-[3%] w-[280px] h-[280px] rounded-full bg-violet-400/[0.1] blur-[100px]" />
+        <div className="absolute top-[50%] left-[20%] w-[200px] h-[200px] rounded-full bg-fuchsia-400/[0.08] blur-[80px]" />
+        <div className="absolute top-[48%] right-[18%] w-[220px] h-[220px] rounded-full bg-purple-300/[0.06] blur-[90px]" />
+        <div className="absolute top-[38%] left-[50%] w-[180px] h-[180px] rounded-full bg-indigo-400/[0.07] blur-[80px]" />
+
+        {/* === LOWER-MID — transition to roadmap === */}
+        <div className="absolute top-[58%] -left-[3%] w-[450px] h-[400px] rounded-full bg-violet-500/[0.12] blur-[150px]" />
+        <div className="absolute top-[60%] right-[10%] w-[400px] h-[350px] rounded-full bg-purple-500/[0.1] blur-[140px]" />
+        <div className="absolute top-[62%] left-[30%] w-[350px] h-[300px] rounded-full bg-fuchsia-600/[0.06] blur-[130px]" />
+
+        {/* === BOTTOM LAYER — roadmap cards + feather into Pricing === */}
+        <div className="absolute bottom-[12%] -left-[8%] w-[600px] h-[600px] rounded-full bg-indigo-500/[0.12] blur-[180px]" />
+        <div className="absolute bottom-[8%] left-[25%] w-[500px] h-[400px] rounded-full bg-purple-600/[0.1] blur-[160px]" />
+        <div className="absolute bottom-[5%] right-[15%] w-[400px] h-[350px] rounded-full bg-violet-500/[0.08] blur-[140px]" />
+        <div className="absolute bottom-[0%] -right-[10%] w-[650px] h-[650px] rounded-full bg-purple-500/[0.12] blur-[200px]" />
+        <div className="absolute bottom-[2%] left-[50%] w-[300px] h-[300px] rounded-full bg-fuchsia-500/[0.06] blur-[120px]" />
       </div>
 
       <div className="relative max-w-6xl mx-auto">
