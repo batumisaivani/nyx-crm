@@ -521,6 +521,26 @@ function RoadmapTimeline() {
 export function GlobalVisionSection() {
   return (
     <section className="relative py-24 md:py-32 px-6 overflow-hidden">
+      {/* Ambient purple gradients */}
+      <div aria-hidden="true" className="absolute inset-0 pointer-events-none overflow-hidden">
+        {/* Large top-left glow — behind the header */}
+        <div className="absolute -top-[15%] -left-[10%] w-[500px] h-[500px] rounded-full bg-purple-600/20 blur-[150px]" />
+        {/* Top-right glow — softer violet */}
+        <div className="absolute -top-[10%] -right-[15%] w-[400px] h-[400px] rounded-full bg-violet-500/15 blur-[130px]" />
+        {/* Center-left — behind spinner card area */}
+        <div className="absolute top-[40%] -left-[8%] w-[350px] h-[350px] rounded-full bg-purple-500/20 blur-[120px]" />
+        {/* Center — behind the map, subtle */}
+        <div className="absolute top-[30%] left-[30%] w-[500px] h-[400px] rounded-full bg-violet-600/10 blur-[160px]" />
+        {/* Center-right — behind loyalty card area */}
+        <div className="absolute top-[45%] -right-[5%] w-[300px] h-[300px] rounded-full bg-fuchsia-500/15 blur-[110px]" />
+        {/* Bottom-left — behind roadmap cards */}
+        <div className="absolute -bottom-[10%] -left-[5%] w-[400px] h-[400px] rounded-full bg-indigo-500/15 blur-[130px]" />
+        {/* Bottom-center — warm purple for the roadmap */}
+        <div className="absolute -bottom-[5%] left-[35%] w-[350px] h-[300px] rounded-full bg-purple-600/12 blur-[120px]" />
+        {/* Bottom-right — fuchsia accent */}
+        <div className="absolute -bottom-[15%] -right-[10%] w-[450px] h-[450px] rounded-full bg-violet-500/15 blur-[140px]" />
+      </div>
+
       <div className="relative max-w-6xl mx-auto">
         {/* Header */}
         <motion.div
