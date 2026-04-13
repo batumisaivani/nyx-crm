@@ -1,0 +1,2 @@
+ALTER TABLE specialists ADD COLUMN IF NOT EXISTS default_start_time TIME DEFAULT '09:00:00';
+ALTER TABLE specialists ADD COLUMN IF NOT EXISTS default_end_time TIME DEFAULT '18:00:00';

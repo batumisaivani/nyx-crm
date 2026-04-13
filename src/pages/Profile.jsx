@@ -55,6 +55,7 @@ export default function Profile() {
   const [instagramUrl, setInstagramUrl] = useState('')
   const [facebookUrl, setFacebookUrl] = useState('')
   const [websiteUrl, setWebsiteUrl] = useState('')
+  const [googleMapsUrl, setGoogleMapsUrl] = useState('')
 
   // Amenities
   const [amenities, setAmenities] = useState({
@@ -91,6 +92,17 @@ export default function Profile() {
   // Gallery images
   const [galleryImages, setGalleryImages] = useState([])
 
+  // Online booking control
+  const [onlineBooking, setOnlineBooking] = useState(true)
+  const [blockedDates, setBlockedDates] = useState([])
+  const [showBlockDateForm, setShowBlockDateForm] = useState(false)
+  const [blockDate, setBlockDate] = useState('')
+
+  // Closed periods
+  const [closedPeriods, setClosedPeriods] = useState([])
+  const [showAddClosed, setShowAddClosed] = useState(false)
+  const [closedForm, setClosedForm] = useState({ startDate: '', endDate: '', reason: 'Holiday' })
+
   useEffect(() => {
     if (facilityAccess?.salons) {
       const salon = facilityAccess.salons
@@ -105,6 +117,7 @@ export default function Profile() {
       setInstagramUrl(salon.instagram_url || '')
       setFacebookUrl(salon.facebook_url || '')
       setWebsiteUrl(salon.website_url || '')
+      setGoogleMapsUrl(salon.google_maps_url || '')
 
       setAmenities({
         pet_friendly: salon.pet_friendly || false,
@@ -121,8 +134,11 @@ export default function Profile() {
         air_conditioning: salon.air_conditioning || false,
       })
 
+      setOnlineBooking(salon.online_booking ?? true)
       fetchWorkingHours(salon.id)
       fetchGalleryImages(salon.id)
+      fetchClosedPeriods(salon.id)
+      fetchBlockedDates(salon.id)
     }
   }, [facilityAccess])
 
@@ -326,6 +342,7 @@ export default function Profile() {
           instagram_url: instagramUrl || null,
           facebook_url: facebookUrl || null,
           website_url: websiteUrl || null,
+          google_maps_url: googleMapsUrl || null,
           ...amenities,
         })
         .eq('id', salonId)
@@ -363,13 +380,12 @@ export default function Profile() {
         .eq('salon_id', salonId)
 
       const hoursToInsert = Object.entries(workingHours)
-        .filter(([day, hours]) => !hours.is_closed && hours.open_time && hours.close_time)
         .map(([day, hours]) => ({
           salon_id: salonId,
           day_of_week: parseInt(day),
-          open_time: hours.open_time + ':00',
-          close_time: hours.close_time + ':00',
-          is_closed: false
+          open_time: hours.is_closed ? '00:00:00' : (hours.open_time + ':00'),
+          close_time: hours.is_closed ? '00:00:00' : (hours.close_time + ':00'),
+          is_closed: hours.is_closed || false
         }))
 
       if (hoursToInsert.length > 0) {
@@ -462,6 +478,166 @@ export default function Profile() {
     }
   }
 
+  // Online booking
+  const fetchBlockedDates = async (id) => {
+    const { data } = await supabase
+      .from('blocked_booking_dates')
+      .select('*')
+      .eq('salon_id', id)
+      .gte('blocked_date', new Date().toISOString().split('T')[0])
+      .order('blocked_date')
+    setBlockedDates(data || [])
+  }
+
+  const addBlockedDate = async () => {
+    if (!blockDate) return
+    await supabase.from('blocked_booking_dates').insert([{ salon_id: salonId, blocked_date: blockDate }])
+    setBlockDate('')
+    setShowBlockDateForm(false)
+    fetchBlockedDates(salonId)
+  }
+
+  const removeBlockedDate = async (id) => {
+    await supabase.from('blocked_booking_dates').delete().eq('id', id)
+    setBlockedDates(prev => prev.filter(d => d.id !== id))
+  }
+
+  // Closed periods CRUD
+  const fetchClosedPeriods = async (id) => {
+    const { data } = await supabase
+      .from('closed_periods')
+      .select('*')
+      .eq('salon_id', id)
+      .order('start_date', { ascending: true })
+    setClosedPeriods(data || [])
+  }
+
+  const addClosedPeriod = async () => {
+    if (!closedForm.startDate || !closedForm.endDate) {
+      toast.error('Please select start and end dates')
+      return
+    }
+    if (closedForm.endDate < closedForm.startDate) {
+      toast.error('End date must be after start date')
+      return
+    }
+    try {
+      // Save closed period
+      const { error } = await supabase.from('closed_periods').insert([{
+        salon_id: salonId,
+        start_date: closedForm.startDate,
+        end_date: closedForm.endDate,
+        reason: closedForm.reason || 'Holiday'
+      }])
+      if (error) throw error
+
+      // Fetch all specialists for this salon
+      const { data: specialists } = await supabase
+        .from('specialists')
+        .select('id')
+        .eq('salon_id', salonId)
+
+      if (specialists && specialists.length > 0) {
+        // Generate all dates in the range
+        const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+        const [sy, sm, sd] = closedForm.startDate.split('-').map(Number)
+        const [ey, em, ed] = closedForm.endDate.split('-').map(Number)
+        const startD = new Date(sy, sm - 1, sd)
+        const endD = new Date(ey, em - 1, ed)
+
+        const records = []
+        const datesToClear = []
+
+        for (let d = new Date(startD); d <= endD; d.setDate(d.getDate() + 1)) {
+          const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+          const dayLabel = dayNames[d.getDay()]
+          datesToClear.push(dateStr)
+
+          for (const spec of specialists) {
+            records.push({
+              specialist_id: spec.id,
+              work_date: dateStr,
+              day_of_week: dayLabel,
+              start_time: '00:00:00',
+              end_time: '00:00:00',
+              is_closed: false,
+              is_day_off: true
+            })
+          }
+        }
+
+        // Delete existing shifts for all specialists on these dates
+        for (const dateStr of datesToClear) {
+          await supabase
+            .from('specialist_working_hours')
+            .delete()
+            .in('specialist_id', specialists.map(s => s.id))
+            .eq('work_date', dateStr)
+        }
+
+        // Insert day-off records in batches
+        const batchSize = 100
+        for (let i = 0; i < records.length; i += batchSize) {
+          await supabase.from('specialist_working_hours').insert(records.slice(i, i + batchSize))
+        }
+      }
+
+      toast.success('Closed period added — all specialists set to day off')
+      setShowAddClosed(false)
+      setClosedForm({ startDate: '', endDate: '', reason: 'Holiday' })
+      fetchClosedPeriods(salonId)
+    } catch (error) {
+      console.error('Error adding closed period:', error)
+      toast.error('Error adding closed period')
+    }
+  }
+
+  const deleteClosedPeriod = async (id) => {
+    try {
+      // Get the period dates before deleting
+      const { data: period } = await supabase
+        .from('closed_periods')
+        .select('start_date, end_date')
+        .eq('id', id)
+        .single()
+
+      // Delete the closed period
+      const { error } = await supabase.from('closed_periods').delete().eq('id', id)
+      if (error) throw error
+
+      // Remove day-off records for all specialists on these dates
+      if (period) {
+        const { data: specialists } = await supabase
+          .from('specialists')
+          .select('id')
+          .eq('salon_id', salonId)
+
+        if (specialists && specialists.length > 0) {
+          const [sy, sm, sd] = period.start_date.split('-').map(Number)
+          const [ey, em, ed] = period.end_date.split('-').map(Number)
+          const startD = new Date(sy, sm - 1, sd)
+          const endD = new Date(ey, em - 1, ed)
+
+          for (let d = new Date(startD); d <= endD; d.setDate(d.getDate() + 1)) {
+            const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+            await supabase
+              .from('specialist_working_hours')
+              .delete()
+              .in('specialist_id', specialists.map(s => s.id))
+              .eq('work_date', dateStr)
+              .eq('is_day_off', true)
+          }
+        }
+      }
+
+      toast.success('Closed period removed — day-off records cleared')
+      fetchClosedPeriods(salonId)
+    } catch (error) {
+      console.error('Error removing closed period:', error)
+      toast.error('Error removing closed period')
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -475,6 +651,7 @@ export default function Profile() {
     { id: 'categories', label: 'Services & Features', Icon: Sparkles },
     { id: 'hours', label: 'Working Hours', Icon: Clock },
     { id: 'gallery', label: 'Photo Gallery', Icon: Camera },
+    { id: 'closed', label: 'Closed Periods', Icon: Clock },
   ]
 
   return (
@@ -645,6 +822,20 @@ export default function Profile() {
                   className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
                   placeholder="https://..."
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Google Maps Location
+                </label>
+                <input
+                  type="url"
+                  value={googleMapsUrl}
+                  onChange={(e) => setGoogleMapsUrl(e.target.value)}
+                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
+                  placeholder="Paste Google Maps share link..."
+                />
+                <p className="text-[10px] text-gray-500 mt-1">Open Google Maps → Find your salon → Share → Copy link → Paste here</p>
               </div>
             </div>
           </div>
@@ -964,6 +1155,67 @@ export default function Profile() {
                   </button>
                 </div>
               </div>
+
+              {/* Online Booking Control */}
+              <div className="mt-4 p-4 bg-purple-900/8 rounded-lg border border-purple-500/[0.06]">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs text-gray-300 font-medium">Online Booking</p>
+                  <button
+                    onClick={async () => {
+                      const newVal = !onlineBooking
+                      setOnlineBooking(newVal)
+                      await supabase.from('salons').update({ online_booking: newVal }).eq('id', salonId)
+                    }}
+                    className={`relative w-10 h-5 rounded-full transition-all ${onlineBooking ? 'bg-emerald-500' : 'bg-gray-600'}`}
+                  >
+                    <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${onlineBooking ? 'left-[22px]' : 'left-0.5'}`} />
+                  </button>
+                </div>
+                <p className="text-[10px] text-gray-500 mb-3">
+                  {onlineBooking ? 'App users can book online.' : 'Online booking disabled. Walk-in only.'}
+                </p>
+
+                <div className="border-t border-purple-500/10 pt-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold">Blocked Dates</span>
+                    <button
+                      onClick={() => setShowBlockDateForm(!showBlockDateForm)}
+                      className="text-[10px] text-purple-300 hover:text-purple-200 transition-colors"
+                    >
+                      + Add
+                    </button>
+                  </div>
+
+                  {showBlockDateForm && (
+                    <div className="flex gap-2 mb-2">
+                      <input
+                        type="date"
+                        value={blockDate}
+                        onChange={(e) => setBlockDate(e.target.value)}
+                        min={new Date().toISOString().split('T')[0]}
+                        className="flex-1 px-2 py-1 text-[11px] bg-purple-950/40 border border-purple-500/20 text-white rounded-lg focus:ring-2 focus:ring-purple-500"
+                      />
+                      <button onClick={addBlockedDate} className="px-2 py-1 text-[11px] bg-purple-600 text-white rounded-lg hover:bg-purple-500 transition-all">Add</button>
+                    </div>
+                  )}
+
+                  {blockedDates.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5">
+                      {blockedDates.map(d => {
+                        const date = new Date(d.blocked_date + 'T00:00:00')
+                        return (
+                          <div key={d.id} className="flex items-center gap-1 px-2 py-0.5 bg-red-500/10 border border-red-500/20 rounded text-[10px]">
+                            <span className="text-red-300">{date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                            <button onClick={() => removeBlockedDate(d.id)} className="text-red-400 hover:text-red-300">×</button>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-[10px] text-gray-500">No dates blocked.</p>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1052,6 +1304,112 @@ export default function Profile() {
                   </div>
                 )
               })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Closed Periods Tab */}
+      {activeTab === 'closed' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-bold text-white font-[Inter]">Closed Periods</h3>
+              <p className="text-xs text-gray-400 mt-0.5">Holidays, renovations, or any dates your salon will be closed</p>
+            </div>
+            <button
+              onClick={() => setShowAddClosed(true)}
+              className="px-4 py-2 text-xs font-medium bg-purple-600 text-white rounded-lg hover:bg-purple-500 transition-all"
+            >
+              + Add Period
+            </button>
+          </div>
+
+          {/* Add form */}
+          {showAddClosed && (
+            <div className="bg-gradient-to-r from-purple-900/15 to-violet-900/15 border border-purple-500/10 rounded-xl p-4">
+              <div className="flex gap-3 items-end">
+                <div className="flex-1">
+                  <label className="text-[10px] text-gray-400 uppercase tracking-wide block mb-1">Start Date</label>
+                  <input
+                    type="date"
+                    value={closedForm.startDate}
+                    onChange={e => setClosedForm(prev => ({ ...prev, startDate: e.target.value }))}
+                    className="w-full px-3 py-2 text-sm bg-purple-950/40 border border-purple-500/20 text-white rounded-lg focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="text-[10px] text-gray-400 uppercase tracking-wide block mb-1">End Date</label>
+                  <input
+                    type="date"
+                    value={closedForm.endDate}
+                    onChange={e => setClosedForm(prev => ({ ...prev, endDate: e.target.value }))}
+                    className="w-full px-3 py-2 text-sm bg-purple-950/40 border border-purple-500/20 text-white rounded-lg focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="text-[10px] text-gray-400 uppercase tracking-wide block mb-1">Reason</label>
+                  <input
+                    type="text"
+                    value={closedForm.reason}
+                    onChange={e => setClosedForm(prev => ({ ...prev, reason: e.target.value }))}
+                    placeholder="Holiday, Renovation..."
+                    className="w-full px-3 py-2 text-sm bg-purple-950/40 border border-purple-500/20 text-white rounded-lg focus:ring-2 focus:ring-purple-500 placeholder-gray-500"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={addClosedPeriod} className="px-4 py-2 text-sm font-medium bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 transition-all">Save</button>
+                  <button onClick={() => setShowAddClosed(false)} className="px-4 py-2 text-sm text-gray-400 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-all">Cancel</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* List */}
+          {closedPeriods.length > 0 ? (
+            <div className="space-y-2">
+              {closedPeriods.map(period => {
+                const start = new Date(period.start_date)
+                const end = new Date(period.end_date)
+                const days = Math.ceil((end - start) / 86400000) + 1
+                const isPast = end < new Date()
+                const isActive = new Date() >= start && new Date() <= end
+                return (
+                  <div key={period.id} className={`flex items-center justify-between rounded-xl p-4 border transition-all ${
+                    isActive ? 'bg-gradient-to-r from-red-900/20 to-rose-900/20 border-red-500/30' :
+                    isPast ? 'bg-white/[0.02] border-white/[0.05] opacity-50' :
+                    'bg-gradient-to-r from-purple-900/15 to-violet-900/15 border-purple-500/10'
+                  }`}>
+                    <div className="flex items-center gap-4">
+                      <div className="text-center w-20">
+                        <div className="text-lg font-bold text-white">{start.toLocaleDateString('en-US', { day: 'numeric' })}</div>
+                        <div className="text-[10px] text-gray-400 uppercase">{start.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</div>
+                      </div>
+                      <div className="text-gray-500">→</div>
+                      <div className="text-center w-20">
+                        <div className="text-lg font-bold text-white">{end.toLocaleDateString('en-US', { day: 'numeric' })}</div>
+                        <div className="text-[10px] text-gray-400 uppercase">{end.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</div>
+                      </div>
+                      <div className="ml-2">
+                        <div className="text-sm font-medium text-white">{period.reason}</div>
+                        <div className="text-[10px] text-gray-500">{days} day{days !== 1 ? 's' : ''}</div>
+                      </div>
+                      {isActive && <span className="px-2 py-0.5 text-[10px] font-bold bg-red-500/20 border border-red-500/30 text-red-300 rounded-full ml-2">Active Now</span>}
+                    </div>
+                    <button
+                      onClick={() => deleteClosedPeriod(period.id)}
+                      className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-12 text-gray-500">
+              <Clock className="w-12 h-12 mx-auto mb-3 opacity-30" />
+              <p>No closed periods scheduled</p>
             </div>
           )}
         </div>

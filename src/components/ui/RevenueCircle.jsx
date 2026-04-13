@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 
-export default function RevenueCircle({ total = 0 }) {
-  const earned = Math.round(total * 0.59)
-  const projected = total - earned
+export default function RevenueCircle({ total = 0, earned = 0, projected = 0, prevEarned = 0, prevTotal = 0 }) {
+  const earnedGrowth = prevEarned > 0 ? (((earned - prevEarned) / prevEarned) * 100).toFixed(1) : null
+  const projectedGrowth = prevTotal > 0 ? ((((earned + projected) - prevTotal) / prevTotal) * 100).toFixed(1) : null
 
   const generateDots = (count, radius, cx, cy) => {
     const dots = []
@@ -129,7 +129,7 @@ export default function RevenueCircle({ total = 0 }) {
                   viewport={{ once: true }}
                   transition={{ delay: 0.65 }}
                 >
-                  +15.2%
+                  {earnedGrowth !== null ? `${earnedGrowth >= 0 ? '+' : ''}${earnedGrowth}%` : '—'}
                 </motion.span>
               </div>
 
@@ -154,15 +154,6 @@ export default function RevenueCircle({ total = 0 }) {
                 >
                   {projected.toLocaleString()} <span className="text-sm font-normal text-white/25">GEL</span>
                 </motion.p>
-                <motion.span
-                  className="text-xs font-semibold text-violet-400"
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.9 }}
-                >
-                  +8.7%
-                </motion.span>
               </div>
             </div>
 

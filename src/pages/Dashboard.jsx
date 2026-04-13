@@ -18,10 +18,28 @@ export default function Dashboard() {
     monthBookings: 0,
     services: 0,
     specialists: 0,
-    revenue: 0
+    revenue: 0,
+    earnedRevenue: 0,
+    projectedRevenue: 0,
+    prevEarnedRevenue: 0,
+    prevTotalRevenue: 0,
+    todayRevenue: 0,
+    yesterdayRevenue: 0,
+    avgServiceTime: 0,
+    completedBookings: 0,
+    totalFinishedBookings: 0,
+    avgRating: 0,
+    totalReviews: 0,
+    weeklyTrend: [0, 0, 0, 0],
+    topServices: [],
+    todayCompleted: 0,
+    todayPending: 0,
+    todayConfirmed: 0,
+    todayCancelled: 0
   })
   const [recentBookings, setRecentBookings] = useState([])
-  const [nextBooking, setNextBooking] = useState(null)
+  const [salonImage, setSalonImage] = useState(null)
+  const [nextBooking, setNextBooking] = useState([])
   const [loading, setLoading] = useState(true)
   const [expandedItem, setExpandedItem] = useState(null)
   const [autopilotEnabled, setAutopilotEnabled] = useState(false)
@@ -46,18 +64,57 @@ export default function Dashboard() {
 
       // Date calculations
       const today = new Date().toISOString().split('T')[0]
+      const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
       const firstDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]
+      const threeWeeksAgo = new Date(Date.now() - 21 * 86400000).toISOString().split('T')[0]
 
       // Fetch all data in parallel
-      const [servicesRes, specialistsRes, allBookingsRes, todayBookingsRes, monthBookingsRes] = await Promise.all([
+      const [servicesRes, specialistsRes, allBookingsRes, todayBookingsRes, monthBookingsRes, todayRevenueRes, yesterdayRevenueRes, avgServiceTimeRes, reviewsRes, weeklyBookingsRes, topServicesRes, prevMonthServicesRes, monthPaymentsRes] = await Promise.all([
         supabase.from('services').select('id').eq('salon_id', salonId),
         supabase.from('specialists').select('id').eq('salon_id', salonId),
         supabase.from('bookings').select('id, status').eq('salon_id', salonId),
-        supabase.from('bookings').select('id').eq('salon_id', salonId).eq('booking_date', today),
+        supabase.from('bookings').select('id, status').eq('salon_id', salonId).eq('booking_date', today),
         supabase.from('bookings')
           .select('*, services(price)')
           .eq('salon_id', salonId)
-          .gte('booking_date', firstDayOfMonth)
+          .gte('booking_date', firstDayOfMonth),
+        supabase.from('bookings')
+          .select('final_price, services(price)')
+          .eq('salon_id', salonId)
+          .eq('booking_date', today)
+          .eq('status', 'completed'),
+        supabase.from('bookings')
+          .select('final_price, services(price)')
+          .eq('salon_id', salonId)
+          .eq('booking_date', yesterday)
+          .eq('status', 'completed'),
+        supabase.from('bookings')
+          .select('services(duration_minutes)')
+          .eq('salon_id', salonId)
+          .eq('status', 'completed')
+          .gte('booking_date', firstDayOfMonth),
+        supabase.from('reviews')
+          .select('rating')
+          .eq('salon_id', salonId),
+        supabase.from('bookings')
+          .select('booking_date')
+          .eq('salon_id', salonId)
+          .gte('booking_date', threeWeeksAgo)
+          .lte('booking_date', today),
+        supabase.from('bookings')
+          .select('service_id, final_price, services(name, price)')
+          .eq('salon_id', salonId)
+          .eq('status', 'completed')
+          .gte('booking_date', firstDayOfMonth),
+        supabase.from('bookings')
+          .select('service_id, status, final_price, services(name, price)')
+          .eq('salon_id', salonId)
+          .eq('status', 'completed')
+          .gte('booking_date', new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1).toISOString().split('T')[0])
+          .lt('booking_date', firstDayOfMonth),
+        supabase.from('payments')
+          .select('booking_id, amount_paid')
+          .eq('salon_id', salonId)
       ])
 
       // Fetch recent bookings + next upcoming booking
@@ -70,20 +127,105 @@ export default function Dashboard() {
           .limit(5),
         supabase
           .from('bookings')
-          .select('*, services(name), specialists(name), customers(full_name)')
+          .select('*, services(name), specialists(name)')
           .eq('salon_id', salonId)
           .gte('booking_date', today)
           .in('status', ['pending', 'confirmed'])
           .order('booking_date', { ascending: true })
-          .order('start_time', { ascending: true })
-          .limit(1)
+          .order('booking_time', { ascending: true })
+          .limit(3)
       ])
 
-      // Calculate revenue (use final_price if available, otherwise service price)
-      const revenue = monthBookingsRes.data?.reduce((sum, booking) => {
-        const price = booking.final_price || booking.services?.price || 0
-        return sum + price
+      // Build payments lookup (booking_id -> amount_paid)
+      const paymentsMap = {}
+      ;(monthPaymentsRes.data || []).forEach(p => { paymentsMap[p.booking_id] = p.amount_paid })
+
+      // Calculate revenue: use payments.amount_paid for completed (most accurate), then final_price, then service price
+      const calcRevenue = (data) => data?.reduce((sum, b) => {
+        const paid = paymentsMap[b.id]
+        return sum + (paid != null ? paid : (b.final_price || b.services?.price || 0))
       }, 0) || 0
+
+      const monthBookings = monthBookingsRes.data || []
+      const completedMonthBookings = monthBookings.filter(b => b.status === 'completed')
+      const revenue = calcRevenue(completedMonthBookings)
+      const earnedRevenue = calcRevenue(completedMonthBookings)
+      const projectedRevenue = calcRevenue(monthBookings.filter(b => b.status === 'pending' || b.status === 'confirmed'))
+      const todayRevenue = calcRevenue(todayRevenueRes.data)
+      const yesterdayRevenue = calcRevenue(yesterdayRevenueRes.data)
+
+      // Avg service time from completed bookings this month
+      const durations = avgServiceTimeRes.data?.map(b => b.services?.duration_minutes).filter(Boolean) || []
+      const avgServiceTime = durations.length > 0 ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length) : 0
+
+      // Completed vs total finished (completed + cancelled) for efficiency
+      const allStatuses = allBookingsRes.data || []
+      const completedBookings = allStatuses.filter(b => b.status === 'completed').length
+      const totalFinished = allStatuses.length
+
+      // Today's status breakdown
+      const todayAll = todayBookingsRes.data || []
+      const todayCompleted = todayAll.filter(b => b.status === 'completed').length
+      const todayPending = todayAll.filter(b => b.status === 'pending').length
+      const todayConfirmed = todayAll.filter(b => b.status === 'confirmed').length
+      const todayCancelled = todayAll.filter(b => b.status === 'cancelled').length
+
+      // Reviews
+      const reviews = reviewsRes.data || []
+      const totalReviews = reviews.length
+      const avgRating = totalReviews > 0 ? (reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews).toFixed(1) : 0
+
+      // Last month revenue for growth comparison
+      const prevMonthBookings = prevMonthServicesRes.data || []
+      const prevEarnedRevenue = calcRevenue(prevMonthBookings.filter(b => b.status === 'completed'))
+      const prevTotalRevenue = calcRevenue(prevMonthBookings)
+
+      // Top performing services (this month vs last month)
+      const serviceMap = {}
+      ;(topServicesRes.data || []).forEach(b => {
+        const name = b.services?.name || 'Unknown'
+        if (!serviceMap[name]) serviceMap[name] = { name, bookings: 0, revenue: 0 }
+        serviceMap[name].bookings++
+        const paid = paymentsMap[b.id]
+        serviceMap[name].revenue += paid != null ? paid : (b.final_price || b.services?.price || 0)
+      })
+      const prevServiceMap = {}
+      ;(prevMonthServicesRes.data || []).forEach(b => {
+        const name = b.services?.name || 'Unknown'
+        if (!prevServiceMap[name]) prevServiceMap[name] = { bookings: 0 }
+        prevServiceMap[name].bookings++
+      })
+      const topServices = Object.values(serviceMap)
+        .sort((a, b) => b.revenue - a.revenue)
+        .slice(0, 5)
+        .map(s => {
+          const prev = prevServiceMap[s.name]?.bookings || 0
+          const growth = prev > 0 ? Math.round(((s.bookings - prev) / prev) * 100) : (s.bookings > 0 ? 100 : 0)
+          return { ...s, growth }
+        })
+
+      // Weekly bookings trend (current week, prev week, 2 weeks ago, 3 weeks ago)
+      const now = new Date()
+      const dayOfWeek = now.getDay() || 7 // Monday = 1, Sunday = 7
+      const currentWeekStart = new Date(now)
+      currentWeekStart.setDate(now.getDate() - dayOfWeek + 1)
+      currentWeekStart.setHours(0, 0, 0, 0)
+
+      const weeklyTrend = [0, 0, 0, 0] // [3 weeks ago, 2 weeks ago, prev week, current week]
+      const weeklyBookings = weeklyBookingsRes.data || []
+      weeklyBookings.forEach(b => {
+        const bookingDate = new Date(b.booking_date + 'T00:00:00')
+        const diffDays = Math.floor((currentWeekStart - bookingDate) / 86400000)
+        if (bookingDate >= currentWeekStart) {
+          weeklyTrend[3]++
+        } else if (diffDays < 7) {
+          weeklyTrend[2]++
+        } else if (diffDays < 14) {
+          weeklyTrend[1]++
+        } else {
+          weeklyTrend[0]++
+        }
+      })
 
       setStats({
         totalBookings: allBookingsRes.data?.length || 0,
@@ -91,11 +233,37 @@ export default function Dashboard() {
         monthBookings: monthBookingsRes.data?.length || 0,
         services: servicesRes.data?.length || 0,
         specialists: specialistsRes.data?.length || 0,
-        revenue: revenue
+        revenue,
+        earnedRevenue,
+        projectedRevenue,
+        prevEarnedRevenue,
+        prevTotalRevenue,
+        todayRevenue,
+        yesterdayRevenue,
+        avgServiceTime,
+        completedBookings,
+        totalFinishedBookings: totalFinished,
+        avgRating,
+        totalReviews,
+        weeklyTrend,
+        topServices,
+        todayCompleted,
+        todayPending,
+        todayConfirmed,
+        todayCancelled
       })
 
+      // Fetch first gallery image for background
+      const { data: galleryData } = await supabase
+        .from('salon_images')
+        .select('image_url')
+        .eq('salon_id', salonId)
+        .order('display_order')
+        .limit(1)
+      setSalonImage(galleryData?.[0]?.image_url || null)
+
       setRecentBookings(recentData || [])
-      setNextBooking(nextData?.[0] || null)
+      setNextBooking(nextData || [])
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
     } finally {
@@ -219,24 +387,88 @@ export default function Dashboard() {
 
             {/* Hero: Image | Revenue | Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-              {/* Salon Image */}
-              <div className="relative rounded-2xl overflow-hidden">
-                <div className="aspect-[3/4]">
-                  <img
-                    src="/salon-hero.jpg"
-                    alt={facilityAccess?.salons?.name || 'Salon'}
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-                  <div className="absolute bottom-4 left-5">
-                    <p className="text-white/50 text-[10px] font-medium tracking-[0.2em] uppercase">Welcome back</p>
-                    <p className="text-white text-xl font-bold">{facilityAccess?.salons?.name || 'Your Salon'}</p>
+              {/* Today's Status & Next Booking */}
+              <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl overflow-hidden h-full flex flex-col">
+                <div className="px-5 pt-5 pb-3">
+                  <p className="text-white/40 text-[10px] font-medium tracking-[0.2em] uppercase">
+                    {new Date().getHours() < 12 ? 'Good Morning' : new Date().getHours() < 18 ? 'Good Afternoon' : 'Good Evening'}
+                  </p>
+                  <p className="text-white text-lg font-bold mt-0.5">{facilityAccess?.salons?.name || 'Your Salon'}</p>
+                </div>
+
+                {/* Today's Progress */}
+                <div className="px-5 pb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-white/40">Today's Progress</span>
+                    <span className="text-xs font-semibold text-white/60">{stats.todayCompleted}/{stats.todayBookings}</span>
                   </div>
+                  <div className="w-full bg-white/[0.06] rounded-full h-2 mb-3">
+                    <div
+                      className="bg-gradient-to-r from-purple-500 to-violet-500 h-2 rounded-full transition-all duration-700"
+                      style={{ width: `${stats.todayBookings > 0 ? (stats.todayCompleted / stats.todayBookings) * 100 : 0}%` }}
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 gap-2">
+                    <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-2 py-1.5 text-center">
+                      <p className="text-sm font-bold text-emerald-400">{stats.todayCompleted}</p>
+                      <p className="text-[9px] text-emerald-400/60 uppercase tracking-wide">Done</p>
+                    </div>
+                    <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg px-2 py-1.5 text-center">
+                      <p className="text-sm font-bold text-blue-400">{stats.todayConfirmed}</p>
+                      <p className="text-[9px] text-blue-400/60 uppercase tracking-wide">Confirmed</p>
+                    </div>
+                    <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg px-2 py-1.5 text-center">
+                      <p className="text-sm font-bold text-yellow-400">{stats.todayPending}</p>
+                      <p className="text-[9px] text-yellow-400/60 uppercase tracking-wide">Pending</p>
+                    </div>
+                    <div className="bg-rose-500/10 border border-rose-500/20 rounded-lg px-2 py-1.5 text-center">
+                      <p className="text-sm font-bold text-rose-400">{stats.todayCancelled}</p>
+                      <p className="text-[9px] text-rose-400/60 uppercase tracking-wide">Cancelled</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Divider */}
+                <div className="mx-5 border-t border-white/[0.06]" />
+
+                {/* Next Booking Spotlight */}
+                <div className="px-5 py-4 flex-1 flex flex-col">
+                  <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-white/40 mb-3">Upcoming Bookings</p>
+                  {nextBooking.length > 0 ? (
+                    <div className="flex-1 flex flex-col justify-between">
+                      <div className="space-y-2 overflow-y-auto max-h-[200px] pr-1">
+                        {nextBooking.map((booking, i) => (
+                          <div key={booking.id} className={`flex items-center gap-2.5 py-1.5 ${i > 0 ? 'border-t border-white/[0.04]' : ''}`}>
+                            <div className="w-10 h-10 rounded-full bg-purple-500/15 border border-purple-500/25 flex items-center justify-center flex-shrink-0">
+                              <span className="text-[11px] font-bold text-purple-400">{formatTime(booking.booking_time)}</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-semibold text-white truncate">{booking.customer_name || 'Guest'}</p>
+                              <p className="text-[10px] text-white/35 truncate">{booking.services?.name || 'Service'} · {booking.specialists?.name || 'Any'}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <Link
+                        to="/calendar"
+                        className="mt-3 flex items-center justify-center w-full py-2 rounded-xl border border-white/[0.08] text-white/60 text-xs font-medium hover:bg-white/[0.04] hover:text-white/80 transition-all"
+                      >
+                        View in Calendar
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className="flex-1 flex flex-col items-center justify-center text-center">
+                      <div className="w-10 h-10 rounded-full bg-white/[0.04] flex items-center justify-center mb-2">
+                        <Calendar className="w-4 h-4 text-white/20" />
+                      </div>
+                      <p className="text-xs text-white/30">No upcoming bookings</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Revenue Circle */}
-              <RevenueCircle total={Math.round(stats.revenue)} />
+              <RevenueCircle total={Math.round(stats.revenue)} earned={Math.round(stats.earnedRevenue)} projected={Math.round(stats.projectedRevenue)} prevEarned={Math.round(stats.prevEarnedRevenue)} prevTotal={Math.round(stats.prevTotalRevenue)} />
 
               {/* Stats List */}
               <div className="flex flex-col gap-3">
@@ -279,7 +511,7 @@ export default function Dashboard() {
 
                 {/* Background image fill + New Booking CTA */}
                 <div className="relative rounded-2xl overflow-hidden flex-1 min-h-[120px]">
-                  <img src="/stats-bg.jpg" alt="" className="absolute inset-0 w-full h-full object-cover" />
+                  <img src={salonImage || '/stats-bg.jpg'} alt="" className="absolute inset-0 w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-black/30" />
                   <div className="relative z-10 flex items-end justify-center h-full p-4">
                     <Link
@@ -614,48 +846,57 @@ export default function Dashboard() {
                   <div className="flex items-center justify-between pb-3 border-b border-purple-500/20">
                     <div>
                       <p className="text-sm text-gray-900 dark:text-gray-300">Today's Revenue</p>
-                      <p className="text-2xl font-bold text-purple-700 dark:text-purple-400">{(stats.revenue * 0.15).toFixed(2)} GEL</p>
+                      <p className="text-2xl font-bold text-purple-700 dark:text-purple-400">{stats.todayRevenue.toFixed(2)} GEL</p>
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-gray-700 dark:text-gray-400">vs Yesterday</p>
-                      <p className="text-sm font-semibold text-green-700 dark:text-green-400">+12%</p>
+                      {stats.yesterdayRevenue > 0 ? (
+                        <p className={`text-sm font-semibold ${stats.todayRevenue >= stats.yesterdayRevenue ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
+                          {stats.todayRevenue >= stats.yesterdayRevenue ? '+' : ''}{(((stats.todayRevenue - stats.yesterdayRevenue) / stats.yesterdayRevenue) * 100).toFixed(0)}%
+                        </p>
+                      ) : (
+                        <p className="text-sm font-semibold text-gray-500">—</p>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center justify-between pb-3 border-b border-purple-500/20">
                     <div>
                       <p className="text-sm text-gray-900 dark:text-gray-300">Avg. Service Time</p>
-                      <p className="text-xl font-bold text-purple-700 dark:text-purple-400">45 min</p>
+                      <p className="text-xl font-bold text-purple-700 dark:text-purple-400">{stats.avgServiceTime > 0 ? `${stats.avgServiceTime} min` : '—'}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-gray-700 dark:text-gray-400">Efficiency</p>
-                      <p className="text-sm font-semibold text-green-700 dark:text-green-400">95%</p>
+                      <p className="text-xs text-gray-700 dark:text-gray-400">Completion Rate</p>
+                      <p className="text-sm font-semibold text-green-700 dark:text-green-400">
+                        {stats.totalFinishedBookings > 0 ? `${Math.round((stats.completedBookings / stats.totalFinishedBookings) * 100)}%` : '—'}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-900 dark:text-gray-300">Customer Satisfaction</p>
-                      <p className="text-xl font-bold text-purple-700 dark:text-purple-400">4.8 / 5.0</p>
+                      <p className="text-xl font-bold text-purple-700 dark:text-purple-400">{stats.totalReviews > 0 ? `${stats.avgRating} / 5.0` : '—'}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-gray-700 dark:text-gray-400">Reviews</p>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-300">124</p>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-300">{stats.totalReviews}</p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Monthly Trend Chart */}
+              {/* Weekly Trend Chart */}
               <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6">
-                <h3 className="text-lg font-bold text-black dark:text-white mb-4 font-[Calibri,sans-serif]">Monthly Bookings Trend</h3>
+                <h3 className="text-lg font-bold text-black dark:text-white mb-4 font-[Calibri,sans-serif]">Weekly Bookings Trend</h3>
                 <div className="space-y-3">
-                  {['Week 1', 'Week 2', 'Week 3', 'Week 4'].map((week, index) => {
-                    const values = [65, 78, 85, 92]
-                    const percentage = values[index]
+                  {['Current Week', 'Previous Week', '2 Weeks Ago', '3 Weeks Ago'].map((label, index) => {
+                    const count = stats.weeklyTrend[3 - index]
+                    const maxCount = Math.max(...stats.weeklyTrend, 1)
+                    const percentage = (count / maxCount) * 100
                     return (
-                      <div key={week}>
+                      <div key={label}>
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm text-gray-900 dark:text-gray-300">{week}</span>
-                          <span className="text-sm font-semibold text-purple-700 dark:text-purple-400">{Math.floor(stats.monthBookings * (percentage / 100))}</span>
+                          <span className="text-sm text-gray-900 dark:text-gray-300">{label}</span>
+                          <span className="text-sm font-semibold text-purple-700 dark:text-purple-400">{count}</span>
                         </div>
                         <div className="w-full bg-gray-700 rounded-full h-2">
                           <div
@@ -680,23 +921,27 @@ export default function Dashboard() {
                       <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900 dark:text-gray-300">Service</th>
                       <th className="text-center py-3 px-4 text-sm font-semibold text-gray-900 dark:text-gray-300">Bookings</th>
                       <th className="text-center py-3 px-4 text-sm font-semibold text-gray-900 dark:text-gray-300">Revenue</th>
-                      <th className="text-right py-3 px-4 text-sm font-semibold text-gray-900 dark:text-gray-300">Growth</th>
+                      <th className="text-right py-3 px-4 text-gray-900 dark:text-gray-300">
+                        <span className="text-sm font-semibold block">Growth</span>
+                        <span className="text-[10px] font-normal text-gray-500">vs Previous Month</span>
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {[
-                      { name: 'Haircut & Styling', bookings: 45, revenue: 2250, growth: '+15%' },
-                      { name: 'Color Treatment', bookings: 32, revenue: 3200, growth: '+8%' },
-                      { name: 'Manicure & Pedicure', bookings: 28, revenue: 1400, growth: '+22%' },
-                      { name: 'Facial Treatment', bookings: 18, revenue: 1800, growth: '+5%' }
-                    ].map((service, index) => (
+                    {stats.topServices.length > 0 ? stats.topServices.map((service, index) => (
                       <tr key={index} className="border-b border-purple-500/10 hover:bg-purple-900/15 transition-colors">
                         <td className="py-3 px-4 text-sm text-black dark:text-white font-medium">{service.name}</td>
                         <td className="py-3 px-4 text-sm text-center text-gray-900 dark:text-gray-300">{service.bookings}</td>
-                        <td className="py-3 px-4 text-sm text-center text-purple-700 dark:text-purple-400 font-semibold">{service.revenue} GEL</td>
-                        <td className="py-3 px-4 text-sm text-right text-green-700 dark:text-green-400 font-semibold">{service.growth}</td>
+                        <td className="py-3 px-4 text-sm text-center text-purple-700 dark:text-purple-400 font-semibold">{service.revenue.toFixed(0)} GEL</td>
+                        <td className={`py-3 px-4 text-sm text-right font-semibold ${service.growth >= 0 ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
+                          {service.growth >= 0 ? '+' : ''}{service.growth}%
+                        </td>
                       </tr>
-                    ))}
+                    )) : (
+                      <tr>
+                        <td colSpan="4" className="py-6 text-center text-sm text-gray-500">No bookings this month</td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>

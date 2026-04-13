@@ -11,7 +11,7 @@ import Specialists from './pages/Specialists'
 import Bookings from './pages/Bookings'
 import BookingCalendar from './pages/BookingCalendar'
 import Customers from './pages/Customers'
-import Promos from './pages/Promos'
+import Marketing from './pages/Marketing'
 import Reports from './pages/Reports'
 import Reviews from './pages/Reviews'
 import Settings from './pages/Settings'
@@ -19,9 +19,9 @@ import Layout from './components/Layout'
 
 // Protected Route component
 function ProtectedRoute({ children }) {
-  const { user, loading, hasFacilityAccess, signOut } = useAuth()
+  const { user, loading, hasFacilityAccess, facilityCheckDone, signOut } = useAuth()
 
-  if (loading) {
+  if (loading || (user && !facilityCheckDone)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-gray-600">Loading...</div>
@@ -161,11 +161,11 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/promos"
+        path="/marketing"
         element={
           <ProtectedRoute>
             <Layout>
-              <Promos />
+              <Marketing />
             </Layout>
           </ProtectedRoute>
         }

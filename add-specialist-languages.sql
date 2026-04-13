@@ -1,0 +1,1 @@
+ALTER TABLE specialists ADD COLUMN IF NOT EXISTS languages TEXT[] DEFAULT ARRAY['ka'];

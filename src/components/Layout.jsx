@@ -10,7 +10,7 @@ import {
   CalendarDays,
   UserCircle,
   Star,
-  Gift,
+  BarChart3,
   TrendingUp,
   Settings
 } from 'lucide-react'
@@ -39,7 +39,7 @@ export default function Layout({ children }) {
     { name: 'Specialists', path: '/specialists', icon: Users },
     { name: 'Customers', path: '/customers', icon: UserCircle },
     { name: 'Reviews', path: '/reviews', icon: Star },
-    { name: 'Promos', path: '/promos', icon: Gift },
+    { name: 'Marketing', path: '/marketing', icon: BarChart3 },
     { name: 'Reports', path: '/reports', icon: TrendingUp },
     { name: 'Settings', path: '/settings', icon: Settings },
   ]

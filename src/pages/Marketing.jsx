@@ -1,21 +1,27 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
-import AnimatedCard from '../components/ui/AnimatedCard'
 import CalendarPicker from '../components/ui/CalendarPicker'
 import { NativeDelete } from '../components/ui/delete-button'
 import ClassicLoader from '../components/ui/loader'
-import { Gift, Tag, Calendar, TrendingUp, X, DollarSign, Percent } from 'lucide-react'
+import {
+  Gift, Tag, Calendar, TrendingUp, X, DollarSign, Percent,
+  Eye, Users, BarChart3, Image, Heart,
+  Plus, Trash2, Edit
+} from 'lucide-react'
 
-export default function Promos() {
+export default function Marketing() {
   const { facilityAccess } = useAuth()
+  const [activeTab, setActiveTab] = useState('analytics')
+  const [loading, setLoading] = useState(true)
+
+  // Promo state
   const [promos, setPromos] = useState([])
   const [services, setServices] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [showModal, setShowModal] = useState(false)
+  const [showPromoModal, setShowPromoModal] = useState(false)
   const [editingPromo, setEditingPromo] = useState(null)
 
-  // Form fields
+  // Promo form fields
   const [code, setCode] = useState('')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -28,45 +34,66 @@ export default function Promos() {
   const [applicableServiceIds, setApplicableServiceIds] = useState([])
   const [isActive, setIsActive] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [openCalendar, setOpenCalendar] = useState(null) // 'validFrom', 'validUntil', or null
+  const [openCalendar, setOpenCalendar] = useState(null)
+
+  // Analytics state (placeholder data)
+  const [analytics, setAnalytics] = useState({
+    totalViews: 0,
+    uniqueVisitors: 0,
+    viewsThisWeek: 0,
+    viewsThisMonth: 0
+  })
+
+  // Stories state (placeholder)
+  const [stories, setStories] = useState([])
 
   useEffect(() => {
     if (facilityAccess?.salon_id) {
       fetchData()
     }
-  }, [facilityAccess])
+  }, [facilityAccess, activeTab])
 
   const fetchData = async () => {
     try {
       setLoading(true)
 
-      const [promosRes, servicesRes] = await Promise.all([
-        supabase
-          .from('promos')
-          .select('*')
-          .eq('salon_id', facilityAccess.salon_id)
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('services')
-          .select('id, name')
-          .eq('salon_id', facilityAccess.salon_id)
-          .order('name')
-      ])
+      if (activeTab === 'promos') {
+        const [promosRes, servicesRes] = await Promise.all([
+          supabase
+            .from('promos')
+            .select('*')
+            .eq('salon_id', facilityAccess.salon_id)
+            .order('created_at', { ascending: false }),
+          supabase
+            .from('services')
+            .select('id, name')
+            .eq('salon_id', facilityAccess.salon_id)
+            .order('name')
+        ])
 
-      if (promosRes.error) throw promosRes.error
-      if (servicesRes.error) throw servicesRes.error
+        if (promosRes.error) throw promosRes.error
+        if (servicesRes.error) throw servicesRes.error
 
-      setPromos(promosRes.data || [])
-      setServices(servicesRes.data || [])
+        setPromos(promosRes.data || [])
+        setServices(servicesRes.data || [])
+      } else if (activeTab === 'analytics') {
+        // Placeholder analytics data
+        setAnalytics({
+          totalViews: 1247,
+          uniqueVisitors: 856,
+          viewsThisWeek: 142,
+          viewsThisMonth: 589
+        })
+      }
     } catch (error) {
       console.error('Error fetching data:', error)
-      alert('Error loading promos: ' + error.message)
+      alert('Error loading data: ' + error.message)
     } finally {
       setLoading(false)
     }
   }
 
-  const resetForm = () => {
+  const resetPromoForm = () => {
     setCode('')
     setTitle('')
     setDescription('')
@@ -81,7 +108,7 @@ export default function Promos() {
     setEditingPromo(null)
   }
 
-  const handleOpenModal = (promo = null) => {
+  const handleOpenPromoModal = (promo = null) => {
     if (promo) {
       setEditingPromo(promo)
       setCode(promo.code)
@@ -96,17 +123,17 @@ export default function Promos() {
       setApplicableServiceIds(promo.applicable_service_ids || [])
       setIsActive(promo.is_active)
     } else {
-      resetForm()
+      resetPromoForm()
     }
-    setShowModal(true)
+    setShowPromoModal(true)
   }
 
-  const handleCloseModal = () => {
-    setShowModal(false)
-    setTimeout(resetForm, 300)
+  const handleClosePromoModal = () => {
+    setShowPromoModal(false)
+    setTimeout(resetPromoForm, 300)
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmitPromo = async (e) => {
     e.preventDefault()
 
     if (!code || !title || !discountValue || !validFrom || !validUntil) {
@@ -114,7 +141,6 @@ export default function Promos() {
       return
     }
 
-    // Validate discount value
     const value = parseFloat(discountValue)
     if (discountType === 'percentage' && (value <= 0 || value > 100)) {
       alert('Percentage discount must be between 0 and 100')
@@ -145,7 +171,6 @@ export default function Promos() {
       }
 
       if (editingPromo) {
-        // Update existing promo
         const { error } = await supabase
           .from('promos')
           .update(promoData)
@@ -154,7 +179,6 @@ export default function Promos() {
         if (error) throw error
         alert('Promo updated successfully!')
       } else {
-        // Create new promo
         const { error } = await supabase
           .from('promos')
           .insert([promoData])
@@ -163,7 +187,7 @@ export default function Promos() {
         alert('Promo created successfully!')
       }
 
-      handleCloseModal()
+      handleClosePromoModal()
       fetchData()
     } catch (error) {
       console.error('Error saving promo:', error)
@@ -173,7 +197,7 @@ export default function Promos() {
     }
   }
 
-  const handleDelete = async (promoId) => {
+  const handleDeletePromo = async (promoId) => {
     try {
       const { error } = await supabase
         .from('promos')
@@ -189,7 +213,7 @@ export default function Promos() {
     }
   }
 
-  const toggleActive = async (promo) => {
+  const togglePromoActive = async (promo) => {
     try {
       const { error } = await supabase
         .from('promos')
@@ -228,6 +252,13 @@ export default function Promos() {
     return promo.is_active && now >= start && now <= end
   }
 
+  const tabs = [
+    { id: 'analytics', name: 'Analytics', icon: BarChart3 },
+    { id: 'stories', name: 'Stories', icon: Image },
+    { id: 'promos', name: 'Promos', icon: Gift },
+    { id: 'personal', name: 'Personal Promos', icon: Users }
+  ]
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -239,175 +270,271 @@ export default function Promos() {
   return (
     <div className="w-full -mt-4">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-white font-[Inter]">Promotional Offers</h2>
-          <p className="text-gray-300 mt-1">Create and manage discount codes for your customers</p>
-        </div>
-        <button
-          onClick={() => handleOpenModal()}
-          className="px-8 py-3 bg-purple-900/30 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/40 font-medium transition-all transform hover:scale-105"
-        >
-          + New Promo
-        </button>
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-white font-[Inter]">Marketing</h2>
+        <p className="text-gray-300 mt-1">Manage your marketing campaigns, analytics, and promotions</p>
       </div>
 
-      {/* Promos List */}
-      {promos.length === 0 ? (
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-16 text-center">
-          <Gift className="w-16 h-16 mx-auto mb-4 text-purple-300" />
-          <h3 className="text-lg font-semibold text-white mb-2 font-[Inter]">No Promos Yet</h3>
-          <p className="text-gray-300 mb-6">Create your first promotional offer to attract more customers</p>
-          <button
-            onClick={() => handleOpenModal()}
-            className="px-8 py-3 bg-purple-900/30 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/40 font-medium transition-all transform hover:scale-105"
-          >
-            Create First Promo
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {promos.map((promo) => {
-            const expired = isPromoExpired(promo.valid_until)
-            const active = isPromoActive(promo)
-            const usagePercent = promo.max_uses ? (promo.current_uses / promo.max_uses) * 100 : 0
-
+      {/* Tabs */}
+      <div className="mb-6 border-b border-purple-500/10">
+        <div className="flex space-x-1 overflow-x-auto">
+          {tabs.map((tab) => {
+            const Icon = tab.icon
             return (
-              <div
-                key={promo.id}
-                className={`relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 transition-all ${expired ? 'opacity-60' : ''}`}
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center space-x-2 px-6 py-3 font-medium transition-all whitespace-nowrap ${
+                  activeTab === tab.id
+                    ? 'text-purple-300 border-b-2 border-purple-500'
+                    : 'text-gray-400 hover:text-gray-300'
+                }`}
               >
-                {/* Header */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2 flex-wrap gap-2">
-                      <h3 className="text-lg font-bold text-white font-[Inter]">{promo.title}</h3>
-                      {active && (
-                        <span className="px-2 py-1 text-xs bg-green-900/30 text-green-300 rounded-full border border-green-700">
-                          Active
-                        </span>
-                      )}
-                      {expired && (
-                        <span className="px-2 py-1 text-xs bg-red-900/30 text-red-300 rounded-full border border-red-700">
-                          Expired
-                        </span>
-                      )}
-                      {!promo.is_active && !expired && (
-                        <span className="px-2 py-1 text-xs bg-black/30 text-gray-300 rounded-full border border-purple-500/10">
-                          Inactive
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center space-x-2 mb-1">
-                      <Tag className="w-5 h-5 text-purple-300" />
-                      <div className="text-2xl font-bold text-purple-300">
-                        {promo.code}
-                      </div>
-                    </div>
-                    {promo.description && (
-                      <p className="text-sm text-gray-300">{promo.description}</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Discount Info */}
-                <div className="bg-purple-900/30 rounded-lg p-4 mb-4 border border-purple-500/10">
-                  <div className="flex items-center space-x-2 mb-1">
-                    {promo.discount_type === 'percentage' ? (
-                      <Percent className="w-6 h-6 text-purple-300" />
-                    ) : (
-                      <DollarSign className="w-6 h-6 text-purple-300" />
-                    )}
-                    <div className="text-3xl font-bold text-purple-300">
-                      {promo.discount_type === 'percentage'
-                        ? `${promo.discount_value}% OFF`
-                        : `${promo.discount_value} GEL OFF`
-                      }
-                    </div>
-                  </div>
-                  {promo.min_purchase_amount && (
-                    <div className="text-xs text-purple-200">
-                      Minimum purchase: {promo.min_purchase_amount} GEL
-                    </div>
-                  )}
-                </div>
-
-                {/* Details */}
-                <div className="space-y-3 text-sm mb-4">
-                  <div className="flex items-center space-x-2">
-                    <Calendar className="w-4 h-4 text-purple-300" />
-                    <span className="text-gray-300">Valid Period:</span>
-                    <span className="font-medium text-white ml-auto">
-                      {formatDate(promo.valid_from)} - {formatDate(promo.valid_until)}
-                    </span>
-                  </div>
-
-                  {promo.max_uses && (
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center space-x-2">
-                          <TrendingUp className="w-4 h-4 text-purple-300" />
-                          <span className="text-gray-300">Usage:</span>
-                        </div>
-                        <span className="font-medium text-white">
-                          {promo.current_uses} / {promo.max_uses}
-                        </span>
-                      </div>
-                      <div className="w-full bg-white/10 rounded-full h-2">
-                        <div
-                          className="bg-gradient-to-r from-purple-500/100 to-pink-500/100 h-2 rounded-full transition-all"
-                          style={{ width: `${Math.min(usagePercent, 100)}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  )}
-
-                  {promo.applicable_service_ids && promo.applicable_service_ids.length > 0 && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-300">Services:</span>
-                      <span className="font-medium text-white">
-                        {promo.applicable_service_ids.length} service(s)
-                      </span>
-                    </div>
-                  )}
-                  {!promo.applicable_service_ids && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-300">Services:</span>
-                      <span className="font-medium text-purple-300">All Services</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center space-x-2 pt-4 border-t border-purple-500/10">
-                  <button
-                    onClick={() => toggleActive(promo)}
-                    className={`flex-1 px-4 py-2 text-sm rounded-lg font-medium transition-all ${
-                      promo.is_active
-                        ? 'bg-black/30 border border-purple-500/[0.06] text-gray-200 hover:border-purple-500/40'
-                        : 'bg-green-900/30 border border-green-700 text-green-300 hover:bg-green-900/50'
-                    }`}
-                  >
-                    {promo.is_active ? 'Deactivate' : 'Activate'}
-                  </button>
-                  <button
-                    onClick={() => handleOpenModal(promo)}
-                    className="flex-1 px-4 py-2 text-sm bg-purple-900/30 border border-purple-500/10 text-purple-300 rounded-lg hover:bg-purple-900/50 font-medium transition-all"
-                  >
-                    Edit
-                  </button>
-                  <NativeDelete
-                    onDelete={() => handleDelete(promo.id)}
-                  />
-                </div>
-              </div>
+                <Icon className="w-5 h-5" />
+                <span>{tab.name}</span>
+              </button>
             )
           })}
         </div>
+      </div>
+
+      {/* Analytics Tab */}
+      {activeTab === 'analytics' && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <Eye className="w-8 h-8 text-purple-300" />
+              </div>
+              <div className="text-3xl font-bold text-white mb-2">{analytics.totalViews.toLocaleString()}</div>
+              <div className="text-sm text-gray-300">Total Profile Views</div>
+            </div>
+
+            <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <Users className="w-8 h-8 text-purple-300" />
+              </div>
+              <div className="text-3xl font-bold text-white mb-2">{analytics.uniqueVisitors.toLocaleString()}</div>
+              <div className="text-sm text-gray-300">Unique Visitors</div>
+            </div>
+
+            <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <TrendingUp className="w-8 h-8 text-purple-300" />
+              </div>
+              <div className="text-3xl font-bold text-white mb-2">{analytics.viewsThisWeek.toLocaleString()}</div>
+              <div className="text-sm text-gray-300">Views This Week</div>
+            </div>
+
+            <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <BarChart3 className="w-8 h-8 text-purple-300" />
+              </div>
+              <div className="text-3xl font-bold text-white mb-2">{analytics.viewsThisMonth.toLocaleString()}</div>
+              <div className="text-sm text-gray-300">Views This Month</div>
+            </div>
+          </div>
+
+          <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
+            <h3 className="text-lg font-semibold text-white mb-4 font-[Inter]">Profile Views Over Time</h3>
+            <div className="h-64 flex items-center justify-center text-gray-400">
+              <div className="text-center">
+                <BarChart3 className="w-16 h-16 mx-auto mb-4 text-purple-300/30" />
+                <p>Chart visualization coming soon</p>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
-      {/* Modal */}
-      {showModal && (
+      {/* Stories Tab */}
+      {activeTab === 'stories' && (
+        <div className="space-y-6">
+          <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-16 text-center">
+            <Image className="w-16 h-16 mx-auto mb-4 text-purple-300" />
+            <h3 className="text-lg font-semibold text-white mb-2 font-[Inter]">Stories Feature</h3>
+            <p className="text-gray-300 mb-6">Share visual stories to engage with your customers</p>
+            <p className="text-sm text-purple-300">Feature coming soon - Add and manage stories with engagement tracking</p>
+          </div>
+        </div>
+      )}
+
+      {/* Promos Tab */}
+      {activeTab === 'promos' && (
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <p className="text-gray-300">Create and manage discount codes for your customers</p>
+            <button
+              onClick={() => handleOpenPromoModal()}
+              className="px-8 py-3 bg-purple-900/30 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/40 font-medium transition-all transform hover:scale-105"
+            >
+              + New Promo
+            </button>
+          </div>
+
+          {promos.length === 0 ? (
+            <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-16 text-center">
+              <Gift className="w-16 h-16 mx-auto mb-4 text-purple-300" />
+              <h3 className="text-lg font-semibold text-white mb-2 font-[Inter]">No Promos Yet</h3>
+              <p className="text-gray-300 mb-6">Create your first promotional offer to attract more customers</p>
+              <button
+                onClick={() => handleOpenPromoModal()}
+                className="px-8 py-3 bg-purple-900/30 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/40 font-medium transition-all transform hover:scale-105"
+              >
+                Create First Promo
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {promos.map((promo) => {
+                const expired = isPromoExpired(promo.valid_until)
+                const active = isPromoActive(promo)
+                const usagePercent = promo.max_uses ? (promo.current_uses / promo.max_uses) * 100 : 0
+
+                return (
+                  <div
+                    key={promo.id}
+                    className={`relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 transition-all ${expired ? 'opacity-60' : ''}`}
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2 flex-wrap gap-2">
+                          <h3 className="text-lg font-bold text-white font-[Inter]">{promo.title}</h3>
+                          {active && (
+                            <span className="px-2 py-1 text-xs bg-green-900/30 text-green-300 rounded-full border border-green-700">
+                              Active
+                            </span>
+                          )}
+                          {expired && (
+                            <span className="px-2 py-1 text-xs bg-red-900/30 text-red-300 rounded-full border border-red-700">
+                              Expired
+                            </span>
+                          )}
+                          {!promo.is_active && !expired && (
+                            <span className="px-2 py-1 text-xs bg-black/30 text-gray-300 rounded-full border border-purple-500/10">
+                              Inactive
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-2 mb-1">
+                          <Tag className="w-5 h-5 text-purple-300" />
+                          <div className="text-2xl font-bold text-purple-300">
+                            {promo.code}
+                          </div>
+                        </div>
+                        {promo.description && (
+                          <p className="text-sm text-gray-300">{promo.description}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="bg-purple-900/30 rounded-lg p-4 mb-4 border border-purple-500/10">
+                      <div className="flex items-center space-x-2 mb-1">
+                        {promo.discount_type === 'percentage' ? (
+                          <Percent className="w-6 h-6 text-purple-300" />
+                        ) : (
+                          <DollarSign className="w-6 h-6 text-purple-300" />
+                        )}
+                        <div className="text-3xl font-bold text-purple-300">
+                          {promo.discount_type === 'percentage'
+                            ? `${promo.discount_value}% OFF`
+                            : `${promo.discount_value} GEL OFF`
+                          }
+                        </div>
+                      </div>
+                      {promo.min_purchase_amount && (
+                        <div className="text-xs text-purple-200">
+                          Minimum purchase: {promo.min_purchase_amount} GEL
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-3 text-sm mb-4">
+                      <div className="flex items-center space-x-2">
+                        <Calendar className="w-4 h-4 text-purple-300" />
+                        <span className="text-gray-300">Valid Period:</span>
+                        <span className="font-medium text-white ml-auto">
+                          {formatDate(promo.valid_from)} - {formatDate(promo.valid_until)}
+                        </span>
+                      </div>
+
+                      {promo.max_uses && (
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center space-x-2">
+                              <TrendingUp className="w-4 h-4 text-purple-300" />
+                              <span className="text-gray-300">Usage:</span>
+                            </div>
+                            <span className="font-medium text-white">
+                              {promo.current_uses} / {promo.max_uses}
+                            </span>
+                          </div>
+                          <div className="w-full bg-white/10 rounded-full h-2">
+                            <div
+                              className="bg-gradient-to-r from-purple-500/100 to-pink-500/100 h-2 rounded-full transition-all"
+                              style={{ width: `${Math.min(usagePercent, 100)}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      )}
+
+                      {promo.applicable_service_ids && promo.applicable_service_ids.length > 0 && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-300">Services:</span>
+                          <span className="font-medium text-white">
+                            {promo.applicable_service_ids.length} service(s)
+                          </span>
+                        </div>
+                      )}
+                      {!promo.applicable_service_ids && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-300">Services:</span>
+                          <span className="font-medium text-purple-300">All Services</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center space-x-2 pt-4 border-t border-purple-500/10">
+                      <button
+                        onClick={() => togglePromoActive(promo)}
+                        className={`flex-1 px-4 py-2 text-sm rounded-lg font-medium transition-all ${
+                          promo.is_active
+                            ? 'bg-black/30 border border-purple-500/[0.06] text-gray-200 hover:border-purple-500/40'
+                            : 'bg-green-900/30 border border-green-700 text-green-300 hover:bg-green-900/50'
+                        }`}
+                      >
+                        {promo.is_active ? 'Deactivate' : 'Activate'}
+                      </button>
+                      <button
+                        onClick={() => handleOpenPromoModal(promo)}
+                        className="flex-1 px-4 py-2 text-sm bg-purple-900/30 border border-purple-500/10 text-purple-300 rounded-lg hover:bg-purple-900/50 font-medium transition-all"
+                      >
+                        Edit
+                      </button>
+                      <NativeDelete onDelete={() => handleDeletePromo(promo.id)} />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Personal Promos Tab */}
+      {activeTab === 'personal' && (
+        <div className="space-y-6">
+          <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-16 text-center">
+            <Users className="w-16 h-16 mx-auto mb-4 text-purple-300" />
+            <h3 className="text-lg font-semibold text-white mb-2 font-[Inter]">Personal Promos</h3>
+            <p className="text-gray-300 mb-6">Create targeted promotional offers for individual customers</p>
+            <p className="text-sm text-purple-300">Feature coming soon - Send personalized promos to specific customers</p>
+          </div>
+        </div>
+      )}
+
+      {/* Promo Modal */}
+      {showPromoModal && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
           <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-purple-500/10">
             <div className="sticky top-0 bg-gradient-to-r from-purple-900/15 to-violet-900/15 border-b border-purple-500/10 px-6 py-4 rounded-t-lg">
@@ -416,7 +543,7 @@ export default function Promos() {
                   {editingPromo ? 'Edit Promo' : 'Create New Promo'}
                 </h2>
                 <button
-                  onClick={handleCloseModal}
+                  onClick={handleClosePromoModal}
                   className="text-gray-300 hover:text-white transition-all"
                 >
                   <X className="w-6 h-6" />
@@ -424,8 +551,7 @@ export default function Promos() {
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-6">
-              {/* Basic Info */}
+            <form onSubmit={handleSubmitPromo} className="p-6 space-y-6">
               <div>
                 <h3 className="text-lg font-semibold text-white mb-4 font-[Inter]">Basic Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -473,7 +599,6 @@ export default function Promos() {
                 </div>
               </div>
 
-              {/* Discount Settings */}
               <div>
                 <h3 className="text-lg font-semibold text-white mb-4 font-[Inter]">Discount Settings</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -525,7 +650,6 @@ export default function Promos() {
                 </div>
               </div>
 
-              {/* Validity Period */}
               <div>
                 <h3 className="text-lg font-semibold text-white mb-4 font-[Inter]">Validity Period</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -563,7 +687,6 @@ export default function Promos() {
                 </div>
               </div>
 
-              {/* Applicable Services */}
               <div>
                 <h3 className="text-lg font-semibold text-white mb-4 font-[Inter]">Applicable Services</h3>
                 <p className="text-sm text-gray-400 mb-3">
@@ -588,7 +711,6 @@ export default function Promos() {
                 )}
               </div>
 
-              {/* Status */}
               <div>
                 <label className="flex items-center space-x-2 cursor-pointer">
                   <input
@@ -601,11 +723,10 @@ export default function Promos() {
                 </label>
               </div>
 
-              {/* Actions */}
               <div className="flex justify-end space-x-3 pt-4 border-t border-purple-500/10">
                 <button
                   type="button"
-                  onClick={handleCloseModal}
+                  onClick={handleClosePromoModal}
                   className="px-6 py-2 bg-black/30 border border-purple-500/[0.06] text-gray-200 rounded-lg hover:border-purple-500/40 transition-all"
                 >
                   Cancel

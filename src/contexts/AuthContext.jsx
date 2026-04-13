@@ -17,14 +17,17 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
   const [facilityAccess, setFacilityAccess] = useState(null) // User's facility association
   const [hasFacilityAccess, setHasFacilityAccess] = useState(false)
+  const [facilityCheckDone, setFacilityCheckDone] = useState(false)
 
   // Check if user has facility access
   const checkFacilityAccess = async (userId) => {
     if (!userId) {
       setFacilityAccess(null)
       setHasFacilityAccess(false)
+      setFacilityCheckDone(true)
       return
     }
+    setFacilityCheckDone(false)
 
     try {
       // First, get facility_users record (without join - faster)
@@ -47,6 +50,7 @@ export const AuthProvider = ({ children }) => {
           console.warn('User has no facility access')
           setFacilityAccess(null)
           setHasFacilityAccess(false)
+          setFacilityCheckDone(true)
           return
         }
 
@@ -55,6 +59,7 @@ export const AuthProvider = ({ children }) => {
           console.warn('facility_users table does not exist yet. Please run database-setup.sql')
           setFacilityAccess(null)
           setHasFacilityAccess(false)
+          setFacilityCheckDone(true)
           return
         }
 
@@ -82,10 +87,11 @@ export const AuthProvider = ({ children }) => {
 
       setFacilityAccess(combinedData)
       setHasFacilityAccess(true)
+      setFacilityCheckDone(true)
     } catch (error) {
       // If timeout or network error, keep existing access state - don't kick user out
       console.warn('Temporary error checking facility access (keeping current state):', error.message)
-      // Don't change facilityAccess or hasFacilityAccess
+      setFacilityCheckDone(true)
     }
   }
 
@@ -121,14 +127,11 @@ export const AuthProvider = ({ children }) => {
   }, [])
 
   const signIn = async (email, password) => {
+    setFacilityCheckDone(false)
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
-
-    if (!error && data.user) {
-      await checkFacilityAccess(data.user.id)
-    }
 
     return { data, error }
   }
@@ -225,7 +228,8 @@ export const AuthProvider = ({ children }) => {
     session,
     loading,
     facilityAccess, // Contains facility_users entry + salon data
-    hasFacilityAccess, // Boolean: does user have CRM access?
+    hasFacilityAccess,
+    facilityCheckDone,
     signIn,
     signUp,
     signOut,

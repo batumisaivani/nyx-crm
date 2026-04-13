@@ -3,18 +3,29 @@ import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 import AnimatedCard from '../components/ui/AnimatedCard'
 import ClassicLoader from '../components/ui/loader'
-import { BarChart3, DollarSign, Users, Star, Search, X } from 'lucide-react'
+import { useToast } from '../contexts/ToastContext'
+import { BarChart3, DollarSign, Users, Star, Search, X, Pencil, Check } from 'lucide-react'
 
 export default function Customers() {
   const { facilityAccess } = useAuth()
+  const toast = useToast()
   const [loading, setLoading] = useState(true)
   const [customers, setCustomers] = useState([])
   const [filteredCustomers, setFilteredCustomers] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
-  const [sortBy, setSortBy] = useState('recent') // recent, bookings, revenue, name
+  const [sortBy, setSortBy] = useState('recent')
+  const [genderFilter, setGenderFilter] = useState('all')
   const [selectedCustomer, setSelectedCustomer] = useState(null)
   const [customerBookings, setCustomerBookings] = useState([])
   const [showDetailModal, setShowDetailModal] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editName, setEditName] = useState('')
+  const [editPhone, setEditPhone] = useState('')
+  const [editEmail, setEditEmail] = useState('')
+  const [editLevel, setEditLevel] = useState('')
+  const [editGender, setEditGender] = useState('')
+  const [editLanguage, setEditLanguage] = useState('ka')
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     if (facilityAccess?.salon_id) {
@@ -24,70 +35,97 @@ export default function Customers() {
 
   useEffect(() => {
     filterAndSortCustomers()
-  }, [customers, searchQuery, sortBy])
+  }, [customers, searchQuery, sortBy, genderFilter])
 
   const fetchCustomers = async () => {
     try {
       setLoading(true)
 
-      // Fetch all bookings for this salon
-      const { data: bookings, error } = await supabase
-        .from('bookings')
-        .select(`
-          *,
-          services (name, price)
-        `)
+      // Fetch customers from customers table
+      const { data: customersData, error: custError } = await supabase
+        .from('customers')
+        .select('*')
         .eq('salon_id', facilityAccess.salon_id)
         .order('created_at', { ascending: false })
 
-      if (error) throw error
+      if (custError) throw custError
 
-      // Group bookings by customer (user_id or customer_name)
-      const customerMap = {}
-
-      bookings.forEach((booking) => {
-        const customerId = booking.user_id || booking.customer_name || 'guest'
-        const customerName = booking.customer_name || booking.customer_email || 'Guest Customer'
-        const customerEmail = booking.customer_email || ''
-        const customerPhone = booking.customer_phone || ''
-
-        if (!customerMap[customerId]) {
-          customerMap[customerId] = {
-            id: customerId,
-            name: customerName,
-            email: customerEmail,
-            phone: customerPhone,
-            totalBookings: 0,
-            totalRevenue: 0,
-            lastVisit: null,
-            firstVisit: null,
-            bookings: [],
-            cancelledBookings: 0,
-            completedBookings: 0,
-          }
+      // Fetch avatar URLs for app customers
+      const userIds = (customersData || []).map(c => c.user_id).filter(Boolean)
+      const avatarMap = {}
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, avatar_url')
+          .in('id', userIds)
+        if (profiles) {
+          profiles.forEach(p => { if (p.avatar_url) avatarMap[p.id] = p.avatar_url })
         }
+      }
 
-        const customer = customerMap[customerId]
-        customer.totalBookings++
-        customer.totalRevenue += booking.final_price || booking.services?.price || 0
-        customer.bookings.push(booking)
-
-        if (booking.status === 'cancelled') customer.cancelledBookings++
-        if (booking.status === 'completed') customer.completedBookings++
-
-        // Track last and first visit
-        const bookingDate = new Date(booking.booking_date)
-        if (!customer.lastVisit || bookingDate > new Date(customer.lastVisit)) {
-          customer.lastVisit = booking.booking_date
-        }
-        if (!customer.firstVisit || bookingDate < new Date(customer.firstVisit)) {
-          customer.firstVisit = booking.booking_date
-        }
+      // Attach avatars to customers
+      ;(customersData || []).forEach(c => {
+        c.avatar_url = c.user_id ? avatarMap[c.user_id] || null : null
       })
 
-      const customerList = Object.values(customerMap)
+      // Fetch all bookings for stats
+      const { data: bookings, error: bookingsError } = await supabase
+        .from('bookings')
+        .select('*, services(name, price)')
+        .eq('salon_id', facilityAccess.salon_id)
+        .order('created_at', { ascending: false })
+
+      if (bookingsError) throw bookingsError
+
+      // Fetch payments for accurate revenue
+      const bookingIds = (bookings || []).map(b => b.id)
+      const custPaymentsMap = {}
+      if (bookingIds.length > 0) {
+        const { data: payData } = await supabase
+          .from('payments')
+          .select('booking_id, amount_paid')
+          .in('booking_id', bookingIds)
+        if (payData) {
+          payData.forEach(p => { custPaymentsMap[p.booking_id] = p.amount_paid })
+        }
+      }
+
+      // Build stats per customer
+      const statsMap = {}
+      ;(bookings || []).forEach(b => {
+        // Match by customer_id first, then by phone
+        const custId = b.customer_id || (customersData || []).find(c => c.phone && c.phone === b.customer_phone)?.id
+        if (!custId) return
+        if (!statsMap[custId]) statsMap[custId] = { totalBookings: 0, totalRevenue: 0, completedBookings: 0, cancelledBookings: 0, lastVisit: null, firstVisit: null, bookings: [] }
+
+        const s = statsMap[custId]
+        s.totalBookings++
+        if (b.status === 'completed') {
+          const paid = custPaymentsMap[b.id]
+          s.totalRevenue += paid != null ? paid : (b.final_price || b.services?.price || 0)
+          s.completedBookings++
+        }
+        if (b.status === 'cancelled') s.cancelledBookings++
+        s.bookings.push(b)
+
+        const bookingDate = new Date(b.booking_date)
+        if (!s.lastVisit || bookingDate > new Date(s.lastVisit)) s.lastVisit = b.booking_date
+        if (!s.firstVisit || bookingDate < new Date(s.firstVisit)) s.firstVisit = b.booking_date
+      })
+
+      const customerList = (customersData || []).map(c => ({
+        ...c,
+        levelOverride: c.level_override || null,
+        totalBookings: statsMap[c.id]?.totalBookings || 0,
+        totalRevenue: statsMap[c.id]?.totalRevenue || 0,
+        completedBookings: statsMap[c.id]?.completedBookings || 0,
+        cancelledBookings: statsMap[c.id]?.cancelledBookings || 0,
+        lastVisit: statsMap[c.id]?.lastVisit || null,
+        firstVisit: statsMap[c.id]?.firstVisit || c.created_at,
+        bookings: statsMap[c.id]?.bookings || []
+      }))
+
       setCustomers(customerList)
-      setFilteredCustomers(customerList)
     } catch (error) {
       console.error('Error fetching customers:', error)
     } finally {
@@ -107,6 +145,11 @@ export default function Customers() {
           customer.email.toLowerCase().includes(query) ||
           customer.phone.toLowerCase().includes(query)
       )
+    }
+
+    // Gender filter
+    if (genderFilter !== 'all') {
+      filtered = filtered.filter(c => c.gender === genderFilter)
     }
 
     // Sort
@@ -131,12 +174,82 @@ export default function Customers() {
     setSelectedCustomer(customer)
     setCustomerBookings(customer.bookings)
     setShowDetailModal(true)
+    setIsEditing(false)
   }
 
   const closeCustomerDetail = () => {
     setShowDetailModal(false)
     setSelectedCustomer(null)
     setCustomerBookings([])
+    setIsEditing(false)
+  }
+
+  const startEditing = () => {
+    setEditName(selectedCustomer.name || '')
+    setEditPhone(selectedCustomer.phone || '')
+    setEditEmail(selectedCustomer.email || '')
+    setEditLevel(selectedCustomer.levelOverride || '')
+    setEditGender(selectedCustomer.gender || '')
+    setEditLanguage(selectedCustomer.preferred_language || 'ka')
+    setIsEditing(true)
+  }
+
+  const saveCustomerEdit = async () => {
+    if (!editName.trim()) {
+      toast.error('Customer name is required')
+      return
+    }
+    try {
+      setSaving(true)
+
+      // Update customers table
+      const { error } = await supabase
+        .from('customers')
+        .update({
+          name: editName.trim(),
+          phone: editPhone.trim() || null,
+          email: editEmail.trim() || null,
+          level_override: editLevel || null,
+          gender: editGender || null,
+          preferred_language: editLanguage || 'ka',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', selectedCustomer.id)
+
+      if (error) throw error
+
+      // Also update booking records to keep them in sync
+      const bookingIds = selectedCustomer.bookings.map(b => b.id)
+      if (bookingIds.length > 0) {
+        await supabase.from('bookings').update({
+          customer_name: editName.trim(),
+          customer_phone: editPhone.trim() || null,
+          customer_email: editEmail.trim() || null
+        }).in('id', bookingIds)
+      }
+
+      toast.success('Customer updated successfully')
+      setIsEditing(false)
+
+      // Update local state
+      setSelectedCustomer(prev => ({
+        ...prev,
+        name: editName.trim(),
+        phone: editPhone.trim(),
+        email: editEmail.trim(),
+        levelOverride: editLevel || null,
+        gender: editGender || null,
+        preferred_language: editLanguage || 'ka'
+      }))
+
+      // Refetch all customers to sync
+      await fetchCustomers()
+    } catch (error) {
+      console.error('Error updating customer:', error)
+      toast.error('Error updating customer')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const formatDate = (dateString) => {
@@ -145,11 +258,21 @@ export default function Customers() {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   }
 
-  const getCustomerLevel = (totalBookings) => {
-    if (totalBookings >= 20) return { label: 'VIP', color: 'bg-yellow-100 text-yellow-800 border-yellow-300' }
-    if (totalBookings >= 10) return { label: 'Loyal', color: 'bg-purple-500/50/10 text-purple-300 border-purple-300' }
-    if (totalBookings >= 5) return { label: 'Regular', color: 'bg-blue-100 text-blue-800 border-blue-300' }
-    return { label: 'New', color: 'bg-white/5 text-white border-purple-500/15' }
+  const LEVELS = {
+    super_vip: { label: 'Super VIP', color: 'bg-gradient-to-r from-amber-500/30 to-yellow-500/30 text-amber-300 border-amber-400/50' },
+    vip: { label: 'VIP', color: 'bg-yellow-500/20 text-yellow-300 border-yellow-400/40' },
+    loyal: { label: 'Loyal', color: 'bg-purple-500/20 text-purple-300 border-purple-400/40' },
+    regular: { label: 'Regular', color: 'bg-blue-500/20 text-blue-300 border-blue-400/40' },
+    new: { label: 'New', color: 'bg-white/5 text-gray-300 border-white/10' },
+  }
+
+  const getCustomerLevel = (totalBookings, levelOverride) => {
+    if (levelOverride && LEVELS[levelOverride]) return LEVELS[levelOverride]
+    if (totalBookings >= 30) return LEVELS.super_vip
+    if (totalBookings >= 20) return LEVELS.vip
+    if (totalBookings >= 10) return LEVELS.loyal
+    if (totalBookings >= 5) return LEVELS.regular
+    return LEVELS.new
   }
 
   if (loading) {
@@ -160,70 +283,72 @@ export default function Customers() {
     )
   }
 
+  const getLevel = (c) => getCustomerLevel(c.totalBookings, c.levelOverride).label
+  const superVipCount = customers.filter(c => getLevel(c) === 'Super VIP').length
+  const vipCount = customers.filter(c => getLevel(c) === 'VIP').length
+  const loyalCount = customers.filter(c => getLevel(c) === 'Loyal').length
+  const regularCount = customers.filter(c => getLevel(c) === 'Regular').length
+  const newCount = customers.filter(c => getLevel(c) === 'New').length
+
   return (
     <div className="w-full -mt-4">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white font-[Inter]">Customer Management</h1>
-        <p className="text-gray-300 mt-1">Manage and track your customers</p>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <AnimatedCard className="p-6">
-          <div className="text-sm text-purple-200 mb-1">Total Customers</div>
-          <div className="text-3xl font-bold text-white">{customers.length}</div>
-        </AnimatedCard>
-
-        <AnimatedCard className="p-6">
-          <div className="text-sm text-purple-200 mb-1">Avg Bookings/Customer</div>
-          <div className="text-3xl font-bold text-white">
-            {customers.length > 0
-              ? (customers.reduce((sum, c) => sum + c.totalBookings, 0) / customers.length).toFixed(1)
-              : '0'}
+      {/* Header + Stats + Filters */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl font-bold text-white font-[Inter]">Customers</h2>
+        <div className="flex items-center gap-3">
+          {/* Stats inline */}
+          <div className="flex items-center gap-2">
+            <span className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-white/[0.04] border border-white/[0.06] text-white">{customers.length} total</span>
+            {superVipCount > 0 && <span className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-amber-500/15 border border-amber-500/25 text-amber-400">{superVipCount} super VIP</span>}
+            <span className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-yellow-400">{vipCount} VIP</span>
+            <span className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-400">{loyalCount} loyal</span>
+            <span className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400">{regularCount} regular</span>
+            <span className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-white/[0.03] border border-white/[0.06] text-gray-400">{newCount} new</span>
+            <span className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">{customers.reduce((sum, c) => sum + c.totalRevenue, 0).toFixed(0)} GEL</span>
           </div>
-        </AnimatedCard>
 
-        <AnimatedCard className="p-6">
-          <div className="text-sm text-purple-200 mb-1">Total Revenue</div>
-          <div className="text-3xl font-bold text-green-400">
-            {customers.reduce((sum, c) => sum + c.totalRevenue, 0).toFixed(2)} GEL
+          {/* Gender filter */}
+          <div className="flex items-center gap-1">
+            {['all', 'female', 'male'].map(g => (
+              <button
+                key={g}
+                onClick={() => setGenderFilter(g)}
+                className={`px-2.5 py-1 text-xs font-medium rounded-lg border transition-all ${
+                  genderFilter === g
+                    ? g === 'female' ? 'bg-pink-500/20 border-pink-500/40 text-pink-300'
+                    : g === 'male' ? 'bg-blue-500/20 border-blue-500/40 text-blue-300'
+                    : 'bg-purple-500/20 border-purple-500/40 text-purple-300'
+                    : 'bg-white/[0.03] border-white/[0.06] text-gray-400 hover:border-purple-500/30'
+                }`}
+              >
+                {g === 'all' ? 'All' : g === 'female' ? 'Female' : 'Male'}
+              </button>
+            ))}
           </div>
-        </AnimatedCard>
 
-        <AnimatedCard className="p-6">
-          <div className="text-sm text-purple-200 mb-1">VIP Customers</div>
-          <div className="text-3xl font-bold text-yellow-400">
-            {customers.filter((c) => c.totalBookings >= 20).length}
-          </div>
-        </AnimatedCard>
-      </div>
-
-      {/* Search and Filters */}
-      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg shadow-2xl p-6 mb-6 border border-purple-500/10">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-purple-300" />
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-purple-300" />
             <input
               type="text"
-              placeholder="Search by name, email, or phone..."
+              placeholder="Search..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-purple-950/25 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/90 transition-all placeholder-gray-400"
+              className="pl-8 pr-3 py-1.5 text-xs bg-purple-950/40 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 transition-all placeholder-gray-500 w-40"
             />
           </div>
-          <div className="flex gap-2">
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-3 bg-purple-950/25 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 transition-all"
-            >
-              <option value="recent">Recent First</option>
-              <option value="name">Name A-Z</option>
-              <option value="bookings">Most Bookings</option>
-              <option value="revenue">Highest Revenue</option>
-            </select>
-          </div>
+
+          {/* Sort */}
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="px-3 py-1.5 text-xs bg-purple-950/40 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 transition-all"
+          >
+            <option value="recent">Recent First</option>
+            <option value="name">Name A-Z</option>
+            <option value="bookings">Most Bookings</option>
+            <option value="revenue">Highest Revenue</option>
+          </select>
         </div>
       </div>
 
@@ -233,13 +358,13 @@ export default function Customers() {
           <table className="w-full">
             <thead className="bg-purple-950/50 border-b border-purple-500/10">
               <tr>
-                <th className="text-left py-3 px-4 text-sm font-bold text-purple-200">Customer</th>
-                <th className="text-left py-3 px-4 text-sm font-bold text-purple-200">Contact</th>
-                <th className="text-left py-3 px-4 text-sm font-bold text-purple-200">Level</th>
-                <th className="text-left py-3 px-4 text-sm font-bold text-purple-200">Bookings</th>
-                <th className="text-left py-3 px-4 text-sm font-bold text-purple-200">Revenue</th>
-                <th className="text-left py-3 px-4 text-sm font-bold text-purple-200">Last Visit</th>
-                <th className="text-left py-3 px-4 text-sm font-bold text-purple-200">Actions</th>
+                <th className="text-left py-3 px-4 text-sm font-bold text-purple-200 w-[22%]">Customer</th>
+                <th className="text-left py-3 px-4 text-sm font-bold text-purple-200 w-[22%]">Contact</th>
+                <th className="text-center py-3 px-4 text-sm font-bold text-purple-200 w-[10%]">Level</th>
+                <th className="text-center py-3 px-4 text-sm font-bold text-purple-200 w-[12%]">Bookings</th>
+                <th className="text-center py-3 px-4 text-sm font-bold text-purple-200 w-[14%]">Revenue</th>
+                <th className="text-center py-3 px-4 text-sm font-bold text-purple-200 w-[13%]">Last Visit</th>
+                <th className="text-center py-3 px-4 text-sm font-bold text-purple-200 w-[7%]">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-purple-700/30">
@@ -251,40 +376,51 @@ export default function Customers() {
                 </tr>
               ) : (
                 filteredCustomers.map((customer) => {
-                  const level = getCustomerLevel(customer.totalBookings)
+                  const level = getCustomerLevel(customer.totalBookings, customer.levelOverride)
                   return (
                     <tr key={customer.id} className="hover:bg-purple-900/30 transition-all">
                       <td className="py-3 px-4">
-                        <div className="font-medium text-white font-[Inter]">{customer.name}</div>
-                        <div className="text-sm text-gray-300">
-                          Customer since {formatDate(customer.firstVisit)}
+                        <div className="flex items-center gap-2.5">
+                          {customer.avatar_url ? (
+                            <img src={customer.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover border border-purple-500/30 flex-shrink-0" />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-purple-500/15 border border-purple-500/20 flex items-center justify-center flex-shrink-0">
+                              <span className="text-xs font-bold text-purple-300">{customer.name?.charAt(0)}</span>
+                            </div>
+                          )}
+                          <div>
+                            <div className="font-medium text-white font-[Inter]">{customer.name}</div>
+                            <div className="text-[10px] text-gray-400">
+                              since {formatDate(customer.firstVisit)}
+                            </div>
+                          </div>
                         </div>
                       </td>
                       <td className="py-3 px-4">
                         <div className="text-sm text-gray-300">{customer.email || 'No email'}</div>
                         <div className="text-sm text-gray-400">{customer.phone || 'No phone'}</div>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-4 text-center">
                         <span className={`px-3 py-1 text-xs font-medium rounded-full border ${level.color}`}>
                           {level.label}
                         </span>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-4 text-center">
                         <div className="text-sm font-semibold text-white">{customer.totalBookings}</div>
                         <div className="text-xs text-gray-400">
                           {customer.completedBookings} completed
                         </div>
                       </td>
-                      <td className="py-3 px-4 font-semibold text-green-400">
+                      <td className="py-3 px-4 text-center font-semibold text-green-400">
                         {customer.totalRevenue.toFixed(2)} GEL
                       </td>
-                      <td className="py-3 px-4 text-sm text-gray-300">{formatDate(customer.lastVisit)}</td>
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-4 text-center text-sm text-gray-300">{formatDate(customer.lastVisit)}</td>
+                      <td className="py-3 px-4 text-center">
                         <button
                           onClick={() => openCustomerDetail(customer)}
-                          className="text-purple-300 hover:text-purple-100 font-medium text-sm transition-colors"
+                          className="p-2 text-purple-300 bg-purple-900/30 border border-purple-500/15 rounded-lg hover:bg-purple-900/50 transition-all inline-flex"
                         >
-                          View Details →
+                          <Pencil className="w-3.5 h-3.5" />
                         </button>
                       </td>
                     </tr>
@@ -298,144 +434,188 @@ export default function Customers() {
 
       {/* Customer Detail Modal */}
       {showDetailModal && selectedCustomer && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gradient-to-r from-purple-900/15 to-violet-900/15 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-purple-500/10">
-            {/* Modal Header */}
-            <div className="bg-purple-900/30 p-6 border-b border-purple-500/10">
-              <div className="flex justify-between items-start">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={closeCustomerDetail}>
+          <div className="bg-gradient-to-br from-gray-900 to-gray-950 border border-purple-500/20 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-3 border-b border-purple-500/10">
+              <div className="flex items-center gap-3">
+                {selectedCustomer.avatar_url ? (
+                  <img src={selectedCustomer.avatar_url} alt="" className="w-11 h-11 rounded-full object-cover border-2 border-purple-500/30 flex-shrink-0" />
+                ) : (
+                  <div className="w-11 h-11 rounded-full bg-purple-500/20 border-2 border-purple-500/30 flex items-center justify-center flex-shrink-0">
+                    <span className="text-base font-bold text-purple-300">{selectedCustomer.name?.charAt(0)}</span>
+                  </div>
+                )}
                 <div>
-                  <h2 className="text-2xl font-bold text-white font-[Inter]">{selectedCustomer.name}</h2>
-                  <p className="text-purple-200 mt-1">Customer Details & History</p>
+                  <h2 className="text-base font-bold text-white font-[Inter]">{selectedCustomer.name}</h2>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-full border ${getCustomerLevel(selectedCustomer.totalBookings, selectedCustomer.levelOverride).color}`}>
+                      {getCustomerLevel(selectedCustomer.totalBookings, selectedCustomer.levelOverride).label}
+                    </span>
+                    <span className="text-[10px] text-gray-500">since {formatDate(selectedCustomer.firstVisit)}</span>
+                  </div>
                 </div>
-                <button
-                  onClick={closeCustomerDetail}
-                  className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
-                >
-                  <X className="w-5 h-5" />
+              </div>
+              <div className="flex items-center gap-2">
+                {!isEditing ? (
+                  <button onClick={startEditing} className="p-1.5 text-purple-300 bg-purple-900/30 border border-purple-500/15 rounded-lg hover:bg-purple-900/50 transition-all">
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                ) : (
+                  <>
+                    <button onClick={() => setIsEditing(false)} className="px-2.5 py-1 text-[10px] text-gray-400 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-all">Cancel</button>
+                    <button onClick={saveCustomerEdit} disabled={saving} className="px-2.5 py-1 text-[10px] text-white bg-purple-600 rounded-lg hover:bg-purple-500 transition-all disabled:opacity-50">
+                      {saving ? '...' : 'Save'}
+                    </button>
+                  </>
+                )}
+                <button onClick={closeCustomerDetail} className="p-1.5 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-all">
+                  <X className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
-            {/* Modal Content */}
-            <div className="flex-1 overflow-y-auto p-6">
-              {/* Customer Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div className="bg-purple-950/30 rounded-lg p-4 border border-purple-500/10">
-                  <p className="text-sm text-purple-200 font-medium">Total Bookings</p>
-                  <p className="text-2xl font-bold text-white mt-1">{selectedCustomer.totalBookings}</p>
-                </div>
-                <div className="bg-purple-950/30 rounded-lg p-4 border border-purple-500/10">
-                  <p className="text-sm text-purple-200 font-medium">Total Spent</p>
-                  <p className="text-2xl font-bold text-green-400 mt-1">
-                    {selectedCustomer.totalRevenue.toFixed(2)} GEL
-                  </p>
-                </div>
-                <div className="bg-purple-950/30 rounded-lg p-4 border border-purple-500/10">
-                  <p className="text-sm text-purple-200 font-medium">Avg per Booking</p>
-                  <p className="text-2xl font-bold text-blue-400 mt-1">
-                    {(selectedCustomer.totalRevenue / selectedCustomer.totalBookings).toFixed(2)} GEL
-                  </p>
-                </div>
-                <div className="bg-purple-950/30 rounded-lg p-4 border border-purple-500/10">
-                  <p className="text-sm text-purple-200 font-medium">Cancelled</p>
-                  <p className="text-2xl font-bold text-orange-400 mt-1">
-                    {selectedCustomer.cancelledBookings}
-                  </p>
-                </div>
-              </div>
+            <div className="flex-1 overflow-y-auto">
+              <div className="flex gap-5 px-5 py-4">
+                {/* Left: Info & Edit */}
+                <div className="w-[240px] flex-shrink-0 space-y-3">
+                  {/* Stats */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-purple-950/30 border border-purple-500/10 rounded-lg p-2.5 text-center">
+                      <p className="text-[9px] text-gray-400 uppercase">Bookings</p>
+                      <p className="text-lg font-bold text-white">{selectedCustomer.totalBookings}</p>
+                    </div>
+                    <div className="bg-purple-950/30 border border-purple-500/10 rounded-lg p-2.5 text-center">
+                      <p className="text-[9px] text-gray-400 uppercase">Revenue</p>
+                      <p className="text-lg font-bold text-green-400">{selectedCustomer.totalRevenue.toFixed(0)}</p>
+                    </div>
+                    <div className="bg-purple-950/30 border border-purple-500/10 rounded-lg p-2.5 text-center">
+                      <p className="text-[9px] text-gray-400 uppercase">Avg.Receipt</p>
+                      <p className="text-lg font-bold text-blue-400">{selectedCustomer.totalBookings > 0 ? (selectedCustomer.totalRevenue / selectedCustomer.totalBookings).toFixed(0) : 0}</p>
+                    </div>
+                    <div className="bg-purple-950/30 border border-purple-500/10 rounded-lg p-2.5 text-center">
+                      <p className="text-[9px] text-gray-400 uppercase">Cancelled</p>
+                      <p className="text-lg font-bold text-orange-400">{selectedCustomer.cancelledBookings}</p>
+                    </div>
+                  </div>
 
-              {/* Contact Info */}
-              <div className="bg-purple-950/30 rounded-lg p-4 mb-6 border border-purple-500/10">
-                <h3 className="font-semibold text-white mb-3">Contact Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <span className="text-purple-200">Email:</span>
-                    <span className="ml-2 font-medium text-white">
-                      {selectedCustomer.email || 'Not provided'}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-purple-200">Phone:</span>
-                    <span className="ml-2 font-medium text-white">
-                      {selectedCustomer.phone || 'Not provided'}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-purple-200">First Visit:</span>
-                    <span className="ml-2 font-medium text-white">
-                      {formatDate(selectedCustomer.firstVisit)}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-purple-200">Last Visit:</span>
-                    <span className="ml-2 font-medium text-white">
-                      {formatDate(selectedCustomer.lastVisit)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Booking History */}
-              <div>
-                <h3 className="font-semibold text-white mb-3">Booking History</h3>
-                <div className="space-y-3">
-                  {customerBookings.map((booking) => (
-                    <div
-                      key={booking.id}
-                      className="bg-purple-950/30 border border-purple-500/10 rounded-lg p-4 hover:bg-purple-950/50 transition-all"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="font-semibold text-white">
-                              {booking.services?.name || 'Service'}
-                            </span>
-                            <span
-                              className={`px-2 py-1 text-xs rounded-full ${
-                                booking.status === 'completed'
-                                  ? 'bg-green-100 text-green-800'
-                                  : booking.status === 'confirmed'
-                                  ? 'bg-blue-100 text-blue-800'
-                                  : booking.status === 'cancelled'
-                                  ? 'bg-red-100 text-red-800'
-                                  : 'bg-yellow-100 text-yellow-800'
+                  {/* Contact / Edit fields */}
+                  {isEditing ? (
+                    <div className="space-y-2">
+                      <div>
+                        <label className="text-[10px] text-gray-400 uppercase tracking-wide block mb-0.5">Name</label>
+                        <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)}
+                          className="w-full px-2.5 py-1.5 text-xs bg-purple-950/40 border border-purple-500/20 text-white rounded-lg focus:ring-2 focus:ring-purple-500" />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-gray-400 uppercase tracking-wide block mb-0.5">Phone</label>
+                        <input type="tel" value={editPhone} onChange={(e) => setEditPhone(e.target.value)}
+                          className="w-full px-2.5 py-1.5 text-xs bg-purple-950/40 border border-purple-500/20 text-white rounded-lg focus:ring-2 focus:ring-purple-500" />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-gray-400 uppercase tracking-wide block mb-0.5">Email</label>
+                        <input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)}
+                          className="w-full px-2.5 py-1.5 text-xs bg-purple-950/40 border border-purple-500/20 text-white rounded-lg focus:ring-2 focus:ring-purple-500" />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-gray-400 uppercase tracking-wide block mb-0.5">Level</label>
+                        <select value={editLevel} onChange={(e) => setEditLevel(e.target.value)}
+                          className="w-full px-2.5 py-1.5 text-xs bg-purple-950/40 border border-purple-500/20 text-white rounded-lg focus:ring-2 focus:ring-purple-500">
+                          <option value="">Auto (by bookings)</option>
+                          <option value="new">New</option>
+                          <option value="regular">Regular</option>
+                          <option value="loyal">Loyal</option>
+                          <option value="vip">VIP</option>
+                          <option value="super_vip">Super VIP</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-gray-400 uppercase tracking-wide block mb-0.5">Gender</label>
+                        <div className="flex gap-1.5">
+                          {[{ val: '', label: '—' }, { val: 'female', label: 'Female' }, { val: 'male', label: 'Male' }].map(g => (
+                            <button
+                              key={g.val}
+                              type="button"
+                              onClick={() => setEditGender(g.val)}
+                              className={`flex-1 py-1.5 text-[10px] font-medium rounded-lg border transition-all ${
+                                editGender === g.val
+                                  ? g.val === 'female' ? 'bg-pink-500/25 border-pink-500/50 text-pink-300'
+                                  : g.val === 'male' ? 'bg-blue-500/25 border-blue-500/50 text-blue-300'
+                                  : 'bg-purple-500/20 border-purple-500/40 text-gray-300'
+                                  : 'bg-white/[0.03] border-white/[0.06] text-gray-500'
                               }`}
                             >
-                              {booking.status}
-                            </span>
-                          </div>
-                          <div className="text-sm text-gray-300">
-                            📅 {formatDate(booking.booking_date)} at {booking.booking_time?.substring(0, 5)}
-                          </div>
-                          {booking.promo_code && (
-                            <div className="text-sm text-green-400 mt-1">🎁 Promo: {booking.promo_code}</div>
-                          )}
+                              {g.label}
+                            </button>
+                          ))}
                         </div>
-                        <div className="text-right">
-                          <div className="font-bold text-green-400">
-                            {(booking.final_price || booking.services?.price || 0).toFixed(2)} GEL
-                          </div>
-                          {booking.discount_amount > 0 && (
-                            <div className="text-xs text-gray-400 line-through">
-                              {booking.services?.price?.toFixed(2)} GEL
-                            </div>
-                          )}
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-gray-400 uppercase tracking-wide block mb-0.5">Language</label>
+                        <div className="flex gap-1.5">
+                          {[{ val: 'ka', label: '🇬🇪 KA' }, { val: 'en', label: '🇬🇧 EN' }, { val: 'ru', label: '🇷🇺 RU' }].map(l => (
+                            <button
+                              key={l.val}
+                              type="button"
+                              onClick={() => setEditLanguage(l.val)}
+                              className={`flex-1 py-1.5 text-[10px] font-medium rounded-lg border transition-all ${
+                                editLanguage === l.val
+                                  ? 'bg-purple-500/25 border-purple-500/50 text-white'
+                                  : 'bg-white/[0.03] border-white/[0.06] text-gray-500'
+                              }`}
+                            >
+                              {l.label}
+                            </button>
+                          ))}
                         </div>
                       </div>
                     </div>
-                  ))}
+                  ) : (
+                    <div className="space-y-1.5 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Phone</span>
+                        <span className="text-white font-medium">{selectedCustomer.phone || '—'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Email</span>
+                        <span className="text-white font-medium truncate ml-2 max-w-[140px]">{selectedCustomer.email || '—'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Last Visit</span>
+                        <span className="text-white font-medium">{formatDate(selectedCustomer.lastVisit)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Language</span>
+                        <span className="text-white font-medium">{selectedCustomer.preferred_language === 'en' ? '🇬🇧 English' : selectedCustomer.preferred_language === 'ru' ? '🇷🇺 Russian' : '🇬🇪 Georgian'}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Right: Booking History */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-2">Booking History</p>
+                  <div className="space-y-1.5 max-h-[50vh] overflow-y-auto pr-1">
+                    {customerBookings.map((booking) => (
+                      <div key={booking.id} className="flex items-center justify-between bg-purple-950/20 border border-purple-500/10 rounded-lg px-3 py-2 hover:bg-purple-950/30 transition-all">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                            booking.status === 'completed' ? 'bg-emerald-400' :
+                            booking.status === 'confirmed' ? 'bg-blue-400' :
+                            booking.status === 'cancelled' ? 'bg-rose-400' : 'bg-yellow-400'
+                          }`} />
+                          <span className="text-xs font-medium text-white truncate">{booking.services?.name || 'Service'}</span>
+                          <span className="text-[10px] text-gray-500 flex-shrink-0">{formatDate(booking.booking_date)}</span>
+                          <span className="text-[10px] text-gray-500 flex-shrink-0">{booking.booking_time?.substring(0, 5)}</span>
+                        </div>
+                        <span className="text-xs font-semibold text-green-400 flex-shrink-0 ml-2">
+                          {(booking.final_price || booking.services?.price || 0).toFixed(0)} GEL
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="border-t border-purple-500/10 p-4 bg-purple-900/30 flex justify-end">
-              <button
-                onClick={closeCustomerDetail}
-                className="px-8 py-3 bg-purple-900/30 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/40 font-medium transition-all transform hover:scale-105"
-              >
-                Close
-              </button>
             </div>
           </div>
         </div>

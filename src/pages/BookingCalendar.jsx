@@ -6,8 +6,10 @@ import BookingModal from '../components/BookingModal'
 import NewBookingInterface from '../components/NewBookingInterface'
 import ClassicLoader from '../components/ui/loader'
 import { useToast } from '../contexts/ToastContext'
-import { Users, Clock, ChevronLeft, ChevronRight, Settings, Smartphone, Monitor, List, User, Phone, Calendar as CalendarIcon, CheckCircle, XCircle, Edit } from 'lucide-react'
+import { Users, Clock, ChevronLeft, ChevronRight, Settings, Smartphone, Monitor, List, User, Phone, Calendar as CalendarIcon, CheckCircle, XCircle, Edit, DollarSign, Tag, FileText, Mail } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { MultiSelect } from '../components/ui/multi-select'
+import CompletionModal from '../components/ui/CompletionModal'
 import { createPortal } from 'react-dom'
 
 // Generate time slots based on working hours and time window
@@ -34,10 +36,11 @@ const generateTimeSlots = (startTime, endTime, intervalMinutes = 30) => {
 }
 
 const STATUS_COLORS = {
-  pending: 'bg-gradient-to-br from-yellow-800/15 to-yellow-900/15 border-2 border-yellow-400/30 text-yellow-50 shadow-lg shadow-yellow-900/10',
-  confirmed: 'bg-gradient-to-br from-blue-900/15 to-blue-800/15 border-2 border-blue-500/25 text-blue-100 shadow-lg shadow-blue-900/15',
-  completed: 'bg-gradient-to-br from-emerald-900/15 to-green-900/15 border-2 border-emerald-600/25 text-emerald-200 shadow-lg shadow-emerald-900/10',
-  cancelled: 'bg-gradient-to-br from-rose-900/15 to-red-900/15 border-2 border-rose-600/25 text-rose-200 shadow-lg shadow-rose-900/10',
+  pending: 'bg-gradient-to-br from-yellow-700/35 to-yellow-800/35 border-2 border-yellow-400/60 text-yellow-50 shadow-lg shadow-yellow-900/20',
+  confirmed: 'bg-gradient-to-br from-blue-800/35 to-blue-700/35 border-2 border-blue-400/60 text-blue-100 shadow-lg shadow-blue-900/25',
+  in_progress: 'bg-gradient-to-br from-emerald-700/35 to-blue-700/35 border-2 border-emerald-400/60 text-emerald-100 shadow-lg shadow-emerald-900/25',
+  completed: 'bg-gradient-to-br from-emerald-800/35 to-green-800/35 border-2 border-emerald-500/60 text-emerald-200 shadow-lg shadow-emerald-900/20',
+  cancelled: 'bg-gradient-to-br from-rose-800/35 to-red-800/35 border-2 border-rose-500/60 text-rose-200 shadow-lg shadow-rose-900/20',
 }
 
 export default function BookingCalendar() {
@@ -66,14 +69,55 @@ export default function BookingCalendar() {
   const dateButtonRef = useRef(null)
   const [calendarSize, setCalendarSize] = useState(localStorage.getItem('calendarSize') || 'medium')
   const [timeWindow, setTimeWindow] = useState(parseInt(localStorage.getItem('timeWindow')) || 30)
+  const [slotDuration, setSlotDuration] = useState(null)
   const [showSizeSettings, setShowSizeSettings] = useState(false)
   const [settingsPosition, setSettingsPosition] = useState({ top: 0, right: 0 })
   const settingsButtonRef = useRef(null)
+  const theadRef = useRef(null)
+  const tableContainerRef = useRef(null)
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedBooking, setSelectedBooking] = useState(null)
   const [prefilledSlot, setPrefilledSlot] = useState(null)
+
+  // Started bookings (derived from status)
+  const [startedBookings, setStartedBookings] = useState(new Set())
+
+  // Closed periods
+  const [isDateClosed, setIsDateClosed] = useState(false)
+  const [closedReason, setClosedReason] = useState('')
+
+  // Breaks
+  const [breaks, setBreaks] = useState([])
+  const [showBreakModal, setShowBreakModal] = useState(false)
+  const [breakForm, setBreakForm] = useState({ specialistId: null, startTime: '', endTime: '', label: 'Break' })
+
+  // Use currentTime (updates every minute) to make this reactive
+  const isBookingLive = (booking) => {
+    if (booking.status !== 'confirmed' && booking.status !== 'in_progress') return false
+    const now = currentTime
+    const today = now.toISOString().split('T')[0]
+    const bookingDate = (booking.booking_date || '').substring(0, 10)
+    if (bookingDate !== today) return false
+    const timeParts = (booking.booking_time || '00:00:00').substring(0, 5).split(':')
+    const h = parseInt(timeParts[0])
+    const m = parseInt(timeParts[1])
+    const bookingStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m)
+    const duration = booking.services?.duration_minutes || 30
+    const bookingEnd = new Date(bookingStart.getTime() + duration * 60000)
+    const minutesBefore = (bookingStart - now) / 60000
+    return minutesBefore <= 60 && now <= bookingEnd
+  }
+
+  // Completion modal state
+  const [showCompletionModal, setShowCompletionModal] = useState(false)
+  const [completionBooking, setCompletionBooking] = useState(null)
+
+  // Hover tooltip state
+  const [hoveredBooking, setHoveredBooking] = useState(null)
+  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 })
+  const hoverTimeoutRef = useRef(null)
 
   // New Booking Interface state
   const [isNewBookingOpen, setIsNewBookingOpen] = useState(false)
@@ -90,6 +134,22 @@ export default function BookingCalendar() {
     }, 60000) // Update every minute
     return () => clearInterval(interval)
   }, [])
+
+  // Fetch slot duration from calendar_settings
+  useEffect(() => {
+    if (facilityAccess?.salon_id) {
+      supabase
+        .from('calendar_settings')
+        .select('slot_duration')
+        .eq('salon_id', facilityAccess.salon_id)
+        .single()
+        .then(({ data }) => {
+          if (data?.slot_duration) {
+            setSlotDuration(data.slot_duration)
+          }
+        })
+    }
+  }, [facilityAccess])
 
   useEffect(() => {
     if (facilityAccess?.salon_id) {
@@ -115,14 +175,35 @@ export default function BookingCalendar() {
 
   const fetchPendingCount = async () => {
     try {
-      const { count, error } = await supabase
+      const now = new Date()
+      const today = now.toISOString().split('T')[0]
+      const currentTime = now.toTimeString().substring(0, 8)
+
+      const { count: pendingCount, error: pendingError } = await supabase
         .from('bookings')
         .select('*', { count: 'exact', head: true })
         .eq('salon_id', facilityAccess.salon_id)
         .eq('status', 'pending')
 
-      if (error) throw error
-      setPendingCount(count || 0)
+      if (pendingError) throw pendingError
+
+      // Count overdue confirmed bookings
+      const { data: confirmedData, error: confirmedError } = await supabase
+        .from('bookings')
+        .select('booking_date, booking_time')
+        .eq('salon_id', facilityAccess.salon_id)
+        .eq('status', 'confirmed')
+        .lte('booking_date', today)
+
+      if (confirmedError) throw confirmedError
+
+      const overdueCount = (confirmedData || []).filter(b => {
+        if (b.booking_date < today) return true
+        if (b.booking_date === today && b.booking_time < currentTime) return true
+        return false
+      }).length
+
+      setPendingCount((pendingCount || 0) + overdueCount)
     } catch (error) {
       console.error('Error fetching pending count:', error)
     }
@@ -130,7 +211,12 @@ export default function BookingCalendar() {
 
   const fetchPendingBookings = async () => {
     try {
-      const { data, error } = await supabase
+      const now = new Date()
+      const today = now.toISOString().split('T')[0]
+      const currentTime = now.toTimeString().substring(0, 8)
+
+      // Fetch all pending bookings
+      const { data: pendingData, error: pendingError } = await supabase
         .from('bookings')
         .select(`
           *,
@@ -142,8 +228,32 @@ export default function BookingCalendar() {
         .order('booking_date', { ascending: true })
         .order('booking_time', { ascending: true })
 
-      if (error) throw error
-      setPendingBookings(data || [])
+      if (pendingError) throw pendingError
+
+      // Fetch confirmed bookings and filter to overdue ones client-side
+      const { data: confirmedData, error: confirmedError } = await supabase
+        .from('bookings')
+        .select(`
+          *,
+          services(name, duration_minutes, price),
+          specialists(name)
+        `)
+        .eq('salon_id', facilityAccess.salon_id)
+        .eq('status', 'confirmed')
+        .lte('booking_date', today)
+        .order('booking_date', { ascending: true })
+        .order('booking_time', { ascending: true })
+
+      if (confirmedError) throw confirmedError
+
+      const overdueConfirmed = (confirmedData || []).filter(b => {
+        if (b.booking_date < today) return true
+        if (b.booking_date === today && b.booking_time < currentTime) return true
+        return false
+      })
+
+      const data = [...overdueConfirmed, ...(pendingData || [])]
+      setPendingBookings(data)
     } catch (error) {
       console.error('Error fetching pending bookings:', error)
       toast.error('Error loading pending bookings')
@@ -174,13 +284,57 @@ export default function BookingCalendar() {
         .select(`
           *,
           services(name, duration_minutes, price),
-          specialists(name)
+          specialists(name),
+          customers(preferred_language)
         `)
         .eq('salon_id', facilityAccess.salon_id)
         .eq('booking_date', selectedDate)
 
       if (bookingsError) throw bookingsError
-      setBookings(bookingsData || [])
+
+      // Fetch additional services for these bookings
+      const bookingIds = (bookingsData || []).map(b => b.id)
+      let additionalServicesMap = {}
+      if (bookingIds.length > 0) {
+        const { data: addSvcData } = await supabase
+          .from('booking_additional_services')
+          .select('*')
+          .in('booking_id', bookingIds)
+        if (addSvcData) {
+          addSvcData.forEach(s => {
+            if (!additionalServicesMap[s.booking_id]) additionalServicesMap[s.booking_id] = []
+            additionalServicesMap[s.booking_id].push(s)
+          })
+        }
+      }
+
+      // Attach additional services to bookings
+      const bookingsWithExtras = (bookingsData || []).map(b => ({
+        ...b,
+        additional_services: additionalServicesMap[b.id] || []
+      }))
+      setBookings(bookingsWithExtras)
+
+      // Populate started bookings from status
+      const inProgress = new Set(bookingsWithExtras.filter(b => b.status === 'in_progress').map(b => b.id))
+      setStartedBookings(inProgress)
+
+      // Check if selected date is in a closed period
+      const { data: closedData } = await supabase
+        .from('closed_periods')
+        .select('reason')
+        .eq('salon_id', facilityAccess.salon_id)
+        .lte('start_date', selectedDate)
+        .gte('end_date', selectedDate)
+        .limit(1)
+
+      // Fetch breaks for the selected date
+      const { data: breaksData } = await supabase
+        .from('specialist_breaks')
+        .select('*')
+        .eq('salon_id', facilityAccess.salon_id)
+        .eq('break_date', selectedDate)
+      setBreaks(breaksData || [])
 
       // Fetch working hours for the selected day
       const selectedDay = new Date(selectedDate).getDay()
@@ -193,20 +347,55 @@ export default function BookingCalendar() {
       if (hoursError) throw hoursError
       setWorkingHours(hoursData || [])
 
+      // Check if closed period or facility closed day
+      const isFacilityClosed = hoursData && hoursData.length > 0 && hoursData[0].is_closed
+      const isClosedPeriod = closedData && closedData.length > 0
+      setIsDateClosed(isFacilityClosed || isClosedPeriod)
+      setClosedReason(isClosedPeriod ? closedData[0].reason : isFacilityClosed ? 'Salon closed on this day' : '')
+
       // Fetch specialist working hours for the selected day
+      // Try specific work_date first, then fall back to day_of_week
       const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
       const selectedDayName = dayNames[selectedDay]
 
-      const { data: specialistHoursData, error: specialistHoursError } = await supabase
-        .from('specialist_working_hours')
-        .select('*')
-        .in('specialist_id', specialistsData.map(s => s.id))
-        .eq('day_of_week', selectedDayName)
-        .eq('is_closed', false)
-        .eq('is_day_off', false)
+      const [{ data: dateHours, error: dateHoursError }, { data: dayHours, error: dayHoursError }] = await Promise.all([
+        supabase
+          .from('specialist_working_hours')
+          .select('*')
+          .in('specialist_id', specialistsData.map(s => s.id))
+          .eq('work_date', selectedDate)
+          .eq('is_closed', false)
+          .eq('is_day_off', false),
+        supabase
+          .from('specialist_working_hours')
+          .select('*')
+          .in('specialist_id', specialistsData.map(s => s.id))
+          .eq('day_of_week', selectedDayName)
+          .eq('is_closed', false)
+          .eq('is_day_off', false)
+      ])
 
-      if (specialistHoursError) throw specialistHoursError
-      setSpecialistWorkingHours(specialistHoursData || [])
+      if (dateHoursError) throw dateHoursError
+      if (dayHoursError) throw dayHoursError
+
+      // Check for day-off on this specific date
+      const { data: dayOffData } = await supabase
+        .from('specialist_working_hours')
+        .select('specialist_id')
+        .in('specialist_id', specialistsData.map(s => s.id))
+        .eq('work_date', selectedDate)
+        .eq('is_day_off', true)
+
+      const dayOffIds = new Set((dayOffData || []).map(d => d.specialist_id))
+
+      // Use date-specific hours if available per specialist, otherwise day-of-week
+      const dateSpecialistIds = new Set((dateHours || []).map(h => h.specialist_id))
+      const mergedHours = [
+        ...(dateHours || []),
+        ...(dayHours || []).filter(h => !dateSpecialistIds.has(h.specialist_id))
+      ].filter(h => !dayOffIds.has(h.specialist_id))
+
+      setSpecialistWorkingHours(mergedHours)
 
       // Generate time slots based on working hours
       if (hoursData && hoursData.length > 0 && !hoursData[0].is_closed) {
@@ -362,20 +551,23 @@ export default function BookingCalendar() {
     const minutes = now.getMinutes()
     const currentMinutes = hours * 60 + minutes
 
-    // Get first and last time slot
     if (timeSlots.length === 0) return null
 
     const firstSlot = timeSlots[0]
     const [firstHour, firstMin] = firstSlot.split(':').map(Number)
     const startMinutes = firstHour * 60 + firstMin
 
-    // Calculate position
     const minutesSinceStart = currentMinutes - startMinutes
-    if (minutesSinceStart < 0) return null // Before first time slot
+    if (minutesSinceStart < 0) return null
 
-    const slotHeight = parseInt(getSizeHeight())
-    const headerHeight = 80 // Approximate header height with specialist names/images
-    const position = headerHeight + (minutesSinceStart / timeWindow) * slotHeight
+    // Measure actual row height from DOM
+    const tbody = tableContainerRef.current?.querySelector('tbody')
+    const firstRow = tbody?.querySelector('tr')
+    if (!firstRow) return null
+
+    const rowHeight = firstRow.offsetHeight
+    const headerHeight = theadRef.current?.offsetHeight || 0
+    const position = headerHeight + (minutesSinceStart / timeWindow) * rowHeight
 
     return position
   }
@@ -391,20 +583,40 @@ export default function BookingCalendar() {
     setIsCalendarOpen(!isCalendarOpen)
   }
 
-  const handleSlotClick = (specialistId, timeSlot) => {
-    // Check if slot already has a booking
+  const [slotMenu, setSlotMenu] = useState(null) // { specialistId, timeSlot, x, y }
+
+  const handleSlotClick = (specialistId, timeSlot, e) => {
+    if (isDateClosed) return
     const existingBooking = getBookingForSlot(specialistId, timeSlot)
     if (existingBooking) {
-      handleBookingClick(existingBooking)
+      if (existingBooking.status !== 'completed') handleBookingClick(existingBooking)
     } else {
-      // Open new booking interface with prefilled specialist, date, and time
-      setPrefilledSpecialistId(specialistId)
-      setPrefilledDateTime({
-        date: selectedDate,
-        time: timeSlot
+      setSlotMenu({
+        specialistId,
+        timeSlot,
+        x: e?.clientX || 0,
+        y: e?.clientY || 0
       })
-      setIsNewBookingOpen(true)
     }
+  }
+
+  const handleSlotNewBooking = () => {
+    if (!slotMenu) return
+    setPrefilledSpecialistId(slotMenu.specialistId)
+    setPrefilledDateTime({ date: selectedDate, time: slotMenu.timeSlot })
+    setIsNewBookingOpen(true)
+    setSlotMenu(null)
+  }
+
+  const handleSlotAddBreak = () => {
+    if (!slotMenu) return
+    const startTime = slotMenu.timeSlot.substring(0, 5)
+    const [h, m] = startTime.split(':').map(Number)
+    const endMinutes = h * 60 + m + 30
+    const endTime = `${String(Math.floor(endMinutes / 60)).padStart(2, '0')}:${String(endMinutes % 60).padStart(2, '0')}`
+    setBreakForm({ specialistId: slotMenu.specialistId, startTime, endTime, label: 'Break' })
+    setShowBreakModal(true)
+    setSlotMenu(null)
   }
 
   const handleBookingClick = (booking) => {
@@ -459,20 +671,42 @@ export default function BookingCalendar() {
 
   const updateBookingStatus = async (bookingId, newStatus) => {
     try {
-      const { error } = await supabase
-        .from('bookings')
-        .update({ status: newStatus })
-        .eq('id', bookingId)
+      if (newStatus === 'cancelled') {
+        // Check if booking is in the past or future
+        const { data: bookingData } = await supabase
+          .from('bookings')
+          .select('booking_date, booking_time')
+          .eq('id', bookingId)
+          .single()
 
-      if (error) throw error
+        const now = new Date()
+        const bookingDateTime = new Date(`${bookingData.booking_date}T${bookingData.booking_time}`)
 
-      const statusMessages = {
-        confirmed: 'Booking confirmed!',
-        completed: 'Booking completed!',
-        cancelled: 'Booking cancelled!'
+        if (bookingDateTime > now) {
+          // Future booking → delete entirely
+          const { error } = await supabase.from('bookings').delete().eq('id', bookingId)
+          if (error) throw error
+          toast.success('Future booking deleted!')
+        } else {
+          // Past booking → mark as cancelled
+          const { error } = await supabase.from('bookings').update({ status: 'cancelled' }).eq('id', bookingId)
+          if (error) throw error
+          toast.success('Booking cancelled!')
+        }
+      } else {
+        const { error } = await supabase
+          .from('bookings')
+          .update(updateData)
+          .eq('id', bookingId)
+
+        if (error) throw error
+
+        const statusMessages = {
+          confirmed: 'Booking confirmed!',
+          completed: 'Booking completed!',
+        }
+        toast.success(statusMessages[newStatus] || 'Booking updated!')
       }
-
-      toast.success(statusMessages[newStatus] || 'Booking updated!')
 
       // Refresh data
       fetchPendingCount()
@@ -482,6 +716,51 @@ export default function BookingCalendar() {
       console.error('Error updating booking:', error)
       toast.error('Error updating booking: ' + error.message)
     }
+  }
+
+  const addBreak = async () => {
+    if (!breakForm.specialistId || !breakForm.startTime || !breakForm.endTime) {
+      toast.error('Please fill all fields')
+      return
+    }
+    try {
+      const { error } = await supabase.from('specialist_breaks').insert([{
+        specialist_id: breakForm.specialistId,
+        salon_id: facilityAccess.salon_id,
+        break_date: selectedDate,
+        start_time: breakForm.startTime + ':00',
+        end_time: breakForm.endTime + ':00',
+        label: breakForm.label || 'Break'
+      }])
+      if (error) throw error
+      toast.success('Break added!')
+      setShowBreakModal(false)
+      setBreakForm({ specialistId: null, startTime: '', endTime: '', label: 'Break' })
+      fetchData()
+    } catch (error) {
+      console.error('Error adding break:', error)
+      toast.error('Error adding break')
+    }
+  }
+
+  const deleteBreak = async (breakId) => {
+    try {
+      const { error } = await supabase.from('specialist_breaks').delete().eq('id', breakId)
+      if (error) throw error
+      toast.success('Break removed')
+      fetchData()
+    } catch (error) {
+      toast.error('Error removing break')
+    }
+  }
+
+  const getBreaksForSlot = (specialistId, timeSlot) => {
+    return breaks.filter(b => {
+      if (b.specialist_id !== specialistId) return false
+      const breakStart = b.start_time?.substring(0, 5)
+      const breakEnd = b.end_time?.substring(0, 5)
+      return breakStart === timeSlot.substring(0, 5)
+    })
   }
 
   const handleEditPendingBooking = (booking) => {
@@ -498,6 +777,21 @@ export default function BookingCalendar() {
   const handleTimeWindowChange = (minutes) => {
     setTimeWindow(minutes)
     localStorage.setItem('timeWindow', minutes.toString())
+  }
+
+  const handleSlotDurationChange = async (minutes) => {
+    setSlotDuration(minutes)
+    const salonId = facilityAccess?.salon_id
+    if (!salonId) return
+    const { error } = await supabase
+      .from('calendar_settings')
+      .upsert({ salon_id: salonId, slot_duration: minutes }, { onConflict: 'salon_id' })
+    if (error) {
+      console.error('Error saving slot duration:', error)
+      toast.error('Failed to save slot duration')
+    } else {
+      toast.success(`Slot duration set to ${minutes} minutes`)
+    }
   }
 
   const getSizeHeight = () => {
@@ -880,6 +1174,27 @@ export default function BookingCalendar() {
                     1 hour
                   </button>
                 </div>
+
+                {/* Separator */}
+                <div className="border-t border-purple-500/10 my-2"></div>
+
+                {/* Slot Duration Section */}
+                <div>
+                  <div className="text-xs font-semibold text-white mb-2 px-2 text-center">Slot Duration</div>
+                  {[15, 30, 45, 60].map(mins => (
+                    <button
+                      key={mins}
+                      onClick={() => handleSlotDurationChange(mins)}
+                      className={`w-full text-center px-3 py-2 text-sm rounded-lg transition-all ${
+                        slotDuration === mins
+                          ? 'bg-purple-600 text-white'
+                          : 'text-gray-300 hover:bg-purple-800/25'
+                      }`}
+                    >
+                      {mins} min
+                    </button>
+                  ))}
+                </div>
               </div>
             </>,
             document.body
@@ -894,8 +1209,22 @@ export default function BookingCalendar() {
         </div>
       </div>
 
+
+      {/* Closed Banner */}
+      {isDateClosed && (
+        <div className="bg-gradient-to-r from-red-900/25 to-rose-900/25 border border-red-500/30 rounded-xl p-4 mb-4 flex items-center justify-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
+            <Clock className="w-4 h-4 text-red-400" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-red-300">Salon Closed — {closedReason}</p>
+            <p className="text-[10px] text-red-400/60">Bookings are blocked for this date. App users cannot book either.</p>
+          </div>
+        </div>
+      )}
+
       {/* Calendar Grid */}
-      {specialists.length === 0 ? (
+      {isDateClosed ? null : specialists.length === 0 ? (
         <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl border-t border-b border-purple-500/10 p-12 text-center">
           <div className="flex justify-center mb-4">
             <Users className="w-16 h-16 text-purple-300" />
@@ -904,10 +1233,10 @@ export default function BookingCalendar() {
           <p className="text-gray-300">Add specialists first to view the calendar.</p>
         </div>
       ) : (
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl border-t border-b border-purple-500/10 overflow-hidden">
+        <div ref={tableContainerRef} className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl border-t border-b border-purple-500/10 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full border-collapse table-fixed">
-                <thead>
+                <thead ref={theadRef}>
                   <tr className="border-b border-purple-500/10">
                     <th className="sticky left-0 z-10 px-3 py-3 text-center text-sm font-semibold text-white w-20">
                     </th>
@@ -931,7 +1260,7 @@ export default function BookingCalendar() {
                     ))}
                   </tr>
                 </thead>
-                <tbody>
+                {!isDateClosed && <tbody>
                   {timeSlots.map((timeSlot, index) => {
                     return (
                       <tr key={timeSlot} className="border-b-2 border-violet-700/25">
@@ -942,14 +1271,25 @@ export default function BookingCalendar() {
                           const booking = getBookingForSlot(specialist.id, timeSlot)
                           const isOutsideWorkingHours = isTimeSlotOutsideWorkingHours(specialist.id, timeSlot)
 
+                          // Calculate best subdivision that fits the cell height
+                          const pixelHeight = parseInt(getSizeHeight())
+                          const minSubHeight = 18
+                          const maxSubs = Math.floor(pixelHeight / minSubHeight)
+                          const intervalOptions = timeWindow === 60 ? [10, 15, 20, 30] : timeWindow === 30 ? [5, 10, 15] : [5, 15]
+                          let subInterval = timeWindow
+                          for (const iv of intervalOptions) {
+                            if (Math.floor(timeWindow / iv) <= maxSubs) { subInterval = iv; break }
+                          }
+                          const subCount = Math.floor(timeWindow / subInterval)
+                          const [slotH, slotM] = timeSlot.split(':').map(Number)
+
                           return (
                             <td
                               key={specialist.id}
-                              onClick={() => !isOutsideWorkingHours && handleSlotClick(specialist.id, timeSlot)}
-                              className={`px-2 py-2 border-r border-violet-700/25 relative ${
+                              className={`px-2 py-0 border-r border-violet-700/25 relative group/slot ${
                                 isOutsideWorkingHours
                                   ? 'cursor-not-allowed'
-                                  : 'cursor-pointer hover:bg-purple-800/15'
+                                  : 'cursor-pointer'
                               }`}
                               style={{
                                 height: getSizeHeight(),
@@ -960,28 +1300,92 @@ export default function BookingCalendar() {
                                 })
                               }}
                             >
+                              {/* Time subdivisions on hover */}
+                              {!isOutsideWorkingHours && !booking && (
+                                <div className="absolute inset-0 flex flex-col opacity-0 group-hover/slot:opacity-100 transition-opacity z-[3]">
+                                  {Array.from({ length: subCount }, (_, i) => {
+                                    const totalMin = slotH * 60 + slotM + i * subInterval
+                                    const subH = Math.floor(totalMin / 60)
+                                    const subM = totalMin % 60
+                                    const subTime = `${String(subH).padStart(2, '0')}:${String(subM).padStart(2, '0')}`
+                                    return (
+                                      <div
+                                        key={i}
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          handleSlotClick(specialist.id, subTime, e)
+                                        }}
+                                        className={`flex-1 flex items-center justify-center border-b border-purple-500/10 last:border-b-0 hover:bg-purple-700/25 transition-all cursor-pointer ${pixelHeight / subCount < 22 ? 'px-0.5' : 'px-1'}`}
+                                      >
+                                        <span className={`${pixelHeight / subCount < 22 ? 'text-[10px]' : 'text-xs'} font-bold text-white/70 hover:text-white transition-colors select-none`}>{subTime}</span>
+                                      </div>
+                                    )
+                                  })}
+                                </div>
+                              )}
                               {booking && (
                                 <div
                                   onClick={(e) => {
                                     e.stopPropagation()
-                                    handleBookingClick(booking)
+                                    if (booking.status !== 'completed') handleBookingClick(booking)
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    clearTimeout(hoverTimeoutRef.current)
+                                    const rect = e.currentTarget.getBoundingClientRect()
+                                    hoverTimeoutRef.current = setTimeout(() => {
+                                      const tooltipWidth = 288 + 8 // w-72 (288px) + gap
+                                      const fitsRight = rect.right + tooltipWidth < window.innerWidth
+                                      setTooltipPos({
+                                        x: fitsRight ? rect.right + 8 : rect.left - tooltipWidth,
+                                        y: rect.top
+                                      })
+                                      setHoveredBooking(booking)
+                                    }, 200)
+                                  }}
+                                  onMouseLeave={() => {
+                                    clearTimeout(hoverTimeoutRef.current)
+                                    setHoveredBooking(null)
                                   }}
                                   className={`absolute inset-x-2 p-2 rounded-lg text-xs cursor-pointer hover:brightness-110 transition-all overflow-hidden ${STATUS_COLORS[booking.status]}`}
                                   style={{
                                     top: `${calculateBookingOffset(booking.booking_time, timeSlot)}px`,
                                     height: `${calculateBookingHeight(booking.services?.duration_minutes || 30, booking.booking_time, timeSlot)}px`,
-                                    zIndex: 5
+                                    zIndex: 5,
+                                    ...(startedBookings.has(booking.id) && {
+                                      backgroundImage: 'repeating-linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.15) 4px, rgba(59,130,246,0.15) 4px, rgba(59,130,246,0.15) 8px)',
+                                      borderColor: 'rgba(16,185,129,0.6)',
+                                      boxShadow: '0 0 12px rgba(16,185,129,0.2)'
+                                    })
                                   }}
                                 >
                                   <div className="flex items-start justify-between gap-1 mb-1">
                                     <div className="font-bold truncate flex-1 text-[11px] leading-tight text-white">
                                       {booking.services?.name || 'Service'} • {formatTime(booking.booking_time)} ({booking.services?.duration_minutes || 30}min)
                                     </div>
-                                    {booking.created_via === 'mobile' ? (
-                                      <span className="text-[10px] font-semibold px-1.5 py-0.5 bg-white/20 rounded flex-shrink-0 text-white" title="Booked via Mobile App">App</span>
-                                    ) : booking.created_via === 'web' ? (
-                                      <span className="text-[10px] font-semibold px-1.5 py-0.5 bg-white/20 rounded flex-shrink-0 text-white" title="Walk-in booking">Walk-in</span>
-                                    ) : null}
+                                    <div className="flex items-center gap-1 flex-shrink-0">
+                                      {isBookingLive(booking) && !startedBookings.has(booking.id) && (
+                                        <button
+                                          onClick={async (e) => {
+                                            e.stopPropagation()
+                                            await supabase.from('bookings').update({ status: 'in_progress' }).eq('id', booking.id)
+                                            setStartedBookings(prev => new Set([...prev, booking.id]))
+                                          }}
+                                          className="text-[9px] font-bold px-1.5 py-0.5 bg-emerald-500/40 border border-emerald-400/60 rounded text-emerald-100 hover:bg-emerald-500/60 transition-all"
+                                        >
+                                          Start
+                                        </button>
+                                      )}
+                                      {startedBookings.has(booking.id) && (
+                                        <span className="text-[9px] font-bold px-1.5 py-0.5 bg-emerald-500/30 border border-emerald-400/40 rounded text-emerald-200 animate-pulse">
+                                          In Progress
+                                        </span>
+                                      )}
+                                      {booking.created_via === 'mobile' ? (
+                                        <span className="text-[10px] font-semibold px-1.5 py-0.5 bg-white/20 rounded text-white" title="Booked via Mobile App">App</span>
+                                      ) : booking.created_via === 'web' ? (
+                                        <span className="text-[10px] font-semibold px-1.5 py-0.5 bg-white/20 rounded text-white" title="Walk-in booking">Walk-in</span>
+                                      ) : null}
+                                    </div>
                                   </div>
                                   <div className="text-[12px] opacity-90 truncate text-white">
                                     {booking.customer_name || 'Guest'}
@@ -993,13 +1397,44 @@ export default function BookingCalendar() {
                                   )}
                                 </div>
                               )}
+                              {/* Break blocks */}
+                              {getBreaksForSlot(specialist.id, timeSlot).map(brk => (
+                                <div
+                                  key={brk.id}
+                                  className="absolute inset-x-2 rounded-lg text-xs overflow-hidden flex items-center justify-center cursor-pointer group"
+                                  style={{
+                                    top: `${calculateBookingOffset(brk.start_time, timeSlot)}px`,
+                                    height: `${calculateBookingHeight(
+                                      ((parseInt(brk.end_time?.substring(0, 2)) * 60 + parseInt(brk.end_time?.substring(3, 5))) -
+                                       (parseInt(brk.start_time?.substring(0, 2)) * 60 + parseInt(brk.start_time?.substring(3, 5)))),
+                                      brk.start_time, timeSlot
+                                    )}px`,
+                                    zIndex: 4,
+                                    backgroundImage: 'repeating-linear-gradient(135deg, rgba(156,163,175,0.15), rgba(156,163,175,0.15) 4px, rgba(107,114,128,0.1) 4px, rgba(107,114,128,0.1) 8px)',
+                                    border: '1.5px dashed rgba(156,163,175,0.4)',
+                                    borderRadius: '8px'
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <span className="text-[10px] font-medium text-gray-400">{brk.label}</span>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      deleteBreak(brk.id)
+                                    }}
+                                    className="absolute top-0.5 right-0.5 w-4 h-4 bg-red-500/50 text-white rounded-full text-[8px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              ))}
                             </td>
                           )
                         })}
                       </tr>
                     )
                   })}
-                </tbody>
+                </tbody>}
               </table>
           </div>
 
@@ -1104,76 +1539,70 @@ export default function BookingCalendar() {
                 <div className="space-y-2">
                   {/* Headers Row */}
                   <div className="flex items-center gap-4 px-3 pb-2 border-b border-purple-500/[0.06]">
-                    <div className="flex items-center justify-center gap-1.5 w-[280px] flex-shrink-0">
-                      <Users className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
-                      <span className="text-xs font-semibold text-purple-300 uppercase tracking-wide">Service by Specialist</span>
-                    </div>
-                    <div className="flex items-center justify-center gap-1.5 w-[120px] flex-shrink-0">
-                      <User className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
-                      <span className="text-xs font-semibold text-purple-300 uppercase tracking-wide">Customer</span>
-                    </div>
-                    <div className="flex items-center justify-center gap-1.5 w-[130px] flex-shrink-0">
-                      <Phone className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
-                      <span className="text-xs font-semibold text-purple-300 uppercase tracking-wide">Phone</span>
-                    </div>
-                    <div className="flex items-center justify-center gap-1.5 w-[100px] flex-shrink-0">
-                      <CalendarIcon className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
-                      <span className="text-xs font-semibold text-purple-300 uppercase tracking-wide">Date</span>
-                    </div>
-                    <div className="flex items-center justify-center gap-1.5 w-[70px] flex-shrink-0">
-                      <Clock className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
-                      <span className="text-xs font-semibold text-purple-300 uppercase tracking-wide">Time</span>
-                    </div>
-                    <div className="flex items-center justify-center gap-1.5 w-[130px] flex-shrink-0">
-                      <span className="text-xs font-semibold text-purple-300 uppercase tracking-wide">Actions</span>
-                    </div>
+                    <div className="flex-[3] text-center text-xs font-semibold text-purple-300 uppercase tracking-wide">Service / Specialist</div>
+                    <div className="flex-[2] text-center text-xs font-semibold text-purple-300 uppercase tracking-wide">Customer</div>
+                    <div className="flex-[1.5] text-center text-xs font-semibold text-purple-300 uppercase tracking-wide">Date</div>
+                    <div className="flex-[1] text-center text-xs font-semibold text-purple-300 uppercase tracking-wide">Time</div>
+                    <div className="flex-[2.5] text-center text-xs font-semibold text-purple-300 uppercase tracking-wide">Actions</div>
                   </div>
 
                   {/* Bookings List */}
                   {pendingBookings.map((booking) => (
                     <div
                       key={booking.id}
-                      className="bg-purple-900/10 border border-purple-500/25 rounded-lg p-3 hover:bg-purple-900/15 transition-all"
+                      className={`relative overflow-hidden border rounded-lg p-3 hover:brightness-110 transition-all ${
+                        booking.status === 'pending'
+                          ? 'bg-gradient-to-r from-yellow-500/15 to-transparent border-yellow-500/25'
+                          : 'bg-gradient-to-r from-blue-500/15 to-transparent border-blue-500/25'
+                      }`}
                     >
-                      <div className="flex items-center gap-4">
-                        <div className="text-white font-[Inter] truncate w-[280px] flex-shrink-0 text-center">
-                          <span className="font-semibold">{booking.services?.name || 'Service'}</span>
-                          <span className="text-xs font-normal mx-1">by</span>
-                          <span className="font-semibold">{booking.specialists?.name || 'Specialist'}</span>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-[3] text-center truncate">
+                          <span className="text-sm font-semibold text-white">{booking.services?.name || 'Service'}</span>
+                          <span className="text-[10px] text-gray-400 mx-1">by</span>
+                          <span className="text-sm font-semibold text-white">{booking.specialists?.name || '—'}</span>
                         </div>
-                        <div className="text-sm text-gray-300 truncate w-[120px] flex-shrink-0 text-center">
-                          {booking.customer_name || 'Guest'}
+                        <div className="flex-[2] text-center truncate">
+                          <div className="text-sm text-gray-300">{booking.customer_name || 'Guest'}</div>
+                          <div className="text-[10px] text-gray-500">{booking.customer_phone || ''}</div>
                         </div>
-                        <div className="text-sm text-gray-400 truncate w-[130px] flex-shrink-0 text-center">
-                          {booking.customer_phone || '-'}
-                        </div>
-                        <div className="text-sm text-gray-300 w-[100px] flex-shrink-0 text-center">
+                        <div className="flex-[1.5] text-sm text-gray-300 text-center">
                           {new Date(booking.booking_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         </div>
-                        <div className="text-sm text-gray-300 w-[70px] flex-shrink-0 text-center">
+                        <div className="flex-[1] text-sm text-gray-300 text-center">
                           {booking.booking_time?.substring(0, 5)}
                         </div>
-                        <div className="flex items-center justify-center gap-1.5 w-[130px] flex-shrink-0">
+                        <div className="flex-[2.5] flex items-center justify-center gap-1">
                           <button
                             onClick={() => handleEditPendingBooking(booking)}
-                            className="px-2 py-1 bg-gradient-to-br from-purple-900/15 to-purple-800/15 border border-purple-500/25 text-purple-100 text-xs rounded font-medium transition-all hover:brightness-110"
+                            className="px-3 py-1.5 bg-purple-600/40 border border-purple-400/50 text-purple-100 rounded-md transition-all hover:bg-purple-600/60"
                             title="Edit"
                           >
-                            <Edit className="w-3.5 h-3.5" />
+                            <Edit className="w-3 h-3" />
                           </button>
                           <button
                             onClick={() => updateBookingStatus(booking.id, 'confirmed')}
-                            className="px-2 py-1 bg-gradient-to-br from-blue-900/15 to-blue-800/15 border border-blue-500/25 text-blue-100 text-xs rounded font-medium transition-all hover:brightness-110"
+                            className="px-3 py-1.5 bg-blue-600/40 border border-blue-400/50 text-blue-100 rounded-md transition-all hover:bg-blue-600/60"
                             title="Confirm"
                           >
-                            <CheckCircle className="w-3.5 h-3.5" />
+                            <CheckCircle className="w-3 h-3" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setCompletionBooking(booking)
+                              setShowCompletionModal(true)
+                            }}
+                            className="px-3 py-1.5 bg-emerald-600/40 border border-emerald-400/50 text-emerald-100 rounded-md transition-all hover:bg-emerald-600/60"
+                            title="Complete"
+                          >
+                            <CheckCircle className="w-3 h-3" />
                           </button>
                           <button
                             onClick={() => updateBookingStatus(booking.id, 'cancelled')}
-                            className="px-2 py-1 bg-gradient-to-br from-rose-900/15 to-red-900/15 border border-rose-600/25 text-rose-200 text-xs rounded font-medium transition-all hover:brightness-110"
+                            className="px-3 py-1.5 bg-rose-600/40 border border-rose-400/50 text-rose-100 rounded-md transition-all hover:bg-rose-600/60"
                             title="Cancel"
                           >
-                            <XCircle className="w-3.5 h-3.5" />
+                            <XCircle className="w-3 h-3" />
                           </button>
                         </div>
                       </div>
@@ -1222,6 +1651,238 @@ export default function BookingCalendar() {
         prefilledSpecialistId={prefilledSpecialistId}
         prefilledDateTime={prefilledDateTime}
       />
+
+      {/* Completion Modal */}
+      <CompletionModal
+        isOpen={showCompletionModal}
+        onClose={() => {
+          setShowCompletionModal(false)
+          setCompletionBooking(null)
+        }}
+        onComplete={() => {
+          setShowCompletionModal(false)
+          setCompletionBooking(null)
+          updateBookingStatus(completionBooking?.id, 'completed')
+        }}
+        booking={completionBooking ? {
+          id: completionBooking.id,
+          bookingId: completionBooking.id,
+          customer_name: completionBooking.customer_name,
+          customerName: completionBooking.customer_name,
+          services: completionBooking.services,
+          serviceName: completionBooking.services?.name,
+          servicePrice: completionBooking.services?.price,
+          final_price: completionBooking.final_price || completionBooking.services?.price,
+          user_id: completionBooking.user_id
+        } : null}
+        facilityId={facilityAccess?.salon_id}
+        specialistId={completionBooking?.specialist_id}
+      />
+
+      {/* Slot Menu (Booking or Break) */}
+      {slotMenu && createPortal(
+        <>
+          <div className="fixed inset-0 z-[99997]" onClick={() => setSlotMenu(null)} />
+          <div
+            className="fixed z-[99998] bg-gray-900/95 border border-purple-500/30 rounded-lg shadow-2xl p-1.5 flex flex-col gap-1"
+            style={{ top: slotMenu.y + 4, left: slotMenu.x + 4 }}
+          >
+            <button
+              onClick={handleSlotNewBooking}
+              className="px-4 py-2 text-xs font-medium text-white bg-purple-600/30 border border-purple-500/30 rounded-md hover:bg-purple-600/50 transition-all text-left"
+            >
+              + New Booking
+            </button>
+            <button
+              onClick={handleSlotAddBreak}
+              className="px-4 py-2 text-xs font-medium text-gray-300 bg-white/5 border border-white/10 rounded-md hover:bg-white/10 transition-all text-left"
+            >
+              + Add Break
+            </button>
+          </div>
+        </>,
+        document.body
+      )}
+
+      {/* Break Modal */}
+      {showBreakModal && createPortal(
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[999999] p-4" onClick={() => setShowBreakModal(false)}>
+          <div className="bg-gradient-to-br from-gray-900 to-gray-950 border border-purple-500/20 rounded-2xl shadow-2xl w-full max-w-xs p-5" onClick={e => e.stopPropagation()}>
+            <h3 className="text-sm font-bold text-white mb-4">Add Break</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="text-[10px] text-gray-400 uppercase tracking-wide block mb-1">Label</label>
+                <div className="flex gap-1.5 flex-wrap">
+                  {['Break', 'Lunch', 'Personal', 'Meeting'].map(l => (
+                    <button
+                      key={l}
+                      onClick={() => setBreakForm(prev => ({ ...prev, label: l }))}
+                      className={`px-2.5 py-1 text-[10px] font-medium rounded-md border transition-all ${
+                        breakForm.label === l
+                          ? 'bg-purple-600/30 border-purple-500/50 text-white'
+                          : 'bg-white/[0.03] border-white/[0.06] text-gray-400 hover:border-purple-500/30'
+                      }`}
+                    >
+                      {l}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <label className="text-[10px] text-gray-400 uppercase tracking-wide block mb-1">Start</label>
+                  <input
+                    type="time"
+                    value={breakForm.startTime}
+                    onChange={e => setBreakForm(prev => ({ ...prev, startTime: e.target.value }))}
+                    className="w-full px-2.5 py-1.5 text-xs bg-purple-950/40 border border-purple-500/20 text-white rounded-lg focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="text-[10px] text-gray-400 uppercase tracking-wide block mb-1">End</label>
+                  <input
+                    type="time"
+                    value={breakForm.endTime}
+                    onChange={e => setBreakForm(prev => ({ ...prev, endTime: e.target.value }))}
+                    className="w-full px-2.5 py-1.5 text-xs bg-purple-950/40 border border-purple-500/20 text-white rounded-lg focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2 pt-1">
+                <button onClick={() => setShowBreakModal(false)} className="flex-1 py-2 text-xs text-gray-400 bg-white/[0.03] border border-white/[0.06] rounded-lg hover:bg-white/[0.06] transition-all">Cancel</button>
+                <button onClick={addBreak} className="flex-1 py-2 text-xs font-semibold text-white bg-purple-600 rounded-lg hover:bg-purple-500 transition-all">Add Break</button>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Booking Hover Tooltip */}
+      {hoveredBooking && createPortal(
+        <AnimatePresence>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, x: -4 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            exit={{ opacity: 0, scale: 0.95, x: -4 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25, duration: 0.15 }}
+            className="fixed z-[9999] w-72 bg-gray-900/95 backdrop-blur-xl border border-purple-500/40 rounded-xl shadow-2xl shadow-purple-900/30 p-4 pointer-events-none"
+            style={{
+              top: Math.min(tooltipPos.y, window.innerHeight - 340),
+              left: Math.min(tooltipPos.x, window.innerWidth - 300),
+            }}
+          >
+            {/* Service name + Status */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <span className={`text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                  hoveredBooking.status === 'pending' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' :
+                  hoveredBooking.status === 'confirmed' ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' :
+                  hoveredBooking.status === 'in_progress' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
+                  hoveredBooking.status === 'completed' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
+                  'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                }`}>
+                  {hoveredBooking.status}
+                </span>
+                <span className="text-gray-500">·</span>
+                <span className="text-white font-bold text-sm">{hoveredBooking.services?.name || 'Service'}</span>
+              </div>
+              {hoveredBooking.created_via && (
+                <span className="text-[10px] text-gray-400 flex items-center gap-1">
+                  {hoveredBooking.created_via === 'mobile' ? <Smartphone className="w-3 h-3" /> : <Monitor className="w-3 h-3" />}
+                  {hoveredBooking.created_via === 'mobile' ? 'App' : 'Walk-in'}
+                </span>
+              )}
+            </div>
+
+            {/* Details grid */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-xs">
+                <User className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+                <span className="text-gray-400">Customer</span>
+                <span className="text-white ml-auto font-medium">
+                  {hoveredBooking.customers?.preferred_language === 'en' ? '🇬🇧 ' : hoveredBooking.customers?.preferred_language === 'ru' ? '🇷🇺 ' : '🇬🇪 '}
+                  {hoveredBooking.customer_name || 'Guest'}
+                </span>
+              </div>
+
+              {hoveredBooking.customer_phone && (
+                <div className="flex items-center gap-2 text-xs">
+                  <Phone className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+                  <span className="text-gray-400">Phone</span>
+                  <span className="text-white ml-auto font-medium">{formatPhoneNumber(hoveredBooking.customer_phone)}</span>
+                </div>
+              )}
+
+              {hoveredBooking.customer_email && (
+                <div className="flex items-center gap-2 text-xs">
+                  <Mail className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+                  <span className="text-gray-400">Email</span>
+                  <span className="text-white ml-auto font-medium truncate max-w-[140px]">{hoveredBooking.customer_email}</span>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2 text-xs">
+                <Clock className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+                <span className="text-gray-400">Time</span>
+                <span className="text-white ml-auto font-medium">{formatTime(hoveredBooking.booking_time)} · {hoveredBooking.services?.duration_minutes || 30} min</span>
+              </div>
+
+              <div className="flex items-center gap-2 text-xs">
+                <Users className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+                <span className="text-gray-400">Specialist</span>
+                <span className="text-white ml-auto font-medium">{hoveredBooking.specialists?.name || '—'}</span>
+              </div>
+
+              <div className="flex items-center gap-2 text-xs">
+                <DollarSign className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+                <span className="text-gray-400">Price</span>
+                <span className="text-white ml-auto font-medium">
+                  {hoveredBooking.final_price || hoveredBooking.services?.price || 0} GEL
+                  {hoveredBooking.discount_amount > 0 && (
+                    <span className="text-green-400 ml-1">(-{hoveredBooking.discount_amount})</span>
+                  )}
+                </span>
+              </div>
+
+              {hoveredBooking.additional_services?.length > 0 && (
+                <div className="pt-1.5 mt-1 border-t border-purple-500/15 space-y-1">
+                  <span className="text-[10px] text-gray-500 uppercase tracking-wide">Additional Services</span>
+                  {hoveredBooking.additional_services.map((s, i) => (
+                    <div key={i} className="flex items-center justify-between text-xs">
+                      <span className="text-gray-300">+ {s.service_name}</span>
+                      <span className="text-purple-400 font-medium">{s.price} GEL</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex items-start gap-2 text-xs">
+                <FileText className="w-3.5 h-3.5 text-purple-400 flex-shrink-0 mt-0.5" />
+                <span className="text-gray-400">Notes</span>
+                <span className="text-gray-300 ml-auto font-medium max-w-[160px] text-right leading-relaxed">{hoveredBooking.notes || '—'}</span>
+              </div>
+
+              {hoveredBooking.promo_code && (
+                <div className="flex items-center gap-2 text-xs">
+                  <Tag className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+                  <span className="text-gray-400">Promo</span>
+                  <span className="text-green-300 ml-auto font-medium">{hoveredBooking.promo_code}</span>
+                </div>
+              )}
+
+              {hoveredBooking.created_at && (
+                <div className="flex items-center gap-2 text-xs pt-2 border-t border-purple-500/20">
+                  <CalendarIcon className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+                  <span className="text-gray-400">Booked on</span>
+                  <span className="text-white/60 ml-auto font-medium">{new Date(hoveredBooking.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   )
 }

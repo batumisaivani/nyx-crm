@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight, Star, MapPin, Clock, Check, X, Coins } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import CompletionModal from './CompletionModal'
 
 /**
  * SpecialistSchedulingCard - An interactive scheduling component for booking salon appointments
@@ -29,12 +30,15 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
   // Customer information
   const [customerName, setCustomerName] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
+  const [bookingNotes, setBookingNotes] = useState('')
   const [customers, setCustomers] = useState([])
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false)
   const [filteredCustomers, setFilteredCustomers] = useState([])
+  const [phoneConflict, setPhoneConflict] = useState(null) // { name, phone, id } of existing customer
 
   // Booking status (only for editing)
   const [bookingStatus, setBookingStatus] = useState('confirmed')
+  const [showCompletionModal, setShowCompletionModal] = useState(false)
 
   useEffect(() => {
     if (specialistId && facilityId) {
@@ -78,6 +82,7 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
       // Set customer info
       setCustomerName(initialBookingData.customer_name || '')
       setCustomerPhone(initialBookingData.customer_phone || '')
+      setBookingNotes(initialBookingData.notes || '')
 
       // Set service
       const service = services.find(s => s.id === initialBookingData.service_id)
@@ -140,15 +145,20 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
    */
   const fetchServices = async () => {
     try {
-      const { data, error } = await supabase
-        .from('services')
-        .select('*')
-        .eq('salon_id', facilityId)
-        .order('name')
+      // Fetch only services assigned to this specialist
+      const { data: assignedServices, error: assignedError } = await supabase
+        .from('specialist_services')
+        .select('service_id, services(*)')
+        .eq('specialist_id', specialistId)
 
-      if (error) throw error
-      setServices(data || [])
-      // Don't auto-select first service, let user choose
+      if (assignedError) throw assignedError
+
+      const services = (assignedServices || [])
+        .map(ss => ss.services)
+        .filter(Boolean)
+        .sort((a, b) => a.name.localeCompare(b.name))
+
+      setServices(services)
     } catch (error) {
       console.error('Error fetching services:', error)
     }
@@ -160,29 +170,14 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
   const fetchCustomers = async () => {
     try {
       const { data, error } = await supabase
-        .from('bookings')
-        .select('customer_name, customer_phone')
+        .from('customers')
+        .select('id, name, phone, email')
         .eq('salon_id', facilityId)
-        .not('customer_name', 'is', null)
-        .not('customer_phone', 'is', null)
+        .not('phone', 'is', null)
+        .order('name')
 
       if (error) throw error
-
-      // Get unique customers based on phone number
-      const uniqueCustomers = []
-      const seenPhones = new Set()
-
-      data?.forEach(booking => {
-        if (!seenPhones.has(booking.customer_phone)) {
-          seenPhones.add(booking.customer_phone)
-          uniqueCustomers.push({
-            name: booking.customer_name,
-            phone: booking.customer_phone
-          })
-        }
-      })
-
-      setCustomers(uniqueCustomers)
+      setCustomers((data || []).map(c => ({ id: c.id, name: c.name, phone: c.phone, email: c.email })))
     } catch (error) {
       console.error('Error fetching customers:', error)
     }
@@ -195,8 +190,10 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
     setCustomerName(value)
 
     if (value.trim().length > 0) {
+      const query = value.toLowerCase()
       const filtered = customers.filter(customer =>
-        customer.name.toLowerCase().includes(value.toLowerCase())
+        customer.name.toLowerCase().includes(query) ||
+        customer.phone?.includes(value)
       )
       setFilteredCustomers(filtered)
       setShowCustomerDropdown(filtered.length > 0)
@@ -206,12 +203,22 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
     }
   }
 
-  /**
-   * Handle customer selection from dropdown
-   */
+  const handlePhoneChange = (value) => {
+    setCustomerPhone(value)
+    setPhoneConflict(null)
+
+    if (value.trim().length >= 5) {
+      const match = customers.find(c => c.phone === value.trim())
+      if (match && match.name.toLowerCase() !== customerName.toLowerCase()) {
+        setPhoneConflict(match)
+      }
+    }
+  }
+
   const handleCustomerSelect = (customer) => {
     setCustomerName(customer.name)
     setCustomerPhone(customer.phone)
+    setPhoneConflict(null)
     setShowCustomerDropdown(false)
     setFilteredCustomers([])
   }
@@ -310,12 +317,20 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
       if (bookingsError) throw bookingsError
 
       // Fetch working hours by specific dates
-      const { data: specialistHours } = await supabase
-        .from('specialist_working_hours')
-        .select('*')
-        .eq('specialist_id', specialistId)
-        .gte('work_date', weekDays[0])
-        .lte('work_date', weekDays[6])
+      const [{ data: specialistHours }, { data: specialistBreaks }] = await Promise.all([
+        supabase
+          .from('specialist_working_hours')
+          .select('*')
+          .eq('specialist_id', specialistId)
+          .gte('work_date', weekDays[0])
+          .lte('work_date', weekDays[6]),
+        supabase
+          .from('specialist_breaks')
+          .select('*')
+          .eq('specialist_id', specialistId)
+          .gte('break_date', weekDays[0])
+          .lte('break_date', weekDays[6])
+      ])
 
       console.log('Specialist working hours for week:', specialistHours)
 
@@ -368,7 +383,19 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
             })
             .map(b => b.booking_time.substring(0, 5)) || []
 
-          slots[date] = allTimeSlots.filter(slot => !bookedTimes.includes(slot))
+          // Filter out break times
+          const dayBreaks = (specialistBreaks || []).filter(b => b.break_date === date)
+          const isInBreak = (slot) => {
+            const [sh, sm] = slot.split(':').map(Number)
+            const slotMin = sh * 60 + sm
+            return dayBreaks.some(b => {
+              const [bsh, bsm] = b.start_time.substring(0, 5).split(':').map(Number)
+              const [beh, bem] = b.end_time.substring(0, 5).split(':').map(Number)
+              return slotMin >= bsh * 60 + bsm && slotMin < beh * 60 + bem
+            })
+          }
+
+          slots[date] = allTimeSlots.filter(slot => !bookedTimes.includes(slot) && !isInBreak(slot))
           console.log(`  Final available slots for ${date}:`, slots[date].length, 'slots')
         } else {
           // No working hours defined for this day - no available slots
@@ -437,6 +464,28 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
     try {
       setLoading(true)
 
+      // Find or create customer record
+      let customerId = null
+      if (customerName && customerPhone) {
+        const { data: existingCustomer } = await supabase
+          .from('customers')
+          .select('id')
+          .eq('salon_id', facilityId)
+          .eq('phone', customerPhone)
+          .single()
+
+        if (existingCustomer) {
+          customerId = existingCustomer.id
+        } else {
+          const { data: newCustomer } = await supabase
+            .from('customers')
+            .insert([{ salon_id: facilityId, name: customerName, phone: customerPhone }])
+            .select()
+            .single()
+          if (newCustomer) customerId = newCustomer.id
+        }
+      }
+
       const bookingData = {
         salon_id: facilityId,
         specialist_id: specialistId,
@@ -446,12 +495,26 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
         status: status,
         customer_name: customerName,
         customer_phone: customerPhone,
-        created_via: 'web', // Mark bookings from CRM as 'web'
+        customer_id: customerId,
+        notes: bookingNotes || null,
+        created_via: 'web',
       }
 
       let error = null
 
-      if (initialBookingData) {
+      // Cancel logic: future → delete, past → mark cancelled
+      if (status === 'cancelled' && initialBookingData) {
+        const now = new Date()
+        const bookingDateTime = new Date(`${selectedDate}T${selectedTime}:00`)
+
+        if (bookingDateTime > now) {
+          const result = await supabase.from('bookings').delete().eq('id', initialBookingData.id)
+          error = result.error
+        } else {
+          const result = await supabase.from('bookings').update({ status: 'cancelled' }).eq('id', initialBookingData.id)
+          error = result.error
+        }
+      } else if (initialBookingData) {
         // UPDATE existing booking
         const result = await supabase
           .from('bookings')
@@ -468,6 +531,52 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
 
       if (error) throw error
 
+      // Create pending rating when booking is marked as completed
+      if (status === 'completed' && initialBookingData?.user_id) {
+        try {
+          // Get specialist name for the notification
+          const { data: specialistData } = await supabase
+            .from('specialists')
+            .select('name')
+            .eq('id', specialistId)
+            .single()
+
+          await supabase.from('pending_ratings').insert([{
+            booking_id: initialBookingData.id,
+            salon_id: facilityId,
+            specialist_id: specialistId,
+            user_id: initialBookingData.user_id,
+            service_name: selectedService?.name || null,
+            specialist_name: specialistData?.name || null
+          }])
+
+          // Send push notification to the user
+          const { data: tokenData } = await supabase
+            .from('push_tokens')
+            .select('token')
+            .eq('user_id', initialBookingData.user_id)
+
+          if (tokenData && tokenData.length > 0) {
+            const messages = tokenData.map(t => ({
+              to: t.token,
+              sound: 'default',
+              title: 'Rate your experience',
+              body: `How was your session with ${specialistData?.name || 'your specialist'}?`,
+              data: { type: 'rate_specialist', booking_id: initialBookingData.id }
+            }))
+
+            await fetch('https://exp.host/--/api/v2/push/send', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(messages)
+            })
+          }
+        } catch (ratingError) {
+          console.error('Error creating pending rating:', ratingError)
+          // Don't block the booking completion
+        }
+      }
+
       setBookingConfirmed(true)
       setTimeout(() => {
         setBookingConfirmed(false)
@@ -475,6 +584,8 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
         setSelectedTime(null)
         setCustomerName('')
         setCustomerPhone('')
+        setBookingNotes('')
+        setPhoneConflict(null)
         setShowCustomerDropdown(false)
         setFilteredCustomers([])
         if (onBookingComplete) onBookingComplete()
@@ -660,8 +771,9 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.7 }}
-            className="pl-4 flex flex-col justify-center space-y-2"
+            className="pl-4 flex justify-center gap-3"
           >
+          <div className="flex flex-col justify-center space-y-2 flex-1 min-w-0">
             <div className="relative">
               <input
                 type="text"
@@ -698,13 +810,53 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
                 </div>
               )}
             </div>
-            <div>
+            <div className="relative">
               <input
                 type="tel"
                 value={customerPhone}
-                onChange={(e) => setCustomerPhone(e.target.value)}
+                onChange={(e) => handlePhoneChange(e.target.value)}
                 placeholder="Phone Number *"
-                className="w-full px-3 py-1.5 text-sm bg-purple-950/25 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 placeholder-gray-400 h-9"
+                className={`w-full px-3 py-1.5 text-sm bg-purple-950/25 border text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 placeholder-gray-400 h-9 ${
+                  phoneConflict ? 'border-yellow-500/50' : 'border-purple-500/10'
+                }`}
+              />
+              {phoneConflict && (
+                <div className="absolute z-50 w-[280px] mt-1 right-0 bg-gray-900/98 border border-yellow-500/30 rounded-lg shadow-2xl p-3">
+                  <p className="text-[11px] text-yellow-300 font-medium mb-2">
+                    This phone belongs to: <span className="text-white font-bold">{phoneConflict.name}</span>
+                  </p>
+                  <div className="flex flex-col gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCustomerName(phoneConflict.name)
+                        setPhoneConflict(null)
+                      }}
+                      className="w-full px-2.5 py-1.5 text-[11px] font-medium text-left bg-blue-600/25 border border-blue-500/30 text-blue-200 rounded-md hover:bg-blue-600/40 transition-all"
+                    >
+                      Book under {phoneConflict.name}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCustomerPhone('')
+                        setPhoneConflict(null)
+                      }}
+                      className="w-full px-2.5 py-1.5 text-[11px] font-medium text-left bg-purple-600/25 border border-purple-500/30 text-purple-200 rounded-md hover:bg-purple-600/40 transition-all"
+                    >
+                      Use different phone number
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+            </div>
+            <div className="flex flex-col justify-center w-[195px] flex-shrink-0">
+              <textarea
+                value={bookingNotes}
+                onChange={(e) => setBookingNotes(e.target.value)}
+                placeholder="Notes (optional)"
+                className="w-full px-3 py-1.5 text-sm bg-purple-950/25 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 placeholder-gray-400 resize-none h-full min-h-[76px]"
               />
             </div>
           </motion.div>
@@ -861,28 +1013,28 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => handleConfirmBooking('pending')}
-                    disabled={loading}
+                    disabled={loading || !!phoneConflict}
                     className="px-3 py-2 bg-gradient-to-br from-yellow-800/60 to-yellow-900/60 border border-yellow-400/60 text-yellow-50 rounded-lg hover:brightness-110 disabled:opacity-50 transition-all text-xs font-medium"
                   >
                     {loading ? 'Saving...' : 'Pending'}
                   </button>
                   <button
                     onClick={() => handleConfirmBooking('confirmed')}
-                    disabled={loading}
+                    disabled={loading || !!phoneConflict}
                     className="px-3 py-2 bg-gradient-to-br from-blue-900/60 to-blue-800/60 border border-blue-500/50 text-blue-100 rounded-lg hover:brightness-110 disabled:opacity-50 transition-all text-xs font-medium"
                   >
                     {loading ? 'Saving...' : 'Confirmed'}
                   </button>
                   <button
-                    onClick={() => handleConfirmBooking('completed')}
-                    disabled={loading}
+                    onClick={() => setShowCompletionModal(true)}
+                    disabled={loading || !!phoneConflict}
                     className="px-3 py-2 bg-gradient-to-br from-emerald-900/50 to-green-900/50 border border-emerald-600/50 text-emerald-200 rounded-lg hover:brightness-110 disabled:opacity-50 transition-all text-xs font-medium"
                   >
                     {loading ? 'Saving...' : 'Completed'}
                   </button>
                   <button
                     onClick={() => handleConfirmBooking('cancelled')}
-                    disabled={loading}
+                    disabled={loading || !!phoneConflict}
                     className="px-3 py-2 bg-gradient-to-br from-rose-900/40 to-red-900/40 border border-rose-600/50 text-rose-200 rounded-lg hover:brightness-110 disabled:opacity-50 transition-all text-xs font-medium"
                   >
                     {loading ? 'Saving...' : 'Cancelled'}
@@ -903,7 +1055,7 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
                   </button>
                   <button
                     onClick={() => handleConfirmBooking('confirmed')}
-                    disabled={loading}
+                    disabled={loading || !!phoneConflict}
                     className="flex-1 px-3 py-1.5 bg-blue-600 border border-blue-500 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-all flex items-center justify-center gap-1 text-xs"
                   >
                     <Check className="w-3 h-3" />
@@ -948,6 +1100,29 @@ export function SpecialistSchedulingCard({ specialistId, onBookingComplete, faci
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Completion Modal */}
+      <CompletionModal
+        isOpen={showCompletionModal}
+        onClose={() => setShowCompletionModal(false)}
+        onComplete={(finalAmount) => {
+          setShowCompletionModal(false)
+          handleConfirmBooking('completed')
+        }}
+        booking={{
+          id: initialBookingData?.id,
+          bookingId: initialBookingData?.id,
+          customer_name: customerName,
+          customerName: customerName,
+          services: selectedService,
+          serviceName: selectedService?.name,
+          servicePrice: selectedService?.price,
+          final_price: initialBookingData?.final_price || selectedService?.price,
+          user_id: initialBookingData?.user_id
+        }}
+        facilityId={facilityId}
+        specialistId={specialistId}
+      />
     </motion.div>
   )
 }

@@ -105,19 +105,23 @@ export default function Reports() {
         .from('bookings')
         .select('*')
         .eq('salon_id', facilityAccess.salon_id)
+        .eq('status', 'completed')
         .gte('created_at', prevStart)
         .lte('created_at', prevEnd)
 
-      // Calculate revenue
-      const totalRevenue = bookings.reduce((sum, b) => sum + (b.final_price || b.service?.price || 0), 0)
+      // Only completed bookings count as revenue
+      const completedBookings = bookings.filter(b => b.status === 'completed')
+
+      // Calculate revenue from completed bookings only
+      const totalRevenue = completedBookings.reduce((sum, b) => sum + (b.final_price || b.service?.price || 0), 0)
       const previousRevenue = (previousBookings || []).reduce(
         (sum, b) => sum + (b.final_price || 0),
         0
       )
 
-      // Revenue trend by day
+      // Revenue trend by day (completed only)
       const revenueTrend = {}
-      bookings.forEach((booking) => {
+      completedBookings.forEach((booking) => {
         const date = new Date(booking.created_at).toLocaleDateString()
         revenueTrend[date] = (revenueTrend[date] || 0) + (booking.final_price || booking.service?.price || 0)
       })
@@ -125,10 +129,10 @@ export default function Reports() {
       setRevenueData({
         total: totalRevenue,
         totalPrevious: previousRevenue,
-        trend: Object.entries(revenueTrend).map(([date, amount]) => ({ date, amount })),
+        trend: Object.entries(revenueTrend).map(([date, amount]) => ({ date, amount })).sort((a, b) => new Date(b.date) - new Date(a.date)),
       })
 
-      // Bookings by status
+      // Bookings by status (all bookings for status counts)
       const byStatus = {}
       bookings.forEach((booking) => {
         byStatus[booking.status] = (byStatus[booking.status] || 0) + 1
@@ -140,10 +144,10 @@ export default function Reports() {
         byStatus,
       })
 
-      // Promo analytics
-      const totalDiscount = bookings.reduce((sum, b) => sum + (b.discount_amount || 0), 0)
+      // Promo analytics (completed only)
+      const totalDiscount = completedBookings.reduce((sum, b) => sum + (b.discount_amount || 0), 0)
       const promoUsage = {}
-      bookings.forEach((booking) => {
+      completedBookings.forEach((booking) => {
         if (booking.promo_code) {
           if (!promoUsage[booking.promo_code]) {
             promoUsage[booking.promo_code] = {
@@ -162,9 +166,9 @@ export default function Reports() {
         promoUsage: Object.values(promoUsage).sort((a, b) => b.uses - a.uses),
       })
 
-      // Services analytics
+      // Services analytics (completed only for revenue)
       const serviceStats = {}
-      bookings.forEach((booking) => {
+      completedBookings.forEach((booking) => {
         const serviceName = booking.service?.name || 'Unknown'
         if (!serviceStats[serviceName]) {
           serviceStats[serviceName] = {
@@ -181,9 +185,9 @@ export default function Reports() {
         Object.values(serviceStats).sort((a, b) => b.revenue - a.revenue)
       )
 
-      // Specialists analytics
+      // Specialists analytics (completed only for revenue)
       const specialistStats = {}
-      bookings.forEach((booking) => {
+      completedBookings.forEach((booking) => {
         if (booking.specialist) {
           const specialistName = booking.specialist.name
           if (!specialistStats[specialistName]) {

@@ -30,6 +30,13 @@ export default function Specialists() {
   const [viewMode, setViewMode] = useState('list') // 'grid' or 'list'
   const [activeTab, setActiveTab] = useState('specialists') // 'specialists', 'hours', 'salaries'
 
+  // Salary/commission management
+  const [commissions, setCommissions] = useState({})
+  const [salaryData, setSalaryData] = useState({})
+  const [salaryLoading, setSalaryLoading] = useState(false)
+  const [salaryPeriod, setSalaryPeriod] = useState('month') // day, week, month
+  const [salarySearch, setSalarySearch] = useState('')
+
   // Working hours management - grid format
   const [allSpecialistsWorkingHours, setAllSpecialistsWorkingHours] = useState({})
   const [notWorkingDays, setNotWorkingDays] = useState({})
@@ -40,7 +47,7 @@ export default function Specialists() {
     const diff = day === 0 ? -6 : 1 - day // Adjust when day is Sunday
     const monday = new Date(today)
     monday.setDate(today.getDate() + diff)
-    return monday.toISOString().split('T')[0]
+    return `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`
   })
   const [timePickerModal, setTimePickerModal] = useState({
     isOpen: false,
@@ -61,6 +68,7 @@ export default function Specialists() {
   const [imageFile, setImageFile] = useState(null)
   const [imagePreview, setImagePreview] = useState('')
   const [experienceYears, setExperienceYears] = useState('')
+  const [selectedLanguages, setSelectedLanguages] = useState(['ka'])
   const [selectedServices, setSelectedServices] = useState([])
 
   useEffect(() => {
@@ -80,12 +88,20 @@ export default function Specialists() {
     }
   }, [specialists, workingHours])
 
-  // Fetch all specialists working hours when specialists are loaded
+  // Fetch all specialists working hours when specialists are loaded or week changes
   useEffect(() => {
     if (specialists.length > 0) {
       fetchAllSpecialistsWorkingHours()
     }
-  }, [specialists])
+  }, [specialists, selectedWeekStart])
+
+  // Fetch salary data when salaries tab is active or period changes
+  useEffect(() => {
+    if (activeTab === 'salaries' && specialists.length > 0) {
+      fetchCommissions()
+      fetchSalaryData()
+    }
+  }, [activeTab, specialists, salaryPeriod])
 
   const fetchServices = async () => {
     try {
@@ -112,7 +128,37 @@ export default function Specialists() {
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      setSpecialists(data || [])
+
+      // Fetch real ratings from reviews
+      const specialistIds = (data || []).map(s => s.id)
+      let ratingsMap = {}
+      let countMap = {}
+      if (specialistIds.length > 0) {
+        const { data: reviewsData } = await supabase
+          .from('reviews')
+          .select('specialist_id, rating')
+          .in('specialist_id', specialistIds)
+
+        if (reviewsData) {
+          const grouped = {}
+          reviewsData.forEach(r => {
+            if (!grouped[r.specialist_id]) grouped[r.specialist_id] = []
+            grouped[r.specialist_id].push(r.rating)
+          })
+          Object.entries(grouped).forEach(([id, ratings]) => {
+            ratingsMap[id] = parseFloat((ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1))
+            countMap[id] = ratings.length
+          })
+        }
+      }
+
+      const specialistsWithRatings = (data || []).map(s => ({
+        ...s,
+        rating: ratingsMap[s.id] ?? null,
+        reviewCount: countMap[s.id] || 0
+      }))
+
+      setSpecialists(specialistsWithRatings)
     } catch (error) {
       console.error('Error fetching specialists:', error)
       toast.error('Error loading specialists: ' + error.message)
@@ -201,6 +247,7 @@ export default function Specialists() {
     setImageFile(null)
     setImagePreview('')
     setExperienceYears('')
+    setSelectedLanguages(['ka'])
     setSelectedServices([])
     setEditingSpecialist(null)
     setShowAddForm(false)
@@ -216,6 +263,7 @@ export default function Specialists() {
     setBio(specialist.bio || '')
     setImagePreview(specialist.image_url || '')
     setExperienceYears(specialist.experience_years?.toString() || '')
+    setSelectedLanguages(specialist.languages || ['ka'])
 
     // Set selected services
     const serviceIds = specialist.specialist_services?.map(ss => ss.service_id) || []
@@ -268,6 +316,11 @@ export default function Specialists() {
       return
     }
 
+    if (selectedLanguages.length === 0) {
+      toast.error('Select at least one language')
+      return
+    }
+
     try {
       setUploading(true)
 
@@ -284,6 +337,7 @@ export default function Specialists() {
         image_url: imageUrl || 'https://via.placeholder.com/150?text=' + encodeURIComponent(name),
         experience_years: experienceYears ? parseInt(experienceYears) : 0,
         rating: editingSpecialist ? editingSpecialist.rating : 5.0,
+        languages: selectedLanguages,
       }
 
       let specialistId
@@ -370,17 +424,29 @@ export default function Specialists() {
     try {
       // Get the week date range
       const weekDates = getWeekDates(selectedWeekStart)
-      const startDate = weekDates[0].toISOString().split('T')[0]
-      const endDate = weekDates[6].toISOString().split('T')[0]
+      const startDate = toLocalDateStr(weekDates[0])
+      const endDate = toLocalDateStr(weekDates[6])
 
-      const { data, error } = await supabase
-        .from('specialist_working_hours')
-        .select('*')
-        .in('specialist_id', specialists.map(s => s.id))
-        .gte('work_date', startDate)
-        .lte('work_date', endDate)
-        .order('work_date')
-        .order('start_time')
+      const [{ data, error }, { data: facilityHours }] = await Promise.all([
+        supabase
+          .from('specialist_working_hours')
+          .select('*')
+          .in('specialist_id', specialists.map(s => s.id))
+          .gte('work_date', startDate)
+          .lte('work_date', endDate)
+          .order('work_date')
+          .order('start_time'),
+        supabase
+          .from('working_hours')
+          .select('day_of_week, is_closed')
+          .eq('salon_id', facilityAccess.salon_id)
+      ])
+
+      // Build set of closed day-of-week numbers (0=Sun, 1=Mon, etc.)
+      const closedDays = new Set()
+      ;(facilityHours || []).forEach(h => {
+        if (h.is_closed) closedDays.add(h.day_of_week)
+      })
 
       if (error) throw error
 
@@ -388,7 +454,6 @@ export default function Specialists() {
       const hoursMap = {}
       specialists.forEach(specialist => {
         hoursMap[specialist.id] = {}
-        // Initialize with default single shift for all days (0-6 for Mon-Sun)
         for (let i = 0; i < 7; i++) {
           hoursMap[specialist.id][i] = [{
             id: null,
@@ -399,14 +464,27 @@ export default function Specialists() {
         }
       })
 
-      // Override with actual data from database (group by specialist + day)
-      data?.forEach(record => {
-        const recordDate = new Date(record.work_date)
-        const dayOfWeek = recordDate.getDay()
-        // Convert to array index: Sunday(0) -> 6, Monday(1) -> 0, etc.
-        const dayIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+      // Build date-to-index lookup from the displayed week
+      const dateToIndex = {}
+      for (let i = 0; i < 7; i++) {
+        dateToIndex[toLocalDateStr(weekDates[i])] = i
+      }
 
-        if (dayIndex !== undefined && hoursMap[record.specialist_id]) {
+      // Override with actual data from database (group by specialist + day)
+      const dayOffMap = {}
+      data?.forEach(record => {
+        const workDate = (record.work_date || '').substring(0, 10)
+        const dayIndex = dateToIndex[workDate]
+        if (dayIndex === undefined) return
+
+        if (hoursMap[record.specialist_id]) {
+          // Track day-off status
+          if (record.is_day_off || record.is_closed) {
+            dayOffMap[`${record.specialist_id}-${dayIndex}`] = true
+            hoursMap[record.specialist_id][dayIndex] = []
+            return
+          }
+
           // If this is the first record for this day, replace the default
           if (hoursMap[record.specialist_id][dayIndex].length === 1 && hoursMap[record.specialist_id][dayIndex][0].id === null) {
             hoursMap[record.specialist_id][dayIndex] = []
@@ -416,12 +494,27 @@ export default function Specialists() {
             id: record.id,
             open_time: record.start_time?.substring(0, 5) || '09:00',
             close_time: record.end_time?.substring(0, 5) || '18:00',
-            work_date: record.work_date
+            work_date: record.work_date,
+            is_exception: record.is_exception || false
           })
         }
       })
 
+      // Mark facility closed days as not working for all specialists
+      if (closedDays.size > 0) {
+        for (let i = 0; i < 7; i++) {
+          const dayOfWeek = weekDates[i].getDay()
+          if (closedDays.has(dayOfWeek)) {
+            specialists.forEach(s => {
+              dayOffMap[`${s.id}-${i}`] = true
+              hoursMap[s.id][i] = []
+            })
+          }
+        }
+      }
+
       setAllSpecialistsWorkingHours(hoursMap)
+      setNotWorkingDays(dayOffMap)
     } catch (error) {
       console.error('Error fetching all specialists working hours:', error)
     }
@@ -450,7 +543,7 @@ export default function Specialists() {
 
       // Calculate the specific date for this day in the selected week
       const weekDates = getWeekDates(selectedWeekStart)
-      const specificDate = weekDates[dayIndex].toISOString().split('T')[0]
+      const specificDate = toLocalDateStr(weekDates[dayIndex])
 
       // Check for overlaps with existing shifts
       const existingShifts = allSpecialistsWorkingHours[specialistId]?.[dayIndex] || []
@@ -482,22 +575,8 @@ export default function Specialists() {
 
       if (error) throw error
 
-      // Update local state
-      setAllSpecialistsWorkingHours(prev => ({
-        ...prev,
-        [specialistId]: {
-          ...prev[specialistId],
-          [dayIndex]: [
-            ...(prev[specialistId]?.[dayIndex] || []).filter(shift => shift.id !== null),
-            {
-              id: data.id,
-              open_time: '09:00',
-              close_time: '18:00',
-              work_date: specificDate
-            }
-          ]
-        }
-      }))
+      // Refetch to get accurate state from DB
+      await fetchAllSpecialistsWorkingHours()
 
       // Automatically open time picker for the new shift
       openTimePicker(specialistId, dayIndex, data.id, {
@@ -535,7 +614,7 @@ export default function Specialists() {
 
         // Calculate the specific date for this day in the selected week
         const weekDates = getWeekDates(selectedWeekStart)
-        const specificDate = weekDates[dayIndex].toISOString().split('T')[0]
+        const specificDate = toLocalDateStr(weekDates[dayIndex])
 
         const { data, error } = await supabase
           .from('specialist_working_hours')
@@ -633,12 +712,49 @@ export default function Specialists() {
   }
 
   // Toggle not working state for a specific day
-  const toggleNotWorking = (specialistId, dayIndex) => {
+  const toggleNotWorking = async (specialistId, dayIndex) => {
     const key = `${specialistId}-${dayIndex}`
-    setNotWorkingDays(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }))
+    const isCurrentlyOff = notWorkingDays[key] || false
+    const dayNames = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+    const dayLabel = dayNames[dayIndex]
+    const weekDates = getWeekDates(selectedWeekStart)
+    const specificDate = toLocalDateStr(weekDates[dayIndex])
+
+    try {
+      if (!isCurrentlyOff) {
+        // Mark as day off: delete existing shifts for this day, then insert a day-off record
+        const existingShifts = allSpecialistsWorkingHours[specialistId]?.[dayIndex] || []
+        const shiftIds = existingShifts.filter(s => s.id).map(s => s.id)
+        if (shiftIds.length > 0) {
+          await supabase.from('specialist_working_hours').delete().in('id', shiftIds)
+        }
+        await supabase.from('specialist_working_hours').insert([{
+          specialist_id: specialistId,
+          work_date: specificDate,
+          day_of_week: dayLabel,
+          start_time: '00:00:00',
+          end_time: '00:00:00',
+          is_closed: false,
+          is_day_off: true
+        }])
+        toast.success('Marked as day off')
+      } else {
+        // Remove day off: delete the day-off record
+        await supabase
+          .from('specialist_working_hours')
+          .delete()
+          .eq('specialist_id', specialistId)
+          .eq('work_date', specificDate)
+          .eq('is_day_off', true)
+        toast.success('Day off removed')
+      }
+
+      // Refetch to sync state
+      await fetchAllSpecialistsWorkingHours()
+    } catch (error) {
+      console.error('Error toggling day off:', error)
+      toast.error('Error updating day off status')
+    }
   }
 
   // Check if a specialist is marked as not working on a specific day
@@ -670,24 +786,75 @@ export default function Specialists() {
     })
   }
 
+  // Pending time change — stored until user picks "this day" or "all days"
+  const [pendingTimeChange, setPendingTimeChange] = useState(null)
+
   const handleTimePickerConfirm = ({ openTime, closeTime }) => {
-    // Validate that opening time < closing time
     const [openHour, openMin] = openTime.split(':').map(Number)
     const [closeHour, closeMin] = closeTime.split(':').map(Number)
-    const openMinutes = openHour * 60 + openMin
-    const closeMinutes = closeHour * 60 + closeMin
-
-    if (openMinutes >= closeMinutes) {
+    if (openHour * 60 + openMin >= closeHour * 60 + closeMin) {
       toast.error('Opening time must be before closing time')
       return
     }
 
-    if (timePickerModal.specialistId && timePickerModal.day !== null) {
-      // Update the specific shift
-      updateShift(timePickerModal.shiftId, timePickerModal.specialistId, timePickerModal.day, openTime, closeTime)
-    }
+    // Store the pending change and show save options
+    setPendingTimeChange({ openTime, closeTime })
+  }
 
+  const saveThisDayOnly = async () => {
+    if (!pendingTimeChange || !timePickerModal.specialistId) return
+    await updateShift(timePickerModal.shiftId, timePickerModal.specialistId, timePickerModal.day, pendingTimeChange.openTime, pendingTimeChange.closeTime)
+    // Mark as exception
+    if (timePickerModal.shiftId) {
+      await supabase.from('specialist_working_hours').update({ is_exception: true }).eq('id', timePickerModal.shiftId)
+    }
+    setPendingTimeChange(null)
     closeTimePicker()
+    fetchAllSpecialistsWorkingHours()
+  }
+
+  const saveAllSameDays = async () => {
+    if (!pendingTimeChange || !timePickerModal.specialistId) return
+    const { openTime, closeTime } = pendingTimeChange
+    const specialistId = timePickerModal.specialistId
+    const dayIndex = timePickerModal.day
+    const dayNames = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+    const dayLabel = dayNames[dayIndex]
+
+    try {
+      // Update all future records for this day-of-week
+      const today = toLocalDateStr(new Date())
+      const { data: existingRecords } = await supabase
+        .from('specialist_working_hours')
+        .select('id, work_date')
+        .eq('specialist_id', specialistId)
+        .eq('day_of_week', dayLabel)
+        .eq('is_day_off', false)
+        .gte('work_date', today)
+
+      if (existingRecords && existingRecords.length > 0) {
+        const ids = existingRecords.map(r => r.id)
+        await supabase
+          .from('specialist_working_hours')
+          .update({ start_time: openTime + ':00', end_time: closeTime + ':00', is_exception: false })
+          .in('id', ids)
+      }
+
+      // Also save the current day's shift
+      await updateShift(timePickerModal.shiftId, specialistId, dayIndex, openTime, closeTime)
+
+      toast.success(`Updated all future ${dayLabel}s`)
+      setPendingTimeChange(null)
+      closeTimePicker()
+      fetchAllSpecialistsWorkingHours()
+    } catch (error) {
+      console.error('Error updating all days:', error)
+      toast.error('Error updating shifts')
+    }
+  }
+
+  const cancelTimeChange = () => {
+    setPendingTimeChange(null)
   }
 
   // Save all currently displayed working hours to database for next 2 months
@@ -702,71 +869,82 @@ export default function Specialists() {
       const endDate = new Date()
       endDate.setMonth(endDate.getMonth() + 2)
 
-      // Iterate through all specialists and their working hours
+      // Fetch closed periods to preserve them
+      const { data: closedPeriods } = await supabase
+        .from('closed_periods')
+        .select('start_date, end_date')
+        .eq('salon_id', facilityAccess.salon_id)
+
+      const isDateInClosedPeriod = (dateStr) => {
+        return (closedPeriods || []).some(p => dateStr >= p.start_date && dateStr <= p.end_date)
+      }
+
       for (const specialistId of Object.keys(allSpecialistsWorkingHours)) {
         const specialistHours = allSpecialistsWorkingHours[specialistId]
 
-        // Debug: Check if Sunday (index 6) exists in the state
-        console.log('Specialist hours state:', specialistHours)
-        console.log('Sunday hours (index 6):', specialistHours[6])
-
-        // First, delete existing future hours for this specialist
+        // Delete existing future hours EXCEPT day-off records from closed periods
         await supabase
           .from('specialist_working_hours')
           .delete()
           .eq('specialist_id', specialistId)
-          .gte('work_date', startDate.toISOString().split('T')[0])
+          .eq('is_day_off', false)
+          .gte('work_date', toLocalDateStr(startDate))
 
-        // Prepare all shifts to insert for each day in the next 2 months
         const hoursToInsert = []
+        const dayNames = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
 
-        // Loop through each day in the date range
         const currentDate = new Date(startDate)
         while (currentDate <= endDate) {
-          const dateString = currentDate.toISOString().split('T')[0]
+          const dateString = toLocalDateStr(currentDate)
           const dayOfWeek = currentDate.getDay()
-
-          // Convert to array index: Sunday(0) -> 6, Monday(1) -> 0, etc.
           const dayIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1
-          const dayNames = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
           const dayName = dayNames[dayIndex]
 
-          // Get shifts for this day index
-          const shifts = specialistHours[dayIndex] || []
+          // Skip dates in closed periods — they already have day-off records
+          if (!isDateInClosedPeriod(dateString)) {
+            // Check if this day is marked as not working in current view
+            const isOff = notWorkingDays[`${specialistId}-${dayIndex}`]
 
-          // Debug logging for Sunday
-          if (dayOfWeek === 0) {
-            console.log(`Sunday ${dateString}: dayIndex=${dayIndex}, dayName=${dayName}, shifts:`, shifts)
-          }
-
-          shifts.forEach(shift => {
-            if (shift.open_time && shift.close_time) {
+            if (isOff) {
               hoursToInsert.push({
                 specialist_id: specialistId,
                 work_date: dateString,
                 day_of_week: dayName,
-                start_time: shift.open_time + ':00',
-                end_time: shift.close_time + ':00',
+                start_time: '00:00:00',
+                end_time: '00:00:00',
                 is_closed: false,
-                is_day_off: false
+                is_day_off: true
+              })
+            } else {
+              const shifts = specialistHours[dayIndex] || []
+              shifts.forEach(shift => {
+                if (shift.open_time && shift.close_time) {
+                  hoursToInsert.push({
+                    specialist_id: specialistId,
+                    work_date: dateString,
+                    day_of_week: dayName,
+                    start_time: shift.open_time + ':00',
+                    end_time: shift.close_time + ':00',
+                    is_closed: false,
+                    is_day_off: false
+                  })
+                }
               })
             }
-          })
+          }
 
-          // Move to next day
           currentDate.setDate(currentDate.getDate() + 1)
         }
 
-        console.log(`Total hours to insert for specialist ${specialistId}:`, hoursToInsert.length)
-        console.log('Sample Sunday entries:', hoursToInsert.filter(h => h.day_of_week === 'sunday'))
-
-        // Insert all hours for this specialist
         if (hoursToInsert.length > 0) {
-          const { error } = await supabase
-            .from('specialist_working_hours')
-            .insert(hoursToInsert)
-
-          if (error) throw error
+          // Insert in batches
+          const batchSize = 100
+          for (let i = 0; i < hoursToInsert.length; i += batchSize) {
+            const { error } = await supabase
+              .from('specialist_working_hours')
+              .insert(hoursToInsert.slice(i, i + batchSize))
+            if (error) throw error
+          }
           totalSaved += hoursToInsert.length
         }
       }
@@ -837,19 +1015,22 @@ export default function Specialists() {
   // Week navigation helpers
   const getWeekDates = (weekStart) => {
     const dates = []
-    const start = new Date(weekStart)
+    const [y, m, d] = weekStart.split('-').map(Number)
     for (let i = 0; i < 7; i++) {
-      const date = new Date(start)
-      date.setDate(start.getDate() + i)
+      const date = new Date(y, m - 1, d + i)
       dates.push(date)
     }
     return dates
   }
 
+  const toLocalDateStr = (date) => {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+  }
+
   const changeWeek = (direction) => {
-    const current = new Date(selectedWeekStart)
-    current.setDate(current.getDate() + (direction * 7))
-    setSelectedWeekStart(current.toISOString().split('T')[0])
+    const [y, m, d] = selectedWeekStart.split('-').map(Number)
+    const current = new Date(y, m - 1, d + direction * 7)
+    setSelectedWeekStart(toLocalDateStr(current))
   }
 
   const goToCurrentWeek = () => {
@@ -858,7 +1039,7 @@ export default function Specialists() {
     const diff = day === 0 ? -6 : 1 - day
     const monday = new Date(today)
     monday.setDate(today.getDate() + diff)
-    setSelectedWeekStart(monday.toISOString().split('T')[0])
+    setSelectedWeekStart(toLocalDateStr(monday))
   }
 
   const formatWeekRange = (weekStart) => {
@@ -875,13 +1056,137 @@ export default function Specialists() {
     return `${formatDate(start)} - ${formatDate(end)}`
   }
 
+  // Fetch commission rates for all specialists
+  const fetchCommissions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('specialist_services')
+        .select('specialist_id, service_id, commission_rate, services(name, price)')
+        .in('specialist_id', specialists.map(s => s.id))
+
+      if (error) throw error
+
+      const map = {}
+      ;(data || []).forEach(row => {
+        if (!map[row.specialist_id]) map[row.specialist_id] = {}
+        map[row.specialist_id][row.service_id] = {
+          rate: row.commission_rate ?? 50,
+          serviceName: row.services?.name || 'Unknown',
+          servicePrice: row.services?.price || 0
+        }
+      })
+      setCommissions(map)
+    } catch (error) {
+      console.error('Error fetching commissions:', error)
+    }
+  }
+
+  // Update commission rate
+  const updateCommission = async (specialistId, serviceId, newRate) => {
+    try {
+      const { error } = await supabase
+        .from('specialist_services')
+        .update({ commission_rate: newRate })
+        .eq('specialist_id', specialistId)
+        .eq('service_id', serviceId)
+
+      if (error) throw error
+
+      setCommissions(prev => ({
+        ...prev,
+        [specialistId]: {
+          ...prev[specialistId],
+          [serviceId]: { ...prev[specialistId][serviceId], rate: newRate }
+        }
+      }))
+    } catch (error) {
+      console.error('Error updating commission:', error)
+      toast.error('Error updating commission rate')
+    }
+  }
+
+  // Fetch salary earnings data based on selected period
+  const fetchSalaryData = async () => {
+    try {
+      setSalaryLoading(true)
+      const now = new Date()
+      const today = toLocalDateStr(now)
+
+      let startDate
+      if (salaryPeriod === 'day') {
+        startDate = today
+      } else if (salaryPeriod === 'week') {
+        const dayOfWeek = now.getDay() || 7
+        const ws = new Date(now)
+        ws.setDate(now.getDate() - dayOfWeek + 1)
+        startDate = toLocalDateStr(ws)
+      } else {
+        startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
+      }
+
+      const [{ data: bookings, error }, { data: commData }, { data: payments }] = await Promise.all([
+        supabase
+          .from('bookings')
+          .select('id, specialist_id, service_id, booking_date, final_price, status, services(price)')
+          .eq('salon_id', facilityAccess.salon_id)
+          .eq('status', 'completed')
+          .gte('booking_date', startDate),
+        supabase
+          .from('specialist_services')
+          .select('specialist_id, service_id, commission_rate')
+          .in('specialist_id', specialists.map(s => s.id)),
+        supabase
+          .from('payments')
+          .select('booking_id, specialist_id, amount_paid, tip_amount, created_at')
+          .eq('salon_id', facilityAccess.salon_id)
+          .in('specialist_id', specialists.map(s => s.id))
+          .gte('created_at', startDate)
+      ])
+
+      if (error) throw error
+
+      const rateMap = {}
+      ;(commData || []).forEach(r => {
+        rateMap[`${r.specialist_id}_${r.service_id}`] = r.commission_rate ?? 50
+      })
+
+      const salaryPaymentsMap = {}
+      ;(payments || []).forEach(p => {
+        if (p.booking_id) salaryPaymentsMap[p.booking_id] = p.amount_paid
+      })
+
+      const earnings = {}
+      ;(bookings || []).forEach(b => {
+        if (!b.specialist_id) return
+        if (!earnings[b.specialist_id]) earnings[b.specialist_id] = { salary: 0, tips: 0 }
+        const paid = salaryPaymentsMap[b.id]
+        const price = paid != null ? paid : (b.final_price || b.services?.price || 0)
+        const rate = rateMap[`${b.specialist_id}_${b.service_id}`] ?? 50
+        earnings[b.specialist_id].salary += price * (rate / 100)
+      })
+
+      ;(payments || []).forEach(p => {
+        if (!p.specialist_id || !p.tip_amount) return
+        if (!earnings[p.specialist_id]) earnings[p.specialist_id] = { salary: 0, tips: 0 }
+        earnings[p.specialist_id].tips += p.tip_amount
+      })
+
+      setSalaryData(earnings)
+    } catch (error) {
+      console.error('Error fetching salary data:', error)
+    } finally {
+      setSalaryLoading(false)
+    }
+  }
+
   const weekDates = getWeekDates(selectedWeekStart)
 
   // Calculate stats
   const totalSpecialists = specialists.length
-  const avgRating = specialists.length > 0
-    ? (specialists.reduce((sum, s) => sum + (s.rating || 0), 0) / specialists.length).toFixed(1)
-    : 0
+  const ratedSpecialists = specialists.filter(s => s.rating !== null)
+  const avgRating = ratedSpecialists.length > 0
+    ? (ratedSpecialists.reduce((sum, s) => sum + s.rating, 0) / ratedSpecialists.length).toFixed(1)
+    : '—'
 
   // Calculate average utilisation for all specialists
   const avgUtilisation = specialists.length > 0
@@ -1140,9 +1445,14 @@ export default function Specialists() {
                                     <button
                                       type="button"
                                       onClick={() => openTimePicker(specialist.id, dayIndex, shift.id, shift)}
-                                      className="flex-1 px-2 py-1.5 bg-purple-900/15 border border-purple-500/[0.06] text-white rounded hover:bg-purple-900/25 hover:border-purple-500/40 transition-all text-xs text-center"
+                                      className={`flex-1 px-2 py-1.5 border text-white rounded hover:bg-purple-900/25 hover:border-purple-500/40 transition-all text-xs text-center ${
+                                        shift.is_exception
+                                          ? 'bg-amber-900/15 border-amber-500/30'
+                                          : 'bg-purple-900/15 border-purple-500/[0.06]'
+                                      }`}
                                     >
-                                      <div className="font-medium whitespace-nowrap">
+                                      <div className="font-medium whitespace-nowrap flex items-center justify-center gap-1">
+                                        {shift.is_exception && <span className="text-amber-400 text-[8px]" title="Exception — different from usual">★</span>}
                                         {shift.open_time} - {shift.close_time}
                                       </div>
                                     </button>
@@ -1214,23 +1524,121 @@ export default function Specialists() {
       )}
 
       {/* Salaries Tab */}
-      {activeTab === 'salaries' && (
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
-          <h3 className="text-lg font-bold text-white mb-6 flex items-center font-[Inter]">
-            <DollarSign className="w-6 h-6 mr-2 text-purple-300" />
-            Specialist Salaries
-          </h3>
-          <p className="text-gray-300 mb-6">
-            Manage salary and commission structures for your specialists.
-          </p>
+      {activeTab === 'salaries' && (() => {
+        const filteredSpecs = specialists.filter(s => !salarySearch || s.name.toLowerCase().includes(salarySearch.toLowerCase()))
+        const totalSalary = filteredSpecs.reduce((sum, s) => sum + (salaryData[s.id]?.salary || 0), 0)
+        const totalTips = filteredSpecs.reduce((sum, s) => sum + (salaryData[s.id]?.tips || 0), 0)
+        const periodLabel = salaryPeriod === 'day' ? 'Today' : salaryPeriod === 'week' ? 'This Week' : 'This Month'
 
-          {/* Placeholder for salaries management */}
-          <div className="text-center py-12 text-gray-400">
-            <DollarSign className="w-16 h-16 mx-auto mb-4 opacity-50" />
-            <p>Salary management coming soon...</p>
+        return (
+          <div className="space-y-4">
+            {/* Top bar: period + search */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {['day', 'week', 'month'].map(p => (
+                  <button
+                    key={p}
+                    onClick={() => setSalaryPeriod(p)}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-all ${
+                      salaryPeriod === p
+                        ? 'bg-purple-600/30 border-purple-500/50 text-white'
+                        : 'bg-white/[0.03] border-white/[0.06] text-gray-400 hover:border-purple-500/30'
+                    }`}
+                  >
+                    {p === 'day' ? 'Day' : p === 'week' ? 'Week' : 'Month'}
+                  </button>
+                ))}
+              </div>
+              <input
+                type="text"
+                placeholder="Search specialist..."
+                value={salarySearch}
+                onChange={e => setSalarySearch(e.target.value)}
+                className="px-3 py-1.5 text-xs bg-purple-950/40 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 placeholder-gray-500 w-48"
+              />
+            </div>
+
+            {/* Summary cards */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-purple-950/30 border border-purple-500/10 rounded-xl p-4 text-center">
+                <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-1">Salaries · {periodLabel}</p>
+                <p className="text-2xl font-bold text-purple-400">{totalSalary.toFixed(0)} <span className="text-xs text-gray-500">GEL</span></p>
+              </div>
+              <div className="bg-green-950/20 border border-green-500/10 rounded-xl p-4 text-center">
+                <p className="text-[10px] text-green-400/60 uppercase tracking-wide mb-1">Tips · {periodLabel}</p>
+                <p className="text-2xl font-bold text-green-400">{totalTips.toFixed(0)} <span className="text-xs text-green-400/40">GEL</span></p>
+              </div>
+              <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4 text-center">
+                <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-1">Total · {periodLabel}</p>
+                <p className="text-2xl font-bold text-white">{(totalSalary + totalTips).toFixed(0)} <span className="text-xs text-gray-500">GEL</span></p>
+              </div>
+            </div>
+
+            {/* Specialist cards */}
+            {filteredSpecs.map(specialist => {
+              const specCommissions = commissions[specialist.id] || {}
+              const specEarnings = salaryData[specialist.id] || { salary: 0, tips: 0 }
+              const serviceEntries = Object.entries(specCommissions)
+
+              return (
+                <div key={specialist.id} className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl px-4 py-3">
+                  <div className="flex items-center gap-4">
+                    {/* Avatar + Name */}
+                    <div className="flex items-center gap-2.5 w-[140px] flex-shrink-0">
+                      {specialist.image_url ? (
+                        <img src={specialist.image_url} alt={specialist.name} className="w-8 h-8 rounded-full object-cover border border-purple-500/30 flex-shrink-0" />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-purple-500/20 border border-purple-500/30 flex items-center justify-center flex-shrink-0">
+                          <span className="text-xs font-bold text-purple-300">{specialist.name?.charAt(0)}</span>
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <h3 className="text-xs font-bold text-white font-[Inter] truncate">{specialist.name}</h3>
+                        <p className="text-[9px] text-gray-500">{serviceEntries.length} service{serviceEntries.length !== 1 ? 's' : ''}</p>
+                      </div>
+                    </div>
+
+                    {/* Commissions - compact inline */}
+                    <div className="flex-1 flex items-center gap-1.5 overflow-x-auto min-w-0">
+                      {serviceEntries.map(([serviceId, data]) => (
+                        <div key={serviceId} className="flex items-center gap-1 bg-purple-950/20 border border-purple-500/[0.06] rounded-md px-2 py-1 flex-shrink-0">
+                          <span className="text-[9px] text-gray-400 truncate max-w-[60px]">{data.serviceName}</span>
+                          <input
+                            type="number" min="0" max="100" value={data.rate}
+                            onChange={(e) => {
+                              const newRate = Math.min(100, Math.max(0, parseInt(e.target.value) || 0))
+                              setCommissions(prev => ({ ...prev, [specialist.id]: { ...prev[specialist.id], [serviceId]: { ...data, rate: newRate } } }))
+                            }}
+                            onBlur={() => updateCommission(specialist.id, serviceId, data.rate)}
+                            className="w-9 px-1 py-0.5 text-[9px] text-center font-bold text-purple-400 bg-purple-950/40 border border-purple-500/20 rounded [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          />
+                          <span className="text-[8px] text-gray-500">%</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Earnings + Tips + Total */}
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      <div className="text-center w-[70px]">
+                        <p className="text-[8px] text-gray-400 uppercase">Earnings</p>
+                        <p className="text-sm font-bold text-purple-400">{specEarnings.salary.toFixed(0)} <span className="text-[8px] text-gray-500">GEL</span></p>
+                      </div>
+                      <div className="text-center w-[60px]">
+                        <p className="text-[8px] text-green-400/60 uppercase">Tips</p>
+                        <p className="text-sm font-bold text-green-400">{specEarnings.tips.toFixed(0)} <span className="text-[8px] text-green-400/40">GEL</span></p>
+                      </div>
+                      <div className="text-center w-[70px] bg-white/[0.03] rounded-lg py-1">
+                        <p className="text-[8px] text-gray-400 uppercase">Total</p>
+                        <p className="text-sm font-bold text-white">{(specEarnings.salary + specEarnings.tips).toFixed(0)} <span className="text-[8px] text-gray-500">GEL</span></p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
           </div>
-        </div>
-      )}
+        )
+      })()}
 
       {/* Add/Edit Form */}
       {showAddForm && (
@@ -1290,6 +1698,44 @@ export default function Specialists() {
                   className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/45 transition-all placeholder-gray-400"
                   placeholder="5"
                 />
+              </div>
+
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Languages *
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { val: 'ka', label: '🇬🇪 Georgian' },
+                    { val: 'en', label: '🇬🇧 English' },
+                    { val: 'ru', label: '🇷🇺 Russian' },
+                    { val: 'tr', label: '🇹🇷 Turkish' },
+                    { val: 'de', label: '🇩🇪 German' },
+                    { val: 'fr', label: '🇫🇷 French' },
+                    { val: 'es', label: '🇪🇸 Spanish' },
+                    { val: 'ar', label: '🇸🇦 Arabic' },
+                  ].map(l => (
+                    <button
+                      key={l.val}
+                      type="button"
+                      onClick={() => {
+                        setSelectedLanguages(prev =>
+                          prev.includes(l.val)
+                            ? prev.filter(x => x !== l.val)
+                            : [...prev, l.val]
+                        )
+                      }}
+                      className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-all ${
+                        selectedLanguages.includes(l.val)
+                          ? 'bg-purple-600/30 border-purple-500/50 text-white'
+                          : 'bg-white/[0.03] border-white/[0.06] text-gray-400 hover:border-purple-500/30'
+                      }`}
+                    >
+                      {l.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="md:col-span-2">
@@ -1415,8 +1861,9 @@ export default function Specialists() {
                   {specialist.name}
                 </h3>
                 <div className="flex items-center justify-center space-x-1 mb-2">
-                  <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                  <span className="text-sm font-bold text-white">{specialist.rating}</span>
+                  <Star className={`w-4 h-4 ${specialist.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-500'}`} />
+                  <span className="text-sm font-bold text-white">{specialist.rating ?? '—'}</span>
+                  <span className="text-xs text-gray-400">({specialist.reviewCount})</span>
                 </div>
               </div>
 
@@ -1499,8 +1946,9 @@ export default function Specialists() {
                 </div>
                 <div className="col-span-1 flex items-center justify-center">
                   <div className="flex items-center space-x-1">
-                    <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                    <span className="text-white font-bold">{specialist.rating}</span>
+                    <Star className={`w-4 h-4 ${specialist.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-500'}`} />
+                    <span className="text-white font-bold">{specialist.rating ?? '—'}</span>
+                    <span className="text-xs text-gray-400">({specialist.reviewCount})</span>
                   </div>
                 </div>
                 <div className="col-span-2 flex items-center">
@@ -1542,13 +1990,45 @@ export default function Specialists() {
 
       {/* Time Picker Modal */}
       <TimePickerModal
-        isOpen={timePickerModal.isOpen}
+        isOpen={timePickerModal.isOpen && !pendingTimeChange}
         onClose={closeTimePicker}
         openTime={timePickerModal.openTime}
         closeTime={timePickerModal.closeTime}
         onConfirm={handleTimePickerConfirm}
         title="Working Hours"
       />
+
+      {/* Save options after time picker confirm */}
+      {pendingTimeChange && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4">
+          <div className="bg-gradient-to-br from-gray-900 to-gray-950 border border-purple-500/20 rounded-2xl shadow-2xl w-full max-w-xs p-5">
+            <h3 className="text-sm font-bold text-white mb-1">Save Working Hours</h3>
+            <p className="text-[11px] text-gray-400 mb-4">
+              {pendingTimeChange.openTime} — {pendingTimeChange.closeTime}
+            </p>
+            <div className="space-y-2">
+              <button
+                onClick={saveThisDayOnly}
+                className="w-full py-2.5 text-xs font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-500 transition-all"
+              >
+                Save for this {['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][timePickerModal.day]} only
+              </button>
+              <button
+                onClick={saveAllSameDays}
+                className="w-full py-2.5 text-xs font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-500 transition-all"
+              >
+                Save for all future {['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][timePickerModal.day]}s
+              </button>
+              <button
+                onClick={cancelTimeChange}
+                className="w-full py-2 text-xs text-gray-400 bg-white/[0.03] border border-white/[0.06] rounded-lg hover:bg-white/[0.06] transition-all"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
