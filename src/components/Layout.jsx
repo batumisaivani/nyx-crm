@@ -12,7 +12,11 @@ import {
   Star,
   BarChart3,
   TrendingUp,
-  Settings
+  Settings,
+  CreditCard,
+  Bell,
+  LogOut,
+  User
 } from 'lucide-react'
 
 export default function Layout({ children }) {
@@ -65,47 +69,49 @@ export default function Layout({ children }) {
 
         {/* Profile Menu - Right */}
         <div className="relative group">
-          <button className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-all">
-            <div className="w-7 h-7 bg-[#9489E2] rounded-full flex items-center justify-center text-white font-semibold text-xs">
-              {user?.email?.[0]?.toUpperCase() || 'U'}
+          <button className="flex items-center gap-3 px-3 py-1.5 rounded-2xl border border-gray-200/60 hover:border-gray-300 hover:bg-gray-50/80 hover:shadow-sm transition-all duration-200">
+            <div className="text-left hidden md:block">
+              <div className="text-sm font-medium text-gray-800 tracking-tight leading-tight">{user?.email?.split('@')[0]}</div>
+              <div className="text-[10px] text-gray-400 tracking-tight leading-tight">{user?.email}</div>
             </div>
-            <span className="text-gray-700 text-sm font-medium hidden md:block">{user?.email?.split('@')[0]}</span>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#9489E2] via-[#b8b0f0] to-[#7b6fd4] p-0.5">
+              <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
+                <span className="text-xs font-bold text-[#9489E2]">{user?.email?.[0]?.toUpperCase() || 'U'}</span>
+              </div>
+            </div>
           </button>
 
           {/* Dropdown Menu */}
-          <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-[#e0d8d0] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-            <div className="p-4 border-b border-[#e0d8d0]">
-              <p className="text-sm font-medium text-gray-800">{user?.email}</p>
-              <p className="text-xs text-purple-600 mt-1">Owner Account</p>
-            </div>
-
-            <div className="p-2">
-              <button className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left">
-                <span className="text-lg">💳</span>
-                <div>
-                  <p className="text-sm font-medium text-gray-800">Billing Plan</p>
-                  <p className="text-xs text-gray-400">Free Trial</p>
-                </div>
-              </button>
-
-              <button className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left">
-                <span className="text-lg">🔔</span>
-                <div>
-                  <p className="text-sm font-medium text-gray-800">Notifications</p>
-                  <p className="text-xs text-gray-400">No new notifications</p>
-                </div>
-              </button>
-
-              <div className="border-t border-[#e0d8d0] mt-2 pt-2">
-                <button
-                  onClick={handleSignOut}
-                  className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors text-left"
-                >
-                  <span className="text-lg">🚪</span>
-                  <p className="text-sm font-medium text-red-500">Sign Out</p>
-                </button>
+          <div className="absolute right-0 mt-1 w-64 p-2 bg-white/95 backdrop-blur-sm border border-gray-200/60 rounded-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.08)' }}>
+            <Link to="/profile" className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 hover:shadow-sm border border-transparent hover:border-gray-200/50 transition-all duration-200">
+              <User className="w-4 h-4 text-gray-500" />
+              <span className="text-sm font-medium text-gray-800 tracking-tight">Profile</span>
+            </Link>
+            <Link to="/settings" className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 hover:shadow-sm border border-transparent hover:border-gray-200/50 transition-all duration-200">
+              <Settings className="w-4 h-4 text-gray-500" />
+              <span className="text-sm font-medium text-gray-800 tracking-tight">Settings</span>
+            </Link>
+            <button className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 hover:shadow-sm border border-transparent hover:border-gray-200/50 transition-all duration-200 text-left">
+              <CreditCard className="w-4 h-4 text-gray-500" />
+              <div className="flex-1">
+                <span className="text-sm font-medium text-gray-800 tracking-tight">Billing</span>
               </div>
-            </div>
+              <span className="text-[10px] font-medium text-[#9489E2] bg-[#9489E2]/10 border border-[#9489E2]/10 rounded-md py-0.5 px-1.5">Free Trial</span>
+            </button>
+            <button className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 hover:shadow-sm border border-transparent hover:border-gray-200/50 transition-all duration-200 text-left">
+              <Bell className="w-4 h-4 text-gray-500" />
+              <span className="text-sm font-medium text-gray-800 tracking-tight">Notifications</span>
+            </button>
+
+            <div className="my-2 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+
+            <button
+              onClick={handleSignOut}
+              className="w-full flex items-center gap-3 p-3 bg-red-500/5 rounded-xl hover:bg-red-500/10 border border-transparent hover:border-red-500/20 hover:shadow-sm transition-all duration-200"
+            >
+              <LogOut className="w-4 h-4 text-red-500" />
+              <span className="text-sm font-medium text-red-500">Sign Out</span>
+            </button>
           </div>
         </div>
       </div>

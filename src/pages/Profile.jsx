@@ -34,7 +34,7 @@ const AMENITIES = [
 ]
 
 export default function Profile() {
-  const { facilityAccess } = useAuth()
+  const { facilityAccess, user } = useAuth()
   const toast = useToast()
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -96,6 +96,7 @@ export default function Profile() {
   const [onlineBooking, setOnlineBooking] = useState(true)
   const [blockedDates, setBlockedDates] = useState([])
   const [showBlockDateForm, setShowBlockDateForm] = useState(false)
+  const [showChangePassword, setShowChangePassword] = useState(false)
   const [blockDate, setBlockDate] = useState('')
 
   // Closed periods
@@ -662,7 +663,7 @@ export default function Profile() {
       </div>
 
         {/* Tabs */}
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl mb-6">
+        <div className="relative bg-white rounded-lg border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.1)] mb-6">
           <div className="flex overflow-x-auto">
             {tabs.map((tab, index) => {
               const Icon = tab.Icon
@@ -672,14 +673,14 @@ export default function Profile() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex-1 min-w-[140px] px-6 py-4 text-sm font-medium transition-all ${
                     activeTab === tab.id
-                      ? 'bg-purple-900/15 text-gray-800'
-                      : 'text-gray-200 hover:text-gray-800 hover:bg-purple-900/5'
+                      ? 'bg-[#9489E2] text-white shadow-sm'
+                      : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
                   } ${
                     index === 0 ? 'rounded-tl-lg' : ''
                   } ${
                     index === tabs.length - 1 ? 'rounded-tr-lg' : ''
                   } ${
-                    index < tabs.length - 1 ? 'border-r border-purple-500/[0.06]' : ''
+                    index < tabs.length - 1 ? 'border-r border-gray-200' : ''
                   }`}
                 >
                   <div className="flex items-center justify-center space-x-2">
@@ -694,158 +695,126 @@ export default function Profile() {
 
       {/* Basic Information Tab */}
       {activeTab === 'basic' && (
-        <form onSubmit={handleSave} className="space-y-6">
-          <div className="relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center font-[Inter]">
-              <Building2 className="w-6 h-6 mr-2 text-purple-300" />
-              Basic Information
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Facility Name *
-                </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
-                  placeholder="e.g., Glamour Beauty Salon"
-                  required
-                />
+        <form onSubmit={handleSave}>
+          <div className="flex gap-4 mb-4">
+            {/* Left: Account Card */}
+            <div className="w-[260px] flex-shrink-0 bg-white rounded-xl border border-gray-200 overflow-hidden" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+              {/* Gradient header */}
+              <div className="h-16 bg-gradient-to-br from-[#9489E2]/30 to-[#b8b0f0]/15 relative">
+                <div className="absolute -bottom-8 left-1/2 -translate-x-1/2">
+                  <div className="w-16 h-16 rounded-full bg-[#9489E2] border-4 border-white flex items-center justify-center text-white text-xl font-bold shadow-lg">
+                    {facilityAccess?.salons?.name?.[0] || 'N'}
+                  </div>
+                </div>
               </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Description
-                </label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={4}
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
-                  placeholder="Tell customers about your facility, your team, and what makes you special..."
-                />
-                <p className="mt-1 text-xs text-gray-400">{description.length} characters</p>
+              <div className="pt-10 pb-5 px-4 text-center">
+                <h3 className="text-sm font-bold text-gray-800">{facilityAccess?.salons?.name || 'Your Salon'}</h3>
+                <p className="text-[11px] text-gray-400 mt-0.5">Owner Account</p>
               </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Street Address *
-                </label>
-                <input
-                  type="text"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
-                  placeholder="123 Main Street"
-                  required
-                />
+              <div className="px-4 pb-4 space-y-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">Email</label>
+                  <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-600 truncate">{facilityAccess?.salons?.email || user?.email || '—'}</div>
+                </div>
+                <div className="border-t border-gray-100 pt-3">
+                  <button type="button" onClick={() => setShowChangePassword(!showChangePassword)}
+                    className="w-full py-2 text-xs font-medium text-[#9489E2] bg-[#9489E2]/10 border border-[#9489E2]/20 rounded-lg hover:bg-[#9489E2]/20 transition-all">
+                    {showChangePassword ? 'Cancel' : 'Change Password'}
+                  </button>
+                  {showChangePassword && (
+                    <div className="mt-3 space-y-2">
+                      <input type="password" placeholder="Current password"
+                        className="w-full h-8 px-3 bg-white border border-gray-200 text-gray-800 rounded-lg text-xs shadow-sm shadow-black/5 focus:border-[#9489E2] focus:ring-[3px] focus:ring-[#9489E2]/20 focus:outline-none transition-all placeholder-gray-400" />
+                      <input type="password" placeholder="New password"
+                        className="w-full h-8 px-3 bg-white border border-gray-200 text-gray-800 rounded-lg text-xs shadow-sm shadow-black/5 focus:border-[#9489E2] focus:ring-[3px] focus:ring-[#9489E2]/20 focus:outline-none transition-all placeholder-gray-400" />
+                      <input type="password" placeholder="Confirm new password"
+                        className="w-full h-8 px-3 bg-white border border-gray-200 text-gray-800 rounded-lg text-xs shadow-sm shadow-black/5 focus:border-[#9489E2] focus:ring-[3px] focus:ring-[#9489E2]/20 focus:outline-none transition-all placeholder-gray-400" />
+                      <button type="button" className="w-full py-2 text-xs font-medium text-white bg-[#9489E2] rounded-lg hover:bg-[#8078d0] transition-all">
+                        Update Password
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  City *
-                </label>
-                <input
-                  type="text"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
-                  placeholder="Tbilisi"
-                  required
-                />
+            {/* Right: Facility Info Card */}
+            <div className="flex-1 bg-white rounded-xl border border-gray-200 overflow-hidden" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+              {/* Header gradient */}
+              <div className="h-16 bg-gradient-to-r from-[#9489E2]/25 via-[#b8b0f0]/15 to-[#9489E2]/10" />
+            <div className="px-5 pb-5 pt-3 space-y-3">
+              {/* Row 1: Name + Phone */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-gray-500">Facility Name *</label>
+                  <input type="text" value={name} onChange={(e) => setName(e.target.value)} required placeholder="e.g., Glamour Beauty Salon"
+                    className="w-full h-9 px-3 bg-white border border-gray-200 text-gray-800 rounded-lg text-sm shadow-sm shadow-black/5 focus:border-[#9489E2] focus:ring-[3px] focus:ring-[#9489E2]/20 focus:outline-none transition-all placeholder-gray-400" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-gray-500">Phone *</label>
+                  <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required placeholder="+995 XXX XXX XXX"
+                    className="w-full h-9 px-3 bg-white border border-gray-200 text-gray-800 rounded-lg text-sm shadow-sm shadow-black/5 focus:border-[#9489E2] focus:ring-[3px] focus:ring-[#9489E2]/20 focus:outline-none transition-all placeholder-gray-400" />
+                </div>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Phone Number *
-                </label>
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
-                  placeholder="+995 XXX XXX XXX"
-                  required
-                />
+              {/* Row 2: Address + City */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-gray-500">Address *</label>
+                  <input type="text" value={address} onChange={(e) => setAddress(e.target.value)} required placeholder="123 Main Street"
+                    className="w-full h-9 px-3 bg-white border border-gray-200 text-gray-800 rounded-lg text-sm shadow-sm shadow-black/5 focus:border-[#9489E2] focus:ring-[3px] focus:ring-[#9489E2]/20 focus:outline-none transition-all placeholder-gray-400" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-gray-500">City *</label>
+                  <input type="text" value={city} onChange={(e) => setCity(e.target.value)} required placeholder="Tbilisi"
+                    className="w-full h-9 px-3 bg-white border border-gray-200 text-gray-800 rounded-lg text-sm shadow-sm shadow-black/5 focus:border-[#9489E2] focus:ring-[3px] focus:ring-[#9489E2]/20 focus:outline-none transition-all placeholder-gray-400" />
+                </div>
+              </div>
+              {/* Row 3: Instagram + Facebook */}
+              <div className="flex gap-3">
+                <div className="flex-1 space-y-1">
+                  <label className="text-xs font-medium text-gray-500">Instagram</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2 text-xs text-gray-400">@</span>
+                    <input type="text" value={instagramUrl} onChange={(e) => setInstagramUrl(e.target.value)} placeholder="your_salon"
+                      className="w-full h-9 pl-7 pr-3 bg-white border border-gray-200 text-gray-800 rounded-lg text-sm shadow-sm shadow-black/5 focus:border-[#9489E2] focus:ring-[3px] focus:ring-[#9489E2]/20 focus:outline-none transition-all placeholder-gray-400" />
+                  </div>
+                </div>
+                <div className="flex-1 space-y-1">
+                  <label className="text-xs font-medium text-gray-500">Facebook</label>
+                  <input type="url" value={facebookUrl} onChange={(e) => setFacebookUrl(e.target.value)} placeholder="https://facebook.com/..."
+                    className="w-full h-9 px-3 bg-white border border-gray-200 text-gray-800 rounded-lg text-sm shadow-sm shadow-black/5 focus:border-[#9489E2] focus:ring-[3px] focus:ring-[#9489E2]/20 focus:outline-none transition-all placeholder-gray-400" />
+                </div>
+              </div>
+              {/* Row 4: Website + Google Maps */}
+              <div className="flex gap-3">
+                <div className="flex-1 space-y-1">
+                  <label className="text-xs font-medium text-gray-500">Website</label>
+                  <input type="url" value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} placeholder="https://..."
+                    className="w-full h-9 px-3 bg-white border border-gray-200 text-gray-800 rounded-lg text-sm shadow-sm shadow-black/5 focus:border-[#9489E2] focus:ring-[3px] focus:ring-[#9489E2]/20 focus:outline-none transition-all placeholder-gray-400" />
+                </div>
+                <div className="flex-1 space-y-1">
+                  <label className="text-xs font-medium text-gray-500">Google Maps</label>
+                  <input type="url" value={googleMapsUrl} onChange={(e) => setGoogleMapsUrl(e.target.value)} placeholder="Paste Maps share link..."
+                    className="w-full h-9 px-3 bg-white border border-gray-200 text-gray-800 rounded-lg text-sm shadow-sm shadow-black/5 focus:border-[#9489E2] focus:ring-[3px] focus:ring-[#9489E2]/20 focus:outline-none transition-all placeholder-gray-400" />
+                </div>
+              </div>
+              {/* Row 5: Description */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-gray-500">Description</label>
+                <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder="Tell customers about your facility..."
+                  className="w-full px-3 py-2 bg-white border border-gray-200 text-gray-800 rounded-lg text-sm shadow-sm shadow-black/5 focus:border-[#9489E2] focus:ring-[3px] focus:ring-[#9489E2]/20 focus:outline-none transition-all placeholder-gray-400 resize-none" />
+                <p className="text-[10px] text-gray-400 text-right">{description.length} characters</p>
               </div>
             </div>
           </div>
-
-          {/* Social Media */}
-          <div className="relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center font-[Inter]">
-              <Globe className="w-6 h-6 mr-2 text-purple-300" />
-              Social Media & Website
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Instagram
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-3 text-gray-400">@</span>
-                  <input
-                    type="text"
-                    value={instagramUrl}
-                    onChange={(e) => setInstagramUrl(e.target.value)}
-                    className="w-full pl-8 pr-4 py-3 bg-purple-950/12 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
-                    placeholder="your_salon"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Facebook
-                </label>
-                <input
-                  type="url"
-                  value={facebookUrl}
-                  onChange={(e) => setFacebookUrl(e.target.value)}
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
-                  placeholder="https://facebook.com/..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Website
-                </label>
-                <input
-                  type="url"
-                  value={websiteUrl}
-                  onChange={(e) => setWebsiteUrl(e.target.value)}
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
-                  placeholder="https://..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Google Maps Location
-                </label>
-                <input
-                  type="url"
-                  value={googleMapsUrl}
-                  onChange={(e) => setGoogleMapsUrl(e.target.value)}
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
-                  placeholder="Paste Google Maps share link..."
-                />
-                <p className="text-[10px] text-gray-500 mt-1">Open Google Maps → Find your salon → Share → Copy link → Paste here</p>
-              </div>
-            </div>
           </div>
 
           {/* Save Button */}
-          <div className="flex justify-end">
+          <div className="flex justify-end mt-4">
             <button
               type="submit"
               disabled={saving || !salonId}
-              className="px-8 py-3 bg-purple-900/10 border border-purple-500/10 text-gray-800 rounded-lg hover:bg-purple-900/15 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
+              className="px-6 py-2 bg-[#9489E2] text-white rounded-lg hover:bg-[#8078d0] disabled:opacity-50 font-medium text-sm transition-all"
             >
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
@@ -857,9 +826,9 @@ export default function Profile() {
       {activeTab === 'categories' && (
         <div className="space-y-6">
           {/* Service Categories */}
-          <div className="relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
+          <div className="relative bg-white backdrop-blur-xl rounded-lg border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.1)] p-6">
             <h3 className="text-lg font-bold text-gray-800 mb-2 flex items-center font-[Inter]">
-              <Scissors className="w-6 h-6 mr-2 text-purple-300" />
+              <Scissors className="w-6 h-6 mr-2 text-[#9489E2]" />
               Service Categories
             </h3>
             <p className="text-sm text-gray-300 mb-6">Select the types of services you offer</p>
@@ -870,24 +839,24 @@ export default function Profile() {
                   key={category}
                   type="button"
                   onClick={() => toggleCategory(category)}
-                  className={`p-3 rounded-xl border transition-all transform hover:scale-105 ${
+                  className={`p-3 rounded-xl border-2 transition-all transform hover:scale-105 ${
                     categories.includes(category)
-                      ? 'bg-purple-900/10 border-purple-500/20 text-gray-800'
-                      : 'border-purple-500/[0.06] bg-black/10 text-gray-200 hover:border-purple-500/40'
+                      ? 'bg-[#9489E2]/10 border-[#9489E2] text-gray-800 shadow-sm shadow-[#9489E2]/20'
+                      : 'border-gray-200 bg-white text-gray-400 hover:border-gray-300'
                   }`}
                 >
                   <div className="text-center">
                     <div className="flex justify-center mb-2">
-                      {category === 'Hair' && <Scissors className="w-6 h-6 text-purple-300" />}
-                      {category === 'Nails' && <Droplets className="w-6 h-6 text-purple-300" />}
-                      {category === 'Spa' && <Waves className="w-6 h-6 text-purple-300" />}
-                      {category === 'Makeup' && <Palette className="w-6 h-6 text-purple-300" />}
-                      {category === 'Skincare' && <Sparkles className="w-6 h-6 text-purple-300" />}
-                      {category === 'Massage' && <Heart className="w-6 h-6 text-purple-300" />}
-                      {category === 'Waxing' && <Zap className="w-6 h-6 text-purple-300" />}
-                      {category === 'Brows & Lashes' && <Eye className="w-6 h-6 text-purple-300" />}
-                      {category === 'Tanning' && <Sun className="w-6 h-6 text-purple-300" />}
-                      {category === 'Barbershop' && <Shirt className="w-6 h-6 text-purple-300" />}
+                      {category === 'Hair' && <Scissors className="w-6 h-6 text-[#9489E2]" />}
+                      {category === 'Nails' && <Droplets className="w-6 h-6 text-[#9489E2]" />}
+                      {category === 'Spa' && <Waves className="w-6 h-6 text-[#9489E2]" />}
+                      {category === 'Makeup' && <Palette className="w-6 h-6 text-[#9489E2]" />}
+                      {category === 'Skincare' && <Sparkles className="w-6 h-6 text-[#9489E2]" />}
+                      {category === 'Massage' && <Heart className="w-6 h-6 text-[#9489E2]" />}
+                      {category === 'Waxing' && <Zap className="w-6 h-6 text-[#9489E2]" />}
+                      {category === 'Brows & Lashes' && <Eye className="w-6 h-6 text-[#9489E2]" />}
+                      {category === 'Tanning' && <Sun className="w-6 h-6 text-[#9489E2]" />}
+                      {category === 'Barbershop' && <Shirt className="w-6 h-6 text-[#9489E2]" />}
                     </div>
                     <div className="text-xs font-medium">{category}</div>
                   </div>
@@ -897,9 +866,9 @@ export default function Profile() {
           </div>
 
           {/* Price Range */}
-          <div className="relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
+          <div className="relative bg-white backdrop-blur-xl rounded-lg border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.1)] p-6">
             <h3 className="text-lg font-bold text-gray-800 mb-2 flex items-center font-[Inter]">
-              <DollarSign className="w-6 h-6 mr-2 text-purple-300" />
+              <DollarSign className="w-6 h-6 mr-2 text-[#9489E2]" />
               Price Range
             </h3>
             <p className="text-sm text-gray-300 mb-6">How would you categorize your pricing?</p>
@@ -915,10 +884,10 @@ export default function Profile() {
                   key={option.value}
                   type="button"
                   onClick={() => setPriceRange(option.value)}
-                  className={`p-4 rounded-xl border transition-all transform hover:scale-105 ${
+                  className={`p-4 rounded-xl border-2 transition-all transform hover:scale-105 ${
                     priceRange === option.value
-                      ? 'bg-purple-900/10 border-purple-500/20 text-gray-800'
-                      : 'border-purple-500/[0.06] bg-black/10 text-gray-200 hover:border-purple-500/40'
+                      ? 'bg-[#9489E2]/10 border-[#9489E2] text-gray-800 shadow-sm shadow-[#9489E2]/20'
+                      : 'border-gray-200 bg-white text-gray-400 hover:border-gray-300'
                   }`}
                 >
                   <div className="flex justify-center gap-0.5 mb-2">
@@ -934,9 +903,9 @@ export default function Profile() {
           </div>
 
           {/* Amenities */}
-          <div className="relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
+          <div className="relative bg-white backdrop-blur-xl rounded-lg border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.1)] p-6">
             <h3 className="text-lg font-bold text-gray-800 mb-2 flex items-center font-[Inter]">
-              <Target className="w-6 h-6 mr-2 text-purple-300" />
+              <Target className="w-6 h-6 mr-2 text-[#9489E2]" />
               Amenities & Features
             </h3>
             <p className="text-sm text-gray-300 mb-6">What amenities do you offer?</p>
@@ -949,10 +918,10 @@ export default function Profile() {
                     key={amenity.key}
                     type="button"
                     onClick={() => toggleAmenity(amenity.key)}
-                    className={`p-4 rounded-xl border transition-all transform hover:scale-105 text-left ${
+                    className={`p-3 rounded-xl border-2 transition-all transform hover:scale-105 text-left ${
                       amenities[amenity.key]
-                        ? 'bg-purple-900/10 border-purple-500/20 text-gray-800'
-                        : 'border-purple-500/[0.06] bg-black/10 text-gray-200 hover:border-purple-500/40'
+                        ? 'bg-[#9489E2]/10 border-[#9489E2] text-gray-800 shadow-sm shadow-[#9489E2]/20'
+                        : 'border-gray-200 bg-white text-gray-400 hover:border-gray-300'
                     }`}
                   >
                     <div className="flex items-center space-x-3">
@@ -971,7 +940,7 @@ export default function Profile() {
               type="button"
               onClick={handleSave}
               disabled={saving || !salonId}
-              className="px-8 py-3 bg-purple-900/10 border border-purple-500/10 text-gray-800 rounded-lg hover:bg-purple-900/15 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
+              className="px-8 py-3 bg-gray-50 border border-gray-200 text-gray-800 rounded-lg hover:bg-gray-50 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
             >
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
@@ -983,9 +952,9 @@ export default function Profile() {
       {activeTab === 'hours' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Working Hours Section */}
-          <div className="lg:col-span-2 relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
+          <div className="lg:col-span-2 relative bg-white backdrop-blur-xl rounded-lg border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.1)] p-6">
             <h3 className="text-lg font-bold text-gray-800 mb-2 flex items-center font-[Inter]">
-              <Clock className="w-6 h-6 mr-2 text-purple-300" />
+              <Clock className="w-6 h-6 mr-2 text-[#9489E2]" />
               Working Hours
             </h3>
             <p className="text-sm text-gray-300 mb-6">Set your operating hours for each day of the week</p>
@@ -995,7 +964,7 @@ export default function Profile() {
               const hours = workingHours[day.value] || { open_time: '09:00', close_time: '18:00', is_closed: false }
 
               return (
-                <div key={day.value} className="flex items-center space-x-4 p-4 bg-black/10 border border-purple-500/10 rounded-lg min-h-[64px]">
+                <div key={day.value} className="flex items-center space-x-4 p-4 bg-gray-50 border border-gray-200 rounded-lg min-h-[64px]">
                   <div className="w-32 flex-shrink-0">
                     <span className="text-sm font-semibold text-gray-800">{day.label}</span>
                   </div>
@@ -1005,7 +974,7 @@ export default function Profile() {
                       type="checkbox"
                       checked={hours.is_closed}
                       onChange={(e) => handleHoursChange(day.value, 'is_closed', e.target.checked)}
-                      className="w-4 h-4 text-purple-600 border-purple-400 rounded focus:ring-purple-500 bg-black/15"
+                      className="w-4 h-4 text-[#9489E2] border-[#9489E2] rounded focus:ring-[#9489E2] bg-gray-50"
                     />
                     <span className="ml-2 text-sm text-gray-300 font-medium w-16">Closed</span>
                   </label>
@@ -1019,7 +988,7 @@ export default function Profile() {
                         <button
                           type="button"
                           onClick={() => openTimePicker(day.value, 'hours')}
-                          className="p-2 bg-purple-900/10 border border-purple-500/10 text-purple-300 rounded-lg hover:bg-purple-900/15 transition-all"
+                          className="p-2 bg-gray-50 border border-gray-200 text-[#9489E2] rounded-lg hover:bg-gray-50 transition-all"
                         >
                           <Clock className="w-4 h-4" />
                         </button>
@@ -1038,7 +1007,7 @@ export default function Profile() {
                 type="button"
                 onClick={saveWorkingHours}
                 disabled={saving}
-                className="px-8 py-3 bg-purple-900/10 border border-purple-500/10 text-gray-800 rounded-lg hover:bg-purple-900/15 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
+                className="px-8 py-3 bg-gray-50 border border-gray-200 text-gray-800 rounded-lg hover:bg-gray-50 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
               >
                 {saving ? 'Saving...' : 'Save Working Hours'}
               </button>
@@ -1046,14 +1015,14 @@ export default function Profile() {
           </div>
 
           {/* Weekly Summary Card */}
-          <div className="relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
+          <div className="relative bg-white backdrop-blur-xl rounded-lg border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.1)] p-6">
             <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center font-[Inter]">
-              <TrendingUp className="w-5 h-5 mr-2 text-purple-300" />
+              <TrendingUp className="w-5 h-5 mr-2 text-[#9489E2]" />
               Weekly Summary
             </h3>
 
             {/* Total Hours */}
-            <div className="mb-6 p-4 bg-purple-900/10 rounded-lg border border-purple-500/15">
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
               <p className="text-xs text-gray-400 mb-1">Total Weekly Hours</p>
               <p className="text-3xl font-bold text-gray-800">
                 {Object.values(workingHours).reduce((total, day) => {
@@ -1090,7 +1059,7 @@ export default function Profile() {
                       <div className="flex items-center gap-2">
                         <div className="w-20 h-2 bg-white/5 rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-gradient-to-r from-purple-800/15 via-purple-900/15 to-violet-900/15"
+                            className="h-full bg-[#9489E2]/10"
                             style={{ width: `${(dailyHours / 24) * 100}%` }}
                           />
                         </div>
@@ -1119,7 +1088,7 @@ export default function Profile() {
                   setWorkingHours(prev => ({ ...prev, ...newHours }));
                   toast.info('Applied Mon-Fri schedule with weekend closed');
                 }}
-                className="w-full px-3 py-2 text-xs bg-purple-900/10 border border-purple-600 text-gray-800 rounded-lg hover:bg-purple-900/15 transition-all"
+                className="w-full px-3 py-2 text-xs bg-gray-50 border border-[#9489E2] text-gray-800 rounded-lg hover:bg-gray-50 transition-all"
               >
                 Set Mon-Fri (Weekend Closed)
               </button>
@@ -1134,13 +1103,13 @@ export default function Profile() {
                   setWorkingHours(prev => ({ ...prev, ...newHours }));
                   toast.info('Applied 9AM-6PM to all days');
                 }}
-                className="w-full px-3 py-2 text-xs bg-purple-900/10 border border-purple-600 text-gray-800 rounded-lg hover:bg-purple-900/15 transition-all"
+                className="w-full px-3 py-2 text-xs bg-gray-50 border border-[#9489E2] text-gray-800 rounded-lg hover:bg-gray-50 transition-all"
               >
                 Set All Days 9AM-6PM
               </button>
 
               {/* Custom Time Setter */}
-              <div className="p-3 bg-purple-900/8 rounded-lg border border-purple-500/[0.06] mt-3">
+              <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 mt-3">
                 <p className="text-xs text-gray-300 mb-2 font-medium">Set All Days To:</p>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="flex-1 text-gray-800 font-medium text-sm text-center">
@@ -1149,7 +1118,7 @@ export default function Profile() {
                   <button
                     type="button"
                     onClick={() => openTimePicker(null, 'custom')}
-                    className="p-2 bg-purple-900/10 border border-purple-500/10 text-purple-300 rounded-lg hover:bg-purple-900/15 transition-all"
+                    className="p-2 bg-gray-50 border border-gray-200 text-[#9489E2] rounded-lg hover:bg-gray-50 transition-all"
                   >
                     <Clock className="w-4 h-4" />
                   </button>
@@ -1157,7 +1126,7 @@ export default function Profile() {
               </div>
 
               {/* Online Booking Control */}
-              <div className="mt-4 p-4 bg-purple-900/8 rounded-lg border border-purple-500/[0.06]">
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-xs text-gray-300 font-medium">Online Booking</p>
                   <button
@@ -1175,12 +1144,12 @@ export default function Profile() {
                   {onlineBooking ? 'App users can book online.' : 'Online booking disabled. Walk-in only.'}
                 </p>
 
-                <div className="border-t border-purple-500/10 pt-3">
+                <div className="border-t border-gray-200 pt-3">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold">Blocked Dates</span>
                     <button
                       onClick={() => setShowBlockDateForm(!showBlockDateForm)}
-                      className="text-[10px] text-purple-300 hover:text-purple-200 transition-colors"
+                      className="text-[10px] text-[#9489E2] hover:text-gray-500 transition-colors"
                     >
                       + Add
                     </button>
@@ -1193,9 +1162,9 @@ export default function Profile() {
                         value={blockDate}
                         onChange={(e) => setBlockDate(e.target.value)}
                         min={new Date().toISOString().split('T')[0]}
-                        className="flex-1 px-2 py-1 text-[11px] bg-purple-950/40 border border-purple-500/20 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500"
+                        className="flex-1 px-2 py-1 text-[11px] bg-gray-50 border border-[#9489E2]/30 text-gray-800 rounded-lg focus:ring-2 focus:ring-[#9489E2]"
                       />
-                      <button onClick={addBlockedDate} className="px-2 py-1 text-[11px] bg-purple-600 text-gray-800 rounded-lg hover:bg-purple-500 transition-all">Add</button>
+                      <button onClick={addBlockedDate} className="px-2 py-1 text-[11px] bg-[#9489E2] text-white rounded-lg hover:bg-[#8078d0] transition-all">Add</button>
                     </div>
                   )}
 
@@ -1223,11 +1192,11 @@ export default function Profile() {
 
       {/* Gallery Tab */}
       {activeTab === 'gallery' && (
-        <div className="relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
+        <div className="relative bg-white backdrop-blur-xl rounded-lg border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.1)] p-6">
           <div className="flex justify-between items-center mb-6">
             <div>
               <h3 className="text-lg font-bold text-gray-800 flex items-center font-[Inter]">
-                <Camera className="w-6 h-6 mr-2 text-purple-300" />
+                <Camera className="w-6 h-6 mr-2 text-[#9489E2]" />
                 Photo Gallery
               </h3>
               <p className="text-sm text-gray-300 mt-1">Showcase your facility to attract more customers</p>
@@ -1238,12 +1207,12 @@ export default function Profile() {
                   type="button"
                   onClick={fixImageUrls}
                   disabled={saving}
-                  className="px-6 py-3 bg-purple-900/15 border border-purple-500/10 text-gray-800 rounded-lg hover:bg-purple-900/20 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
+                  className="px-6 py-3 bg-gray-50 border border-gray-200 text-gray-800 rounded-lg hover:bg-gray-100 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
                 >
                   {saving ? 'Fixing...' : 'Fix Image URLs'}
                 </button>
               )}
-              <label className="px-6 py-3 bg-purple-900/15 border border-purple-500/10 text-gray-800 rounded-lg hover:bg-purple-900/20 cursor-pointer font-medium transition-all transform hover:scale-105">
+              <label className="px-6 py-3 bg-gray-50 border border-gray-200 text-gray-800 rounded-lg hover:bg-gray-100 cursor-pointer font-medium transition-all transform hover:scale-105">
                 <input
                   type="file"
                   accept="image/*"
@@ -1258,9 +1227,9 @@ export default function Profile() {
           </div>
 
           {galleryImages.length === 0 ? (
-            <div className="text-center py-16 border border-dashed border-purple-500/[0.06] rounded-xl bg-black/10">
-              <Camera className="w-16 h-16 mx-auto mb-4 text-purple-300" />
-              <p className="text-gray-200 text-lg font-medium">No photos yet</p>
+            <div className="text-center py-16 border border-dashed border-gray-200 rounded-xl bg-gray-50">
+              <Camera className="w-16 h-16 mx-auto mb-4 text-[#9489E2]" />
+              <p className="text-gray-500 text-lg font-medium">No photos yet</p>
               <p className="text-gray-400 text-sm mt-2">Upload photos to showcase your facility</p>
             </div>
           ) : (
@@ -1268,7 +1237,7 @@ export default function Profile() {
               {galleryImages.map((image) => {
                 console.log('Rendering image:', image.id, image.image_url)
                 return (
-                  <div key={image.id} className="relative group bg-black/15 border border-purple-500/10 rounded-xl overflow-hidden">
+                  <div key={image.id} className="relative group bg-gray-50 border border-gray-200 rounded-xl overflow-hidden">
                     <img
                       src={image.image_url}
                       alt="Gallery"
@@ -1319,7 +1288,7 @@ export default function Profile() {
             </div>
             <button
               onClick={() => setShowAddClosed(true)}
-              className="px-4 py-2 text-xs font-medium bg-purple-600 text-gray-800 rounded-lg hover:bg-purple-500 transition-all"
+              className="px-4 py-2 text-xs font-medium bg-[#9489E2] text-white rounded-lg hover:bg-[#8078d0] transition-all"
             >
               + Add Period
             </button>
@@ -1327,7 +1296,7 @@ export default function Profile() {
 
           {/* Add form */}
           {showAddClosed && (
-            <div className="bg-gradient-to-r from-purple-900/15 to-violet-900/15 border border-purple-500/10 rounded-xl p-4">
+            <div className="bg-white border border-gray-200 rounded-xl p-4">
               <div className="flex gap-3 items-end">
                 <div className="flex-1">
                   <label className="text-[10px] text-gray-400 uppercase tracking-wide block mb-1">Start Date</label>
@@ -1335,7 +1304,7 @@ export default function Profile() {
                     type="date"
                     value={closedForm.startDate}
                     onChange={e => setClosedForm(prev => ({ ...prev, startDate: e.target.value }))}
-                    className="w-full px-3 py-2 text-sm bg-purple-950/40 border border-purple-500/20 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-3 py-2 text-sm bg-gray-50 border border-[#9489E2]/30 text-gray-800 rounded-lg focus:ring-2 focus:ring-[#9489E2]"
                   />
                 </div>
                 <div className="flex-1">
@@ -1344,7 +1313,7 @@ export default function Profile() {
                     type="date"
                     value={closedForm.endDate}
                     onChange={e => setClosedForm(prev => ({ ...prev, endDate: e.target.value }))}
-                    className="w-full px-3 py-2 text-sm bg-purple-950/40 border border-purple-500/20 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-3 py-2 text-sm bg-gray-50 border border-[#9489E2]/30 text-gray-800 rounded-lg focus:ring-2 focus:ring-[#9489E2]"
                   />
                 </div>
                 <div className="flex-1">
@@ -1354,7 +1323,7 @@ export default function Profile() {
                     value={closedForm.reason}
                     onChange={e => setClosedForm(prev => ({ ...prev, reason: e.target.value }))}
                     placeholder="Holiday, Renovation..."
-                    className="w-full px-3 py-2 text-sm bg-purple-950/40 border border-purple-500/20 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 placeholder-gray-500"
+                    className="w-full px-3 py-2 text-sm bg-gray-50 border border-[#9489E2]/30 text-gray-800 rounded-lg focus:ring-2 focus:ring-[#9489E2] placeholder-gray-500"
                   />
                 </div>
                 <div className="flex gap-2">
@@ -1378,7 +1347,7 @@ export default function Profile() {
                   <div key={period.id} className={`flex items-center justify-between rounded-xl p-4 border transition-all ${
                     isActive ? 'bg-gradient-to-r from-red-900/20 to-rose-900/20 border-red-500/30' :
                     isPast ? 'bg-white/[0.02] border-white/[0.05] opacity-50' :
-                    'bg-gradient-to-r from-purple-900/15 to-violet-900/15 border-purple-500/10'
+                    'bg-white border-gray-200'
                   }`}>
                     <div className="flex items-center gap-4">
                       <div className="text-center w-20">

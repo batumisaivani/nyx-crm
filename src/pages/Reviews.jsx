@@ -234,7 +234,6 @@ export default function Reviews() {
       {/* Header */}
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-800 font-[Inter]">Reviews & Ratings</h2>
-        <p className="text-gray-300 mt-1">Manage customer feedback and build trust</p>
       </div>
 
       {/* Stats Cards */}
@@ -243,13 +242,13 @@ export default function Reviews() {
         <AnimatedCard className="p-6 flex flex-col h-[180px]">
           <div className="flex items-center space-x-3 mb-3">
             <Star className="w-5 h-5 text-yellow-400" />
-            <div className="text-sm text-purple-200">Average Rating</div>
+            <div className="text-sm text-gray-500">Average Rating</div>
           </div>
           <div className="flex-1 flex flex-col justify-center">
             <div className="text-4xl font-bold text-yellow-400 mb-2">{stats.avgRating}</div>
             <div>
               {renderStars(Math.round(parseFloat(stats.avgRating)))}
-              <div className="text-xs text-purple-300 mt-1">
+              <div className="text-xs text-[#9489E2] mt-1">
                 {stats.totalReviews} {stats.totalReviews === 1 ? 'review' : 'reviews'}
               </div>
             </div>
@@ -259,13 +258,13 @@ export default function Reviews() {
         {/* Rating Distribution */}
         <AnimatedCard className="p-6 flex flex-col h-[180px]">
           <div className="flex items-center space-x-3 mb-3">
-            <TrendingUp className="w-5 h-5 text-purple-300" />
-            <div className="text-sm text-purple-200">Reviews Distribution</div>
+            <TrendingUp className="w-5 h-5 text-[#9489E2]" />
+            <div className="text-sm text-gray-500">Reviews Distribution</div>
           </div>
           <div className="flex-1 flex flex-col justify-center space-y-1.5">
             {[5, 4, 3, 2, 1].map((star) => (
               <div key={star} className="flex items-center space-x-2">
-                <span className="text-xs text-gray-300 w-6">{star}★</span>
+                <span className="text-xs text-gray-600 w-6">{star}★</span>
                 <div className="flex-1 bg-white/10 rounded-full h-1.5">
                   <div
                     className="bg-gradient-to-r from-yellow-400 to-yellow-500 h-1.5 rounded-full transition-all"
@@ -276,7 +275,7 @@ export default function Reviews() {
                     }}
                   ></div>
                 </div>
-                <span className="text-xs text-gray-300 w-6">{stats.distribution[star]}</span>
+                <span className="text-xs text-gray-600 w-6">{stats.distribution[star]}</span>
               </div>
             ))}
           </div>
@@ -285,24 +284,24 @@ export default function Reviews() {
         {/* Reviews Timeline */}
         <AnimatedCard className="p-6 flex flex-col h-[180px]">
           <div className="flex items-center space-x-3 mb-3">
-            <BarChart2 className="w-5 h-5 text-purple-300" />
-            <div className="text-sm text-purple-200">Reviews Timeline</div>
+            <BarChart2 className="w-5 h-5 text-[#9489E2]" />
+            <div className="text-sm text-gray-500">Reviews Timeline</div>
           </div>
           <div className="flex-1 flex flex-col justify-center space-y-0">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-300">Today</span>
+              <span className="text-xs text-gray-600">Today</span>
               <span className="text-lg font-bold text-green-400">{stats.timeline.today}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-300">This Week</span>
+              <span className="text-xs text-gray-600">This Week</span>
               <span className="text-lg font-bold text-blue-400">{stats.timeline.week}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-300">This Month</span>
-              <span className="text-lg font-bold text-purple-400">{stats.timeline.month}</span>
+              <span className="text-xs text-gray-600">This Month</span>
+              <span className="text-lg font-bold text-[#9489E2]">{stats.timeline.month}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-300">This Quarter</span>
+              <span className="text-xs text-gray-600">This Quarter</span>
               <span className="text-lg font-bold text-pink-400">{stats.timeline.quarter}</span>
             </div>
           </div>
@@ -311,26 +310,26 @@ export default function Reviews() {
         {/* Gender Distribution */}
         <AnimatedCard className="p-6 flex flex-col h-[180px]">
           <div className="flex items-center space-x-3 mb-3">
-            <Users className="w-5 h-5 text-purple-300" />
-            <div className="text-sm text-purple-200">Gender Distribution</div>
+            <Users className="w-5 h-5 text-[#9489E2]" />
+            <div className="text-sm text-gray-500">Gender Distribution</div>
           </div>
           <div className="flex-1 flex flex-col justify-center items-center space-y-3">
             <div className="flex items-center space-x-6">
               <div className="flex flex-col items-center">
                 <User className="w-8 h-8 text-blue-400" />
-                <span className="text-xs text-gray-300 mt-1">Male</span>
+                <span className="text-xs text-gray-600 mt-1">Male</span>
+                <span className="text-sm font-bold text-gray-800">—</span>
               </div>
               <div className="flex flex-col items-center">
                 <User className="w-8 h-8 text-pink-400" />
-                <span className="text-xs text-gray-300 mt-1">Female</span>
+                <span className="text-xs text-gray-600 mt-1">Female</span>
+                <span className="text-sm font-bold text-gray-800">—</span>
               </div>
               <div className="flex flex-col items-center">
-                <User className="w-8 h-8 text-purple-400" />
-                <span className="text-xs text-gray-300 mt-1">Other</span>
+                <User className="w-8 h-8 text-[#9489E2]" />
+                <span className="text-xs text-gray-600 mt-1">Other</span>
+                <span className="text-sm font-bold text-gray-800">—</span>
               </div>
-            </div>
-            <div className="px-4 py-2 bg-orange-900/30 border border-orange-700 rounded-lg">
-              <span className="text-xs text-orange-300 font-medium">Coming Soon</span>
             </div>
           </div>
         </AnimatedCard>
@@ -339,11 +338,11 @@ export default function Reviews() {
         <AnimatedCard className="p-6 flex flex-col h-[180px]">
           <div className="flex items-center space-x-3 mb-3">
             <Reply className="w-5 h-5 text-blue-400" />
-            <div className="text-sm text-purple-200">Response Rate</div>
+            <div className="text-sm text-gray-500">Response Rate</div>
           </div>
           <div className="flex-1 flex flex-col justify-center">
             <div className="text-4xl font-bold text-blue-400 mb-2">{stats.responseRate}%</div>
-            <div className="text-xs text-purple-300">
+            <div className="text-xs text-[#9489E2]">
               {stats.responseRate >= 80 ? 'Excellent engagement!' : stats.responseRate >= 50 ? 'Good response rate' : 'Reply to more reviews'}
             </div>
           </div>
@@ -351,19 +350,19 @@ export default function Reviews() {
       </div>
 
       {/* Filters */}
-      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 mb-6">
+      <div className="relative bg-white rounded-lg border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.08)] p-6 mb-6">
         <div className="flex items-center space-x-4 flex-wrap gap-3">
           <div className="flex items-center space-x-2">
-            <Filter className="w-5 h-5 text-purple-300" />
-            <span className="text-sm font-medium text-gray-200">Filter by rating:</span>
+            <Filter className="w-5 h-5 text-[#9489E2]" />
+            <span className="text-sm font-medium text-gray-500">Filter by rating:</span>
           </div>
           <div className="flex space-x-2 flex-wrap gap-2">
             <button
               onClick={() => setFilterRating('all')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 filterRating === 'all'
-                  ? 'bg-purple-900/30 border border-purple-500/10 text-gray-800'
-                  : 'bg-black/30 border border-purple-500/[0.06] text-gray-200 hover:border-purple-500/40'
+                  ? 'bg-[#9489E2]/10 border border-gray-200 text-gray-800'
+                  : 'bg-white border border-gray-200 text-gray-500 hover:border-gray-300'
               }`}
             >
               All
@@ -374,8 +373,8 @@ export default function Reviews() {
                 onClick={() => setFilterRating(rating.toString())}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   filterRating === rating.toString()
-                    ? 'bg-purple-900/30 border border-purple-500/10 text-gray-800'
-                    : 'bg-black/30 border border-purple-500/[0.06] text-gray-200 hover:border-purple-500/40'
+                    ? 'bg-[#9489E2]/10 border border-gray-200 text-gray-800'
+                    : 'bg-white border border-gray-200 text-gray-500 hover:border-gray-300'
                 }`}
               >
                 {rating}★
@@ -388,10 +387,10 @@ export default function Reviews() {
       {/* Reviews List */}
       <div className="space-y-4">
         {reviews.length === 0 ? (
-          <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-16 text-center">
-            <Star className="w-16 h-16 mx-auto mb-4 text-purple-300" />
+          <div className="relative bg-white rounded-lg border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.08)] p-16 text-center">
+            <Star className="w-16 h-16 mx-auto mb-4 text-[#9489E2]" />
             <h3 className="text-xl font-semibold text-gray-800 mb-2 font-[Inter]">No reviews yet</h3>
-            <p className="text-gray-300">
+            <p className="text-gray-600">
               {filterRating === 'all'
                 ? 'Your customers haven\'t left any reviews yet'
                 : `No ${filterRating}-star reviews found`}
@@ -401,25 +400,25 @@ export default function Reviews() {
           reviews.map((review) => (
             <div
               key={review.id}
-              className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 hover:shadow-purple-500/20 transition-all"
+              className="relative bg-white rounded-lg border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.08)] p-6 hover:shadow-md transition-all"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 via-violet-500 to-fuchsia-500 rounded-full flex items-center justify-center text-gray-800 font-bold text-lg shadow-lg shadow-purple-500/20">
+                  <div className="w-12 h-12 bg-[#9489E2] rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm">
                     {review.customer_name?.charAt(0).toUpperCase() || 'U'}
                   </div>
                   <div>
                     <div className="font-semibold text-gray-800 font-[Inter]">
                       {review.customer_name || 'Anonymous'}
                     </div>
-                    <div className="text-xs text-gray-300">{review.customer_email}</div>
+                    <div className="text-xs text-gray-600">{review.customer_email}</div>
                     <div className="mt-1">{renderStars(review.rating)}</div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-xs text-gray-300">{formatDate(review.created_at)}</div>
+                  <div className="text-xs text-gray-600">{formatDate(review.created_at)}</div>
                   {review.booking_id && (
-                    <div className="text-xs text-purple-300 mt-1 flex items-center justify-end gap-1">
+                    <div className="text-xs text-[#9489E2] mt-1 flex items-center justify-end gap-1">
                       <Star className="w-3 h-3" /> Verified
                     </div>
                   )}
@@ -428,21 +427,21 @@ export default function Reviews() {
 
               {review.review_text && (
                 <div className="mb-4 pl-16">
-                  <p className="text-gray-200 leading-relaxed">{review.review_text}</p>
+                  <p className="text-gray-500 leading-relaxed">{review.review_text}</p>
                 </div>
               )}
 
               {/* Owner Reply */}
               {review.reply_text ? (
-                <div className="pl-16 mt-4 border-l-4 border-purple-500 bg-purple-900/30 p-4 rounded-r-lg">
+                <div className="pl-16 mt-4 border-l-4 border-[#9489E2] bg-[#9489E2]/10 p-4 rounded-r-lg">
                   <div className="flex items-center space-x-2 mb-2">
-                    <MessageSquare className="w-4 h-4 text-purple-300" />
-                    <span className="text-sm font-semibold text-purple-200">Your Reply</span>
+                    <MessageSquare className="w-4 h-4 text-[#9489E2]" />
+                    <span className="text-sm font-semibold text-gray-500">Your Reply</span>
                     <span className="text-xs text-gray-400">
                       {formatDate(review.replied_at)}
                     </span>
                   </div>
-                  <p className="text-gray-200">{review.reply_text}</p>
+                  <p className="text-gray-500">{review.reply_text}</p>
                 </div>
               ) : replyingTo === review.id ? (
                 <div className="pl-16 mt-4">
@@ -451,13 +450,13 @@ export default function Reviews() {
                     onChange={(e) => setReplyText(e.target.value)}
                     placeholder="Write your reply..."
                     rows={3}
-                    className="w-full px-4 py-3 bg-purple-950/25 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/90 transition-all placeholder-gray-400"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-800 rounded-lg focus:ring-2 focus:ring-[#9489E2] focus:border-[#9489E2] focus:bg-white transition-all placeholder-gray-400"
                   />
                   <div className="flex space-x-2 mt-2">
                     <button
                       onClick={() => handleReply(review.id)}
                       disabled={submitting}
-                      className="px-4 py-2 bg-purple-900/30 border border-purple-500/10 text-gray-800 rounded-lg hover:bg-purple-900/40 disabled:opacity-50 text-sm font-medium transition-all"
+                      className="px-4 py-2 bg-[#9489E2]/10 border border-gray-200 text-gray-800 rounded-lg hover:bg-[#9489E2]/15 disabled:opacity-50 text-sm font-medium transition-all"
                     >
                       {submitting ? 'Posting...' : 'Post Reply'}
                     </button>
@@ -467,7 +466,7 @@ export default function Reviews() {
                         setReplyText('')
                       }}
                       disabled={submitting}
-                      className="px-4 py-2 bg-black/30 border border-purple-500/[0.06] text-gray-200 rounded-lg hover:border-purple-500/40 text-sm font-medium transition-all"
+                      className="px-4 py-2 bg-white border border-gray-200 text-gray-500 rounded-lg hover:border-gray-300 text-sm font-medium transition-all"
                     >
                       Cancel
                     </button>
@@ -477,7 +476,7 @@ export default function Reviews() {
                 <div className="pl-16 mt-4">
                   <button
                     onClick={() => setReplyingTo(review.id)}
-                    className="text-sm font-medium text-purple-300 hover:text-purple-200 flex items-center space-x-2 transition-all"
+                    className="text-sm font-medium text-[#9489E2] hover:text-gray-500 flex items-center space-x-2 transition-all"
                   >
                     <MessageSquare className="w-4 h-4" />
                     <span>Reply to this review</span>
