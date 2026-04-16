@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase'
 import AnimatedCard from '../components/ui/AnimatedCard'
 import RevenueCircle from '../components/ui/RevenueCircle'
 import ClassicLoader from '../components/ui/loader'
-import { Calendar, TrendingUp, Scissors, Users, Building2, CalendarDays, Brain, ChevronDown, ExternalLink, Send, Clock, Tag, Zap, Plus, Sparkles, Shield, Settings, CheckCircle2, X } from 'lucide-react'
+import { Calendar, TrendingUp, Scissors, Users, Building2, CalendarDays, Brain, ChevronDown, ExternalLink, Send, Clock, Tag, Zap, Plus, Sparkles, Shield, Settings, CheckCircle2, X, Camera } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { StoryViewer } from '../components/ui/StoryViewer'
 
@@ -370,211 +370,180 @@ export default function Dashboard() {
           </div>
         ) : (
           <>
-            {/* Stories Row */}
-            <div className="mb-6 -mx-2">
-              <div className="flex items-start gap-4 overflow-x-auto px-2 pb-2 scrollbar-hide">
-                {salonStories.map((storyGroup) => (
-                  <StoryViewer
-                    key={storyGroup.username}
-                    stories={storyGroup.stories}
-                    username={storyGroup.username}
-                    avatar={storyGroup.avatar}
-                    timestamp={storyGroup.timestamp}
-                  />
-                ))}
-              </div>
-            </div>
 
             {/* Hero: Image | Revenue | Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
               {/* Today's Status & Next Booking */}
-              <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl overflow-hidden h-full flex flex-col">
+              <AnimatedCard className="overflow-hidden h-full flex flex-col">
                 <div className="px-5 pt-5 pb-3">
-                  <p className="text-white/40 text-[10px] font-medium tracking-[0.2em] uppercase">
+                  <p className="text-gray-500 text-[10px] font-medium tracking-[0.2em] uppercase">
                     {new Date().getHours() < 12 ? 'Good Morning' : new Date().getHours() < 18 ? 'Good Afternoon' : 'Good Evening'}
                   </p>
-                  <p className="text-white text-lg font-bold mt-0.5">{facilityAccess?.salons?.name || 'Your Salon'}</p>
+                  <p className="text-gray-800 text-lg font-bold mt-0.5">{facilityAccess?.salons?.name || 'Your Salon'}</p>
                 </div>
 
                 {/* Today's Progress */}
                 <div className="px-5 pb-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-white/40">Today's Progress</span>
-                    <span className="text-xs font-semibold text-white/60">{stats.todayCompleted}/{stats.todayBookings}</span>
+                    <span className="text-xs text-gray-500">Today's Progress</span>
+                    <span className="text-xs font-semibold text-gray-600">{stats.todayCompleted}/{stats.todayBookings}</span>
                   </div>
-                  <div className="w-full bg-white/[0.06] rounded-full h-2 mb-3">
+                  <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
                     <div
                       className="bg-gradient-to-r from-purple-500 to-violet-500 h-2 rounded-full transition-all duration-700"
                       style={{ width: `${stats.todayBookings > 0 ? (stats.todayCompleted / stats.todayBookings) * 100 : 0}%` }}
                     />
                   </div>
                   <div className="grid grid-cols-4 gap-2">
-                    <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-2 py-1.5 text-center">
-                      <p className="text-sm font-bold text-emerald-400">{stats.todayCompleted}</p>
-                      <p className="text-[9px] text-emerald-400/60 uppercase tracking-wide">Done</p>
+                    <div className="bg-emerald-100 border border-emerald-200 rounded-lg px-2 py-1.5 text-center">
+                      <p className="text-sm font-bold text-emerald-600">{stats.todayCompleted}</p>
+                      <p className="text-[9px] text-emerald-600/70 uppercase tracking-wide">Done</p>
                     </div>
-                    <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg px-2 py-1.5 text-center">
-                      <p className="text-sm font-bold text-blue-400">{stats.todayConfirmed}</p>
-                      <p className="text-[9px] text-blue-400/60 uppercase tracking-wide">Confirmed</p>
+                    <div className="bg-blue-100 border border-blue-200 rounded-lg px-2 py-1.5 text-center">
+                      <p className="text-sm font-bold text-blue-600">{stats.todayConfirmed}</p>
+                      <p className="text-[9px] text-blue-600/70 uppercase tracking-wide">Confirmed</p>
                     </div>
-                    <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg px-2 py-1.5 text-center">
+                    <div className="bg-yellow-100 border border-yellow-200 rounded-lg px-2 py-1.5 text-center">
                       <p className="text-sm font-bold text-yellow-400">{stats.todayPending}</p>
-                      <p className="text-[9px] text-yellow-400/60 uppercase tracking-wide">Pending</p>
+                      <p className="text-[9px] text-yellow-600/70 uppercase tracking-wide">Pending</p>
                     </div>
-                    <div className="bg-rose-500/10 border border-rose-500/20 rounded-lg px-2 py-1.5 text-center">
+                    <div className="bg-rose-100 border border-rose-200 rounded-lg px-2 py-1.5 text-center">
                       <p className="text-sm font-bold text-rose-400">{stats.todayCancelled}</p>
-                      <p className="text-[9px] text-rose-400/60 uppercase tracking-wide">Cancelled</p>
+                      <p className="text-[9px] text-rose-600/70 uppercase tracking-wide">Cancelled</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Divider */}
-                <div className="mx-5 border-t border-white/[0.06]" />
+                <div className="mx-5 border-t border-gray-200" />
 
                 {/* Next Booking Spotlight */}
                 <div className="px-5 py-4 flex-1 flex flex-col">
-                  <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-white/40 mb-3">Upcoming Bookings</p>
+                  <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-gray-500 mb-3">Upcoming Bookings</p>
                   {nextBooking.length > 0 ? (
                     <div className="flex-1 flex flex-col justify-between">
                       <div className="space-y-2 overflow-y-auto max-h-[200px] pr-1">
                         {nextBooking.map((booking, i) => (
-                          <div key={booking.id} className={`flex items-center gap-2.5 py-1.5 ${i > 0 ? 'border-t border-white/[0.04]' : ''}`}>
+                          <div key={booking.id} className={`flex items-center gap-2.5 py-1.5 ${i > 0 ? 'border-t border-gray-100' : ''}`}>
                             <div className="w-10 h-10 rounded-full bg-purple-500/15 border border-purple-500/25 flex items-center justify-center flex-shrink-0">
                               <span className="text-[11px] font-bold text-purple-400">{formatTime(booking.booking_time)}</span>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-xs font-semibold text-white truncate">{booking.customer_name || 'Guest'}</p>
-                              <p className="text-[10px] text-white/35 truncate">{booking.services?.name || 'Service'} · {booking.specialists?.name || 'Any'}</p>
+                              <p className="text-xs font-semibold text-gray-800 truncate">{booking.customer_name || 'Guest'}</p>
+                              <p className="text-[10px] text-gray-500 truncate">{booking.services?.name || 'Service'} · {booking.specialists?.name || 'Any'}</p>
                             </div>
                           </div>
                         ))}
                       </div>
                       <Link
                         to="/calendar"
-                        className="mt-3 flex items-center justify-center w-full py-2 rounded-xl border border-white/[0.08] text-white/60 text-xs font-medium hover:bg-white/[0.04] hover:text-white/80 transition-all"
+                        className="mt-3 flex items-center justify-center w-full py-2 rounded-xl border border-white/[0.08] text-gray-600 text-xs font-medium hover:bg-gray-100 hover:text-gray-800/80 transition-all"
                       >
                         View in Calendar
                       </Link>
                     </div>
                   ) : (
                     <div className="flex-1 flex flex-col items-center justify-center text-center">
-                      <div className="w-10 h-10 rounded-full bg-white/[0.04] flex items-center justify-center mb-2">
-                        <Calendar className="w-4 h-4 text-white/20" />
+                      <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-2">
+                        <Calendar className="w-4 h-4 text-gray-400" />
                       </div>
-                      <p className="text-xs text-white/30">No upcoming bookings</p>
+                      <p className="text-xs text-gray-400">No upcoming bookings</p>
                     </div>
                   )}
                 </div>
-              </div>
+              </AnimatedCard>
 
               {/* Revenue Circle */}
               <RevenueCircle total={Math.round(stats.revenue)} earned={Math.round(stats.earnedRevenue)} projected={Math.round(stats.projectedRevenue)} prevEarned={Math.round(stats.prevEarnedRevenue)} prevTotal={Math.round(stats.prevTotalRevenue)} />
 
-              {/* Stats List */}
-              <div className="flex flex-col gap-3">
-                <AnimatedCard className="px-4 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-                      <Calendar className="w-4 h-4 text-blue-400" />
+              {/* Marketing Card */}
+              <div className="bg-gradient-to-br from-[#9489E2] to-[#7b6fd4] rounded-2xl p-5 flex flex-col h-full text-white" style={{ boxShadow: '0 4px 16px rgba(148,137,226,0.3)' }}>
+                <div className="flex items-center gap-2 mb-4">
+                  <Sparkles className="w-4 h-4" />
+                  <span className="text-xs font-semibold uppercase tracking-wider opacity-80">Marketing Hub</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 flex-1">
+                  <Link to="/marketing" className="flex flex-col items-center justify-center gap-1.5 bg-white/15 hover:bg-white/25 rounded-xl p-3 transition-all">
+                    <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+                      <Camera className="w-4 h-4" />
                     </div>
-                    <div className="flex-1">
-                      <div className="text-[11px] text-purple-200/50">Today's Bookings</div>
-                      <div className="text-xl font-bold text-white leading-tight">{stats.todayBookings}</div>
+                    <span className="text-[10px] font-semibold text-center">Stories</span>
+                  </Link>
+                  <Link to="/marketing" className="flex flex-col items-center justify-center gap-1.5 bg-white/15 hover:bg-white/25 rounded-xl p-3 transition-all">
+                    <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+                      <Tag className="w-4 h-4" />
                     </div>
-                    <div className="text-xs text-white/25 font-medium">/ {stats.totalBookings}</div>
-                  </div>
-                </AnimatedCard>
-
-                <AnimatedCard className="px-4 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
-                      <Scissors className="w-4 h-4 text-emerald-400" />
+                    <span className="text-[10px] font-semibold text-center">New Promo</span>
+                  </Link>
+                  <Link to="/marketing" className="flex flex-col items-center justify-center gap-1.5 bg-white/15 hover:bg-white/25 rounded-xl p-3 transition-all">
+                    <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+                      <Zap className="w-4 h-4" />
                     </div>
-                    <div className="flex-1">
-                      <div className="text-[11px] text-purple-200/50">Active Services</div>
-                      <div className="text-xl font-bold text-white leading-tight">{stats.services}</div>
+                    <span className="text-[10px] font-semibold text-center">Discounts</span>
+                  </Link>
+                  <Link to="/marketing" className="flex flex-col items-center justify-center gap-1.5 bg-white/15 hover:bg-white/25 rounded-xl p-3 transition-all">
+                    <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+                      <Send className="w-4 h-4" />
                     </div>
-                  </div>
-                </AnimatedCard>
-
-                <AnimatedCard className="px-4 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-violet-500/10 flex items-center justify-center flex-shrink-0">
-                      <Users className="w-4 h-4 text-violet-400" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-[11px] text-purple-200/50">Specialists</div>
-                      <div className="text-xl font-bold text-white leading-tight">{stats.specialists}</div>
-                    </div>
-                  </div>
-                </AnimatedCard>
-
-                {/* Background image fill + New Booking CTA */}
-                <div className="relative rounded-2xl overflow-hidden flex-1 min-h-[120px]">
-                  <img src={salonImage || '/stats-bg.jpg'} alt="" className="absolute inset-0 w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/30" />
-                  <div className="relative z-10 flex items-end justify-center h-full p-4">
-                    <Link
-                      to="/calendar"
-                      className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-purple-600/90 backdrop-blur-sm hover:bg-purple-500 text-white text-sm font-semibold transition-colors"
-                    >
-                      <Plus className="w-4 h-4" />
-                      New Booking
-                    </Link>
-                  </div>
+                    <span className="text-[10px] font-semibold text-center">Create Ad</span>
+                  </Link>
+                </div>
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/15 text-[10px]">
+                  <span className="opacity-60">{stats.todayBookings} bookings today</span>
+                  <span className="opacity-60">{stats.services} services · {stats.specialists} specialists</span>
                 </div>
               </div>
             </div>
 
             {/* Quick Actions */}
-            <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6 mb-8">
-              <h3 className="text-lg font-bold text-black dark:text-white mb-4 font-[Calibri,sans-serif]">Quick Actions</h3>
+            <div className="relative bg-white/50 backdrop-blur-sm rounded-lg p-6 shadow-[0_2px_8px_rgba(0,0,0,0.15)] mb-8">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 font-[Calibri,sans-serif]">Quick Actions</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 <AnimatedCard className="p-4">
                   <Link to="/calendar" className="block text-left">
-                    <CalendarDays className="w-6 h-6 mb-2 text-purple-700 dark:text-purple-300" />
-                    <div className="text-sm font-medium text-black dark:text-white">View Calendar</div>
-                    <div className="text-xs text-purple-800 dark:text-purple-200 mt-1">See today's schedule</div>
+                    <CalendarDays className="w-6 h-6 mb-2 text-[#9489E2]" />
+                    <div className="text-sm font-medium text-gray-900">View Calendar</div>
+                    <div className="text-xs text-gray-500 mt-1">See today's schedule</div>
                   </Link>
                 </AnimatedCard>
 
                 <AnimatedCard className="p-4">
                   <Link to="/reports" className="block text-left">
-                    <TrendingUp className="w-6 h-6 mb-2 text-purple-700 dark:text-purple-300" />
-                    <div className="text-sm font-medium text-black dark:text-white">View Reports</div>
-                    <div className="text-xs text-purple-800 dark:text-purple-200 mt-1">Analytics & insights</div>
+                    <TrendingUp className="w-6 h-6 mb-2 text-[#9489E2]" />
+                    <div className="text-sm font-medium text-gray-900">View Reports</div>
+                    <div className="text-xs text-gray-500 mt-1">Analytics & insights</div>
                   </Link>
                 </AnimatedCard>
 
                 <AnimatedCard className="p-4">
                   <Link to="/services" className="block text-left">
-                    <Scissors className="w-6 h-6 mb-2 text-purple-700 dark:text-purple-300" />
-                    <div className="text-sm font-medium text-black dark:text-white">Manage Services</div>
-                    <div className="text-xs text-purple-800 dark:text-purple-200 mt-1">Add or edit services</div>
+                    <Scissors className="w-6 h-6 mb-2 text-[#9489E2]" />
+                    <div className="text-sm font-medium text-gray-900">Manage Services</div>
+                    <div className="text-xs text-gray-500 mt-1">Add or edit services</div>
                   </Link>
                 </AnimatedCard>
 
                 <AnimatedCard className="p-4">
                   <Link to="/specialists" className="block text-left">
-                    <Users className="w-6 h-6 mb-2 text-purple-700 dark:text-purple-300" />
-                    <div className="text-sm font-medium text-black dark:text-white">Manage Specialists</div>
-                    <div className="text-xs text-purple-800 dark:text-purple-200 mt-1">Add or edit team members</div>
+                    <Users className="w-6 h-6 mb-2 text-[#9489E2]" />
+                    <div className="text-sm font-medium text-gray-900">Manage Specialists</div>
+                    <div className="text-xs text-gray-500 mt-1">Add or edit team members</div>
                   </Link>
                 </AnimatedCard>
 
                 <AnimatedCard className="p-4">
                   <Link to="/profile" className="block text-left">
-                    <Building2 className="w-6 h-6 mb-2 text-purple-700 dark:text-purple-300" />
-                    <div className="text-sm font-medium text-black dark:text-white">Edit Profile</div>
-                    <div className="text-xs text-purple-800 dark:text-purple-200 mt-1">Update facility info</div>
+                    <Building2 className="w-6 h-6 mb-2 text-[#9489E2]" />
+                    <div className="text-sm font-medium text-gray-900">Edit Profile</div>
+                    <div className="text-xs text-gray-500 mt-1">Update facility info</div>
                   </Link>
                 </AnimatedCard>
 
                 <AnimatedCard className="p-4">
                   <Link to="/bookings" className="block text-left">
-                    <Calendar className="w-6 h-6 mb-2 text-purple-700 dark:text-purple-300" />
-                    <div className="text-sm font-medium text-black dark:text-white">Recent Bookings</div>
-                    <div className="text-xs text-purple-800 dark:text-purple-200 mt-1">View all bookings</div>
+                    <Calendar className="w-6 h-6 mb-2 text-[#9489E2]" />
+                    <div className="text-sm font-medium text-gray-900">Recent Bookings</div>
+                    <div className="text-xs text-gray-500 mt-1">View all bookings</div>
                   </Link>
                 </AnimatedCard>
               </div>
@@ -583,8 +552,8 @@ export default function Dashboard() {
             {/* Smart Intelligence */}
             <div className="mb-8">
               <div className="flex items-center gap-2 mb-4">
-                <Brain className="w-5 h-5 text-purple-400" />
-                <h3 className="text-lg font-bold text-white font-[Calibri,sans-serif]">Smart Intelligence</h3>
+                <Brain className="w-5 h-5 text-[#9489E2]" />
+                <h3 className="text-lg font-bold text-gray-800 font-[Calibri,sans-serif]">Smart Intelligence</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
@@ -745,7 +714,7 @@ export default function Dashboard() {
                           </div>
                           <div className="flex items-center gap-3 mt-2 text-[10px] text-gray-500">
                             <span>3 actions taken</span>
-                            <span className="text-emerald-400">2 converted</span>
+                            <span className="text-emerald-600">2 converted</span>
                             <span>1 pending</span>
                           </div>
                         </div>
@@ -771,7 +740,7 @@ export default function Dashboard() {
                               </p>
                             </div>
                             {autopilotEnabled && ap.status.includes('Sent') && (
-                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
                             )}
                             <ChevronDown className={`w-3.5 h-3.5 text-gray-500 transition-transform flex-shrink-0 ${expandedItem === item.id ? 'rotate-180' : ''}`} />
                           </button>
@@ -805,13 +774,13 @@ export default function Dashboard() {
                                         )}
                                         {ap.roi && (
                                           <span className="text-[10px] text-gray-500">
-                                            ROI: <span className="text-emerald-400 font-semibold">{ap.roi}</span>
+                                            ROI: <span className="text-emerald-600 font-semibold">{ap.roi}</span>
                                           </span>
                                         )}
                                       </div>
                                       {/* Status badge */}
                                       <div className={`inline-flex items-center gap-1.5 text-[11px] font-semibold ${
-                                        ap.status.includes('Sent') ? 'text-emerald-400' :
+                                        ap.status.includes('Sent') ? 'text-emerald-600' :
                                         ap.status === 'Queued' ? 'text-amber-400' : 'text-orange-400'
                                       }`}>
                                         {ap.status.includes('Sent') ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
@@ -840,18 +809,18 @@ export default function Dashboard() {
             {/* Analytics Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
               {/* Performance Overview Table */}
-              <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6">
-                <h3 className="text-lg font-bold text-black dark:text-white mb-4 font-[Calibri,sans-serif]">Performance Overview</h3>
+              <div className="relative bg-white/50 backdrop-blur-sm rounded-lg p-6 shadow-[0_2px_8px_rgba(0,0,0,0.15)]">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 font-[Calibri,sans-serif]">Performance Overview</h3>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between pb-3 border-b border-purple-500/20">
+                  <div className="flex items-center justify-between pb-3 border-b border-gray-200">
                     <div>
-                      <p className="text-sm text-gray-900 dark:text-gray-300">Today's Revenue</p>
-                      <p className="text-2xl font-bold text-purple-700 dark:text-purple-400">{stats.todayRevenue.toFixed(2)} GEL</p>
+                      <p className="text-sm text-gray-700">Today's Revenue</p>
+                      <p className="text-2xl font-bold text-[#9489E2]">{stats.todayRevenue.toFixed(2)} GEL</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-gray-700 dark:text-gray-400">vs Yesterday</p>
+                      <p className="text-xs text-gray-500">vs Yesterday</p>
                       {stats.yesterdayRevenue > 0 ? (
-                        <p className={`text-sm font-semibold ${stats.todayRevenue >= stats.yesterdayRevenue ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
+                        <p className={`text-sm font-semibold ${stats.todayRevenue >= stats.yesterdayRevenue ? 'text-green-600' : 'text-red-600'}`}>
                           {stats.todayRevenue >= stats.yesterdayRevenue ? '+' : ''}{(((stats.todayRevenue - stats.yesterdayRevenue) / stats.yesterdayRevenue) * 100).toFixed(0)}%
                         </p>
                       ) : (
@@ -859,34 +828,34 @@ export default function Dashboard() {
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center justify-between pb-3 border-b border-purple-500/20">
+                  <div className="flex items-center justify-between pb-3 border-b border-gray-200">
                     <div>
-                      <p className="text-sm text-gray-900 dark:text-gray-300">Avg. Service Time</p>
-                      <p className="text-xl font-bold text-purple-700 dark:text-purple-400">{stats.avgServiceTime > 0 ? `${stats.avgServiceTime} min` : '—'}</p>
+                      <p className="text-sm text-gray-700">Avg. Service Time</p>
+                      <p className="text-xl font-bold text-[#9489E2]">{stats.avgServiceTime > 0 ? `${stats.avgServiceTime} min` : '—'}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-gray-700 dark:text-gray-400">Completion Rate</p>
-                      <p className="text-sm font-semibold text-green-700 dark:text-green-400">
+                      <p className="text-xs text-gray-500">Completion Rate</p>
+                      <p className="text-sm font-semibold text-green-600">
                         {stats.totalFinishedBookings > 0 ? `${Math.round((stats.completedBookings / stats.totalFinishedBookings) * 100)}%` : '—'}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-gray-900 dark:text-gray-300">Customer Satisfaction</p>
-                      <p className="text-xl font-bold text-purple-700 dark:text-purple-400">{stats.totalReviews > 0 ? `${stats.avgRating} / 5.0` : '—'}</p>
+                      <p className="text-sm text-gray-700">Customer Satisfaction</p>
+                      <p className="text-xl font-bold text-[#9489E2]">{stats.totalReviews > 0 ? `${stats.avgRating} / 5.0` : '—'}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-gray-700 dark:text-gray-400">Reviews</p>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-300">{stats.totalReviews}</p>
+                      <p className="text-xs text-gray-500">Reviews</p>
+                      <p className="text-sm font-semibold text-gray-700">{stats.totalReviews}</p>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Weekly Trend Chart */}
-              <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6">
-                <h3 className="text-lg font-bold text-black dark:text-white mb-4 font-[Calibri,sans-serif]">Weekly Bookings Trend</h3>
+              <div className="relative bg-white/50 backdrop-blur-sm rounded-lg p-6 shadow-[0_2px_8px_rgba(0,0,0,0.15)]">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 font-[Calibri,sans-serif]">Weekly Bookings Trend</h3>
                 <div className="space-y-3">
                   {['Current Week', 'Previous Week', '2 Weeks Ago', '3 Weeks Ago'].map((label, index) => {
                     const count = stats.weeklyTrend[3 - index]
@@ -895,12 +864,12 @@ export default function Dashboard() {
                     return (
                       <div key={label}>
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm text-gray-900 dark:text-gray-300">{label}</span>
-                          <span className="text-sm font-semibold text-purple-700 dark:text-purple-400">{count}</span>
+                          <span className="text-sm text-gray-700">{label}</span>
+                          <span className="text-sm font-semibold text-[#9489E2]">{count}</span>
                         </div>
-                        <div className="w-full bg-gray-700 rounded-full h-2">
+                        <div className="w-full bg-gray-200 rounded-full h-2">
                           <div
-                            className="bg-gradient-to-r from-purple-400 via-purple-500 to-violet-500 h-2 rounded-full transition-all duration-500"
+                            className="bg-[#9489E2] h-2 rounded-full transition-all duration-500"
                             style={{ width: `${percentage}%` }}
                           ></div>
                         </div>
@@ -912,16 +881,16 @@ export default function Dashboard() {
             </div>
 
             {/* Top Services Table */}
-            <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-700 shadow-2xl p-6 mb-8">
-              <h3 className="text-lg font-bold text-black dark:text-white mb-4 font-[Calibri,sans-serif]">Top Performing Services</h3>
+            <div className="relative bg-white/50 backdrop-blur-sm rounded-lg p-6 shadow-[0_2px_8px_rgba(0,0,0,0.15)] mb-8">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 font-[Calibri,sans-serif]">Top Performing Services</h3>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-purple-500/20">
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900 dark:text-gray-300">Service</th>
-                      <th className="text-center py-3 px-4 text-sm font-semibold text-gray-900 dark:text-gray-300">Bookings</th>
-                      <th className="text-center py-3 px-4 text-sm font-semibold text-gray-900 dark:text-gray-300">Revenue</th>
-                      <th className="text-right py-3 px-4 text-gray-900 dark:text-gray-300">
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Service</th>
+                      <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700">Bookings</th>
+                      <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700">Revenue</th>
+                      <th className="text-right py-3 px-4 text-gray-700">
                         <span className="text-sm font-semibold block">Growth</span>
                         <span className="text-[10px] font-normal text-gray-500">vs Previous Month</span>
                       </th>
@@ -930,10 +899,10 @@ export default function Dashboard() {
                   <tbody>
                     {stats.topServices.length > 0 ? stats.topServices.map((service, index) => (
                       <tr key={index} className="border-b border-purple-500/10 hover:bg-purple-900/15 transition-colors">
-                        <td className="py-3 px-4 text-sm text-black dark:text-white font-medium">{service.name}</td>
-                        <td className="py-3 px-4 text-sm text-center text-gray-900 dark:text-gray-300">{service.bookings}</td>
-                        <td className="py-3 px-4 text-sm text-center text-purple-700 dark:text-purple-400 font-semibold">{service.revenue.toFixed(0)} GEL</td>
-                        <td className={`py-3 px-4 text-sm text-right font-semibold ${service.growth >= 0 ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
+                        <td className="py-3 px-4 text-sm text-gray-900 font-medium">{service.name}</td>
+                        <td className="py-3 px-4 text-sm text-center text-gray-700">{service.bookings}</td>
+                        <td className="py-3 px-4 text-sm text-center text-[#9489E2] font-semibold">{service.revenue.toFixed(0)} GEL</td>
+                        <td className={`py-3 px-4 text-sm text-right font-semibold ${service.growth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                           {service.growth >= 0 ? '+' : ''}{service.growth}%
                         </td>
                       </tr>
@@ -950,34 +919,34 @@ export default function Dashboard() {
             {/* Setup Progress */}
             {(stats.services === 0 || stats.specialists === 0) && (
               <div className="bg-gradient-to-r from-purple-900/15 to-violet-900/15 border border-purple-700 rounded-lg p-6">
-                <h3 className="text-lg font-bold text-black dark:text-white mb-3 font-[Calibri,sans-serif]">Complete Your Setup</h3>
+                <h3 className="text-lg font-bold text-gray-900 mb-3 font-[Calibri,sans-serif]">Complete Your Setup</h3>
                 <div className="space-y-3">
                   {stats.services === 0 && (
                     <Link to="/services" className="flex items-center justify-between p-3 bg-gray-800 rounded-lg hover:shadow-md hover:border-purple-600 border border-transparent transition-all">
                       <div className="flex items-center space-x-3">
-                        <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 text-white rounded-full flex items-center justify-center text-sm shadow-lg shadow-purple-500/30">
+                        <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 text-gray-800 rounded-full flex items-center justify-center text-sm shadow-lg shadow-purple-500/30">
                           <Scissors className="w-4 h-4" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-black dark:text-white">Add your first service</p>
+                          <p className="text-sm font-medium text-gray-900">Add your first service</p>
                           <p className="text-xs text-gray-700 dark:text-gray-300">Create your service catalog with pricing</p>
                         </div>
                       </div>
-                      <span className="text-purple-700 dark:text-purple-400">→</span>
+                      <span className="text-[#9489E2]">→</span>
                     </Link>
                   )}
                   {stats.specialists === 0 && (
                     <Link to="/specialists" className="flex items-center justify-between p-3 bg-gray-800 rounded-lg hover:shadow-md hover:border-purple-600 border border-transparent transition-all">
                       <div className="flex items-center space-x-3">
-                        <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 text-white rounded-full flex items-center justify-center text-sm shadow-lg shadow-purple-500/30">
+                        <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 text-gray-800 rounded-full flex items-center justify-center text-sm shadow-lg shadow-purple-500/30">
                           👥
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-black dark:text-white">Add your first specialist</p>
+                          <p className="text-sm font-medium text-gray-900">Add your first specialist</p>
                           <p className="text-xs text-gray-700 dark:text-gray-300">Add your team members and assign services</p>
                         </div>
                       </div>
-                      <span className="text-purple-700 dark:text-purple-400">→</span>
+                      <span className="text-[#9489E2]">→</span>
                     </Link>
                   )}
                 </div>
@@ -1002,14 +971,14 @@ export default function Dashboard() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               transition={{ duration: 0.2 }}
-              className="bg-[#1a1625] border border-purple-500/20 rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl"
+              className="bg-[#1a1625] border border-gray-200 rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl"
             >
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2">
                   <Shield className="w-5 h-5 text-purple-400" />
-                  <h3 className="text-lg font-bold text-white">Autopilot Guardrails</h3>
+                  <h3 className="text-lg font-bold text-gray-800">Autopilot Guardrails</h3>
                 </div>
-                <button onClick={() => setShowGuardrails(false)} className="text-gray-400 hover:text-white transition-colors cursor-pointer">
+                <button onClick={() => setShowGuardrails(false)} className="text-gray-400 hover:text-gray-800 transition-colors cursor-pointer">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -1079,9 +1048,9 @@ export default function Dashboard() {
               <div className="mt-4 space-y-1.5">
                 <p className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold">Action priority (AI tries top-down)</p>
                 {[
-                  { label: 'Push notification', cost: 'Free', color: 'text-emerald-400' },
-                  { label: 'NyxCoins loyalty bonus', cost: 'Free', color: 'text-emerald-400' },
-                  { label: 'Streak-break warning', cost: 'Free', color: 'text-emerald-400' },
+                  { label: 'Push notification', cost: 'Free', color: 'text-emerald-600' },
+                  { label: 'NyxCoins loyalty bonus', cost: 'Free', color: 'text-emerald-600' },
+                  { label: 'Streak-break warning', cost: 'Free', color: 'text-emerald-600' },
                   { label: 'Personalized SMS', cost: '~$0.01', color: 'text-gray-400' },
                   { label: 'Discount offer', cost: 'Budget', color: 'text-orange-400' },
                 ].map((tool, i) => (
@@ -1097,7 +1066,7 @@ export default function Dashboard() {
 
               <button
                 onClick={() => setShowGuardrails(false)}
-                className="mt-5 w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-sm font-semibold transition-colors cursor-pointer"
+                className="mt-5 w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-gray-800 text-sm font-semibold transition-colors cursor-pointer"
               >
                 Save Guardrails
               </button>

@@ -11,27 +11,27 @@
   font-display: swap;
 }
 
-/* Dark theme CSS variables for shadcn-style components */
+/* Light theme CSS variables */
 :root {
-  --background: #000000;
-  --foreground: #ffffff;
-  --card: #0a0a0a;
-  --card-foreground: #ffffff;
-  --popover: #0a0a0a;
-  --popover-foreground: #ffffff;
-  --primary: #a855f7;
+  --background: #eeeeee;
+  --foreground: #1a1a1a;
+  --card: #ffffff;
+  --card-foreground: #1a1a1a;
+  --popover: #ffffff;
+  --popover-foreground: #1a1a1a;
+  --primary: #9489E2;
   --primary-foreground: #ffffff;
-  --secondary: #1a1a2e;
-  --secondary-foreground: #ffffff;
-  --muted: #1a1a1a;
-  --muted-foreground: #a1a1aa;
-  --accent: #7c3aed;
+  --secondary: #f3f0eb;
+  --secondary-foreground: #1a1a1a;
+  --muted: #ede8e3;
+  --muted-foreground: #6b7280;
+  --accent: #9489E2;
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #7c3aed40;
-  --input: #7c3aed40;
-  --ring: #a855f7;
+  --border: #e0d8d0;
+  --input: #e0d8d0;
+  --ring: #9489E2;
   --radius: 0.5rem;
 
   --color-background: var(--background);
@@ -66,23 +66,23 @@ body {
 /* Tailwind v4 theme extensions */
 @theme {
   --font-playfair: 'Playfair Display', Georgia, 'Times New Roman', serif;
-  --color-background: #000000;
-  --color-foreground: #ffffff;
-  --color-card: #0a0a0a;
-  --color-card-foreground: #ffffff;
-  --color-primary: #a855f7;
+  --color-background: #eeeeee;
+  --color-foreground: #1a1a1a;
+  --color-card: #ffffff;
+  --color-card-foreground: #1a1a1a;
+  --color-primary: #9489E2;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #1a1a2e;
-  --color-secondary-foreground: #ffffff;
-  --color-muted: #1a1a1a;
-  --color-muted-foreground: #a1a1aa;
-  --color-accent: #7c3aed;
+  --color-secondary: #f3f0eb;
+  --color-secondary-foreground: #1a1a1a;
+  --color-muted: #ede8e3;
+  --color-muted-foreground: #6b7280;
+  --color-accent: #9489E2;
   --color-accent-foreground: #ffffff;
   --color-destructive: #ef4444;
   --color-destructive-foreground: #ffffff;
-  --color-border: rgba(124, 58, 237, 0.25);
-  --color-input: rgba(124, 58, 237, 0.25);
-  --color-ring: #a855f7;
+  --color-border: #e0d8d0;
+  --color-input: #e0d8d0;
+  --color-ring: #9489E2;
 }
 
 /* ═══ Features Section Panels ═══ */

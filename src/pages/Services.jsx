@@ -175,12 +175,12 @@ export default function Services() {
         <div className="mb-3">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <h2 className="text-2xl font-bold text-white font-[Inter]">Services</h2>
+              <h2 className="text-2xl font-bold text-gray-800 font-[Inter]">Services</h2>
               <p className="text-gray-300 mt-1">Manage your service catalog</p>
             </div>
             <button
               onClick={handleAdd}
-              className="px-8 py-3 bg-purple-900/30 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/40 font-medium transition-all transform hover:scale-105 flex items-center space-x-2"
+              className="px-8 py-3 bg-purple-900/30 border border-purple-500/10 text-gray-800 rounded-lg hover:bg-purple-900/40 font-medium transition-all transform hover:scale-105 flex items-center space-x-2"
             >
               <span>+</span>
               <span>Add Service</span>
@@ -192,19 +192,19 @@ export default function Services() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
               <AnimatedCard className="p-6">
                 <div className="text-sm text-purple-200 mb-1">Total Services</div>
-                <div className="text-3xl font-bold text-white">{services.length}</div>
+                <div className="text-3xl font-bold text-gray-800">{services.length}</div>
               </AnimatedCard>
               <AnimatedCard className="p-6">
                 <div className="text-sm text-purple-200 mb-1">Categories</div>
-                <div className="text-3xl font-bold text-white">{categoriesUsed}</div>
+                <div className="text-3xl font-bold text-gray-800">{categoriesUsed}</div>
               </AnimatedCard>
               <AnimatedCard className="p-6">
                 <div className="text-sm text-purple-200 mb-1">Avg Duration</div>
-                <div className="text-3xl font-bold text-white">{avgDuration} min</div>
+                <div className="text-3xl font-bold text-gray-800">{avgDuration} min</div>
               </AnimatedCard>
               <AnimatedCard className="p-6">
                 <div className="text-sm text-purple-200 mb-1">Average Price</div>
-                <div className="text-3xl font-bold text-white">₾{avgPrice.toFixed(0)}</div>
+                <div className="text-3xl font-bold text-gray-800">₾{avgPrice.toFixed(0)}</div>
               </AnimatedCard>
             </div>
           )}
@@ -217,7 +217,7 @@ export default function Services() {
                   onClick={() => setSelectedCategory('All')}
                   className={`px-4 py-2 rounded-xl text-sm font-medium transition-all transform hover:scale-105 whitespace-nowrap border ${
                     selectedCategory === 'All'
-                      ? 'bg-purple-900/30 border-purple-500/20 text-white'
+                      ? 'bg-purple-900/30 border-purple-500/20 text-gray-800'
                       : 'border-purple-500/[0.06] bg-black/30 text-gray-200 hover:border-purple-500/40'
                   }`}
                 >
@@ -229,7 +229,7 @@ export default function Services() {
                     onClick={() => setSelectedCategory(cat)}
                     className={`px-4 py-2 rounded-xl text-sm font-medium transition-all transform hover:scale-105 whitespace-nowrap border ${
                       selectedCategory === cat
-                        ? 'bg-purple-900/30 border-purple-500/20 text-white'
+                        ? 'bg-purple-900/30 border-purple-500/20 text-gray-800'
                         : 'border-purple-500/[0.06] bg-black/30 text-gray-200 hover:border-purple-500/40'
                     }`}
                   >
@@ -244,7 +244,7 @@ export default function Services() {
                   onClick={() => setViewMode('grid')}
                   className={`p-2 rounded-lg transition-all border ${
                     viewMode === 'grid'
-                      ? 'bg-purple-900/30 border-purple-500/20 text-white'
+                      ? 'bg-purple-900/30 border-purple-500/20 text-gray-800'
                       : 'border-purple-500/[0.06] bg-black/30 text-gray-200 hover:border-purple-500/40'
                   }`}
                   title="Grid View"
@@ -255,7 +255,7 @@ export default function Services() {
                   onClick={() => setViewMode('list')}
                   className={`p-2 rounded-lg transition-all border ${
                     viewMode === 'list'
-                      ? 'bg-purple-900/30 border-purple-500/20 text-white'
+                      ? 'bg-purple-900/30 border-purple-500/20 text-gray-800'
                       : 'border-purple-500/[0.06] bg-black/30 text-gray-200 hover:border-purple-500/40'
                   }`}
                   title="List View"
@@ -271,13 +271,13 @@ export default function Services() {
       {showAddForm && (
         <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg shadow-2xl p-6 mb-6 border border-purple-500/10">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-white flex items-center space-x-2 font-[Inter]">
+            <h3 className="text-lg font-bold text-gray-800 flex items-center space-x-2 font-[Inter]">
               {editingService ? <Edit className="w-5 h-5 text-purple-300" /> : <Plus className="w-5 h-5 text-purple-300" />}
               <span>{editingService ? 'Edit Service' : 'Add New Service'}</span>
             </h3>
             <button
               onClick={resetForm}
-              className="text-gray-300 hover:text-white transition-colors"
+              className="text-gray-300 hover:text-gray-800 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -293,7 +293,7 @@ export default function Services() {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-3 bg-purple-950/25 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/50 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/25 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/50 transition-all placeholder-gray-400"
                   placeholder="e.g., Women's Haircut"
                   required
                 />
@@ -307,7 +307,7 @@ export default function Services() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={2}
-                  className="w-full px-4 py-3 bg-purple-950/25 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/50 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/25 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/50 transition-all placeholder-gray-400"
                   placeholder="Describe your service..."
                 />
               </div>
@@ -319,7 +319,7 @@ export default function Services() {
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-4 py-3 bg-purple-950/25 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/50 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/25 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/50 transition-all placeholder-gray-400"
                   required
                 >
                   {SERVICE_CATEGORIES.map((cat) => (
@@ -340,7 +340,7 @@ export default function Services() {
                   onChange={(e) => setPrice(e.target.value)}
                   min="0"
                   step="0.01"
-                  className="w-full px-4 py-3 bg-purple-950/25 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/50 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/25 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/50 transition-all placeholder-gray-400"
                   placeholder="50.00"
                   required
                 />
@@ -356,7 +356,7 @@ export default function Services() {
                   onChange={(e) => setDuration(e.target.value)}
                   min="1"
                   step="1"
-                  className="w-full px-4 py-3 bg-purple-950/25 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/50 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/25 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/50 transition-all placeholder-gray-400"
                   placeholder="60"
                   required
                 />
@@ -373,7 +373,7 @@ export default function Services() {
               </button>
               <button
                 type="submit"
-                className="px-8 py-3 bg-purple-900/30 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/40 font-medium transition-all transform hover:scale-105"
+                className="px-8 py-3 bg-purple-900/30 border border-purple-500/10 text-gray-800 rounded-lg hover:bg-purple-900/40 font-medium transition-all transform hover:scale-105"
               >
                 {editingService ? 'Update Service' : 'Add Service'}
               </button>
@@ -388,13 +388,13 @@ export default function Services() {
           <div className="flex justify-center mb-4">
             <Scissors className="w-16 h-16 text-purple-300" />
           </div>
-          <h3 className="text-lg font-bold text-white mb-2 font-[Inter]">No Services Yet</h3>
+          <h3 className="text-lg font-bold text-gray-800 mb-2 font-[Inter]">No Services Yet</h3>
           <p className="text-gray-200 mb-6">
             Start by adding your first service to appear in the mobile app
           </p>
           <button
             onClick={handleAdd}
-            className="px-8 py-3 bg-purple-900/30 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/40 font-medium transition-all transform hover:scale-105"
+            className="px-8 py-3 bg-purple-900/30 border border-purple-500/10 text-gray-800 rounded-lg hover:bg-purple-900/40 font-medium transition-all transform hover:scale-105"
           >
             Add Your First Service
           </button>
@@ -406,7 +406,7 @@ export default function Services() {
             <div key={service.id} className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl transition-all p-4">
               {/* Header */}
               <div className="mb-3">
-                <h3 className="text-base font-bold text-white mb-2 line-clamp-1 font-[Inter]">
+                <h3 className="text-base font-bold text-gray-800 mb-2 line-clamp-1 font-[Inter]">
                   {service.name}
                 </h3>
                 <span className="inline-block px-2 py-1 text-xs bg-purple-950/30 text-purple-200 rounded-full font-medium border border-purple-500/10">
@@ -426,7 +426,7 @@ export default function Services() {
 
               {/* Price & Duration - More Prominent */}
               <div className="bg-purple-950/30 rounded-lg p-3 mb-3 border border-purple-500/10">
-                <div className="flex items-center justify-between text-white">
+                <div className="flex items-center justify-between text-gray-800">
                   <div>
                     <div className="text-xs text-purple-200">Price</div>
                     <div className="text-lg font-bold">₾{service.price}</div>
@@ -473,7 +473,7 @@ export default function Services() {
           <div className="divide-y divide-purple-700/30">
             {filteredServices.map((service) => (
               <div key={service.id} className="grid grid-cols-12 gap-4 px-6 py-4 hover:bg-purple-900/20 transition-all">
-                <div className="col-span-3 text-white font-medium font-[Inter] flex items-center">
+                <div className="col-span-3 text-gray-800 font-medium font-[Inter] flex items-center">
                   {service.name}
                 </div>
                 <div className="col-span-2 flex items-center">
@@ -484,10 +484,10 @@ export default function Services() {
                 <div className="col-span-3 text-gray-300 text-sm flex items-center">
                   <span className="line-clamp-2">{service.description || '-'}</span>
                 </div>
-                <div className="col-span-1 text-white font-bold flex items-center justify-center">
+                <div className="col-span-1 text-gray-800 font-bold flex items-center justify-center">
                   ₾{service.price}
                 </div>
-                <div className="col-span-1 text-white font-bold flex items-center justify-center">
+                <div className="col-span-1 text-gray-800 font-bold flex items-center justify-center">
                   {service.duration_minutes}m
                 </div>
                 <div className="col-span-2 flex items-center justify-center space-x-2">

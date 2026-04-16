@@ -21,7 +21,7 @@ import Layout from './components/Layout'
 function ProtectedRoute({ children }) {
   const { user, loading, hasFacilityAccess, facilityCheckDone, signOut } = useAuth()
 
-  if (loading || (user && !facilityCheckDone)) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-gray-600">Loading...</div>
@@ -46,7 +46,7 @@ function ProtectedRoute({ children }) {
           <div className="text-red-600 text-5xl mb-4">🚫</div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
           <p className="text-gray-600 mb-6">
-            This account does not have access to the Nyxie CRM. The CRM is only available for facility owners.
+            This account does not have access to the Nyxie.Business. The CRM is only available for facility owners.
           </p>
           <p className="text-sm text-gray-500 mb-6">
             If you're a customer looking to book appointments, please use the Nyxie mobile app instead.

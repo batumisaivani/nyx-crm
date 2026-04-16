@@ -297,7 +297,7 @@ export default function Reports() {
 
   const exportToCSV = () => {
     const rows = [
-      ['Nyxie CRM Analytics Report'],
+      ['Nyxie.Business Analytics Report'],
       ['Date Range', dateRange === 'custom' ? `${customStartDate} to ${customEndDate}` : `Last ${dateRange} days`],
       [''],
       ['Revenue Summary'],
@@ -347,12 +347,12 @@ export default function Reports() {
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-white font-[Inter]">Analytics & Reports</h2>
+          <h2 className="text-2xl font-bold text-gray-800 font-[Inter]">Analytics & Reports</h2>
           <p className="text-gray-300 mt-1">Insights and performance metrics</p>
         </div>
         <button
           onClick={exportToCSV}
-          className="px-8 py-3 bg-purple-900/30 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/40 font-medium transition-all transform hover:scale-105"
+          className="px-8 py-3 bg-purple-900/30 border border-purple-500/10 text-gray-800 rounded-lg hover:bg-purple-900/40 font-medium transition-all transform hover:scale-105"
         >
           📥 Export CSV
         </button>
@@ -372,7 +372,7 @@ export default function Reports() {
                 onClick={() => setDateRange(range)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   dateRange === range
-                    ? 'bg-purple-900/30 border border-purple-500/10 text-white'
+                    ? 'bg-purple-900/30 border border-purple-500/10 text-gray-800'
                     : 'bg-black/30 border border-purple-500/[0.06] text-gray-200 hover:border-purple-500/40'
                 }`}
               >
@@ -426,7 +426,7 @@ export default function Reports() {
             <DollarSign className="w-5 h-5 text-green-400" />
             <div className="text-sm text-purple-200">Total Revenue</div>
           </div>
-          <div className="text-3xl font-bold text-white mb-2">{revenueData.total.toFixed(2)} GEL</div>
+          <div className="text-3xl font-bold text-gray-800 mb-2">{revenueData.total.toFixed(2)} GEL</div>
           <div className="flex items-center space-x-2">
             <span
               className={`text-sm font-medium ${
@@ -445,7 +445,7 @@ export default function Reports() {
             <ClipboardList className="w-5 h-5 text-blue-400" />
             <div className="text-sm text-purple-200">Total Bookings</div>
           </div>
-          <div className="text-3xl font-bold text-white mb-2">{bookingsData.total}</div>
+          <div className="text-3xl font-bold text-gray-800 mb-2">{bookingsData.total}</div>
           <div className="flex items-center space-x-2">
             <span
               className={`text-sm font-medium ${
@@ -464,7 +464,7 @@ export default function Reports() {
             <BarChart3 className="w-5 h-5 text-purple-300" />
             <div className="text-sm text-purple-200">Avg Transaction</div>
           </div>
-          <div className="text-3xl font-bold text-white mb-2">{avgTransactionValue.toFixed(2)} GEL</div>
+          <div className="text-3xl font-bold text-gray-800 mb-2">{avgTransactionValue.toFixed(2)} GEL</div>
           <div className="text-xs text-purple-300">Per booking</div>
         </AnimatedCard>
 
@@ -474,7 +474,7 @@ export default function Reports() {
             <Gift className="w-5 h-5 text-pink-400" />
             <div className="text-sm text-purple-200">Total Discounts</div>
           </div>
-          <div className="text-3xl font-bold text-white mb-2">{promoData.totalDiscount.toFixed(2)} GEL</div>
+          <div className="text-3xl font-bold text-gray-800 mb-2">{promoData.totalDiscount.toFixed(2)} GEL</div>
           <div className="text-xs text-purple-300">
             {((promoData.totalDiscount / revenueData.total) * 100).toFixed(1)}% of revenue
           </div>
@@ -485,7 +485,7 @@ export default function Reports() {
       <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 mb-6 z-[1]">
         <div className="flex items-center space-x-3 mb-4">
           <TrendingUp className="w-5 h-5 text-purple-300" />
-          <h2 className="text-lg font-semibold text-white font-[Inter]">Revenue Trend</h2>
+          <h2 className="text-lg font-semibold text-gray-800 font-[Inter]">Revenue Trend</h2>
         </div>
         {revenueData.trend.length > 0 ? (
           <div className="space-y-3">
@@ -500,7 +500,7 @@ export default function Reports() {
                         width: `${Math.max((item.amount / Math.max(...revenueData.trend.map((t) => t.amount))) * 100, 5)}%`,
                       }}
                     >
-                      <span className="text-xs font-semibold text-white whitespace-nowrap">{item.amount.toFixed(2)} GEL</span>
+                      <span className="text-xs font-semibold text-gray-800 whitespace-nowrap">{item.amount.toFixed(2)} GEL</span>
                     </div>
                   </div>
                 </div>
@@ -519,12 +519,12 @@ export default function Reports() {
       <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 mb-6 z-[1]">
         <div className="flex items-center space-x-3 mb-4">
           <ClipboardList className="w-5 h-5 text-purple-300" />
-          <h2 className="text-lg font-semibold text-white font-[Inter]">Booking Status</h2>
+          <h2 className="text-lg font-semibold text-gray-800 font-[Inter]">Booking Status</h2>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {Object.entries(bookingsData.byStatus).map(([status, count]) => (
             <div key={status} className="text-center p-4 bg-purple-900/30 border border-purple-500/10 rounded-lg">
-              <p className="text-2xl font-bold text-white">{count}</p>
+              <p className="text-2xl font-bold text-gray-800">{count}</p>
               <p className="text-sm text-purple-300 mt-1 capitalize">{status}</p>
             </div>
           ))}
@@ -537,14 +537,14 @@ export default function Reports() {
         <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
           <div className="flex items-center space-x-3 mb-4">
             <BarChart3 className="w-5 h-5 text-purple-300" />
-            <h2 className="text-lg font-semibold text-white font-[Inter]">Top Services</h2>
+            <h2 className="text-lg font-semibold text-gray-800 font-[Inter]">Top Services</h2>
           </div>
           {servicesData.length > 0 ? (
             <div className="space-y-3">
               {servicesData.slice(0, 5).map((service, index) => (
                 <div key={index} className="flex items-center justify-between p-3 bg-purple-900/30 border border-purple-500/10 rounded-lg">
                   <div className="flex-1">
-                    <p className="font-medium text-white">{service.name}</p>
+                    <p className="font-medium text-gray-800">{service.name}</p>
                     <p className="text-sm text-purple-300">{service.bookings} bookings</p>
                   </div>
                   <div className="text-right">
@@ -562,14 +562,14 @@ export default function Reports() {
         <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
           <div className="flex items-center space-x-3 mb-4">
             <TrendingUp className="w-5 h-5 text-purple-300" />
-            <h2 className="text-lg font-semibold text-white font-[Inter]">Top Specialists</h2>
+            <h2 className="text-lg font-semibold text-gray-800 font-[Inter]">Top Specialists</h2>
           </div>
           {specialistsData.length > 0 ? (
             <div className="space-y-3">
               {specialistsData.slice(0, 5).map((specialist, index) => (
                 <div key={index} className="flex items-center justify-between p-3 bg-purple-900/30 border border-purple-500/10 rounded-lg">
                   <div className="flex-1">
-                    <p className="font-medium text-white">{specialist.name}</p>
+                    <p className="font-medium text-gray-800">{specialist.name}</p>
                     <p className="text-sm text-purple-300">{specialist.bookings} bookings</p>
                   </div>
                   <div className="text-right">
@@ -589,7 +589,7 @@ export default function Reports() {
         <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 mb-6 z-[1]">
           <div className="flex items-center space-x-3 mb-4">
             <Gift className="w-5 h-5 text-pink-400" />
-            <h2 className="text-lg font-semibold text-white font-[Inter]">Promo Code Performance</h2>
+            <h2 className="text-lg font-semibold text-gray-800 font-[Inter]">Promo Code Performance</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -603,7 +603,7 @@ export default function Reports() {
               <tbody>
                 {promoData.promoUsage.map((promo, index) => (
                   <tr key={index} className="border-b border-purple-500/[0.06]">
-                    <td className="py-3 px-4 font-medium text-white">{promo.code}</td>
+                    <td className="py-3 px-4 font-medium text-gray-800">{promo.code}</td>
                     <td className="py-3 px-4 text-gray-300">{promo.uses}</td>
                     <td className="py-3 px-4 text-green-400 font-semibold">
                       {promo.totalDiscount.toFixed(2)} GEL
@@ -621,7 +621,7 @@ export default function Reports() {
         <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 mb-6 z-[1]">
           <div className="flex items-center space-x-3 mb-4">
             <TrendingUp className="w-5 h-5 text-purple-300" />
-            <h2 className="text-lg font-semibold text-white font-[Inter]">Specialist Utilisation Rate</h2>
+            <h2 className="text-lg font-semibold text-gray-800 font-[Inter]">Specialist Utilisation Rate</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -637,24 +637,24 @@ export default function Reports() {
               <tbody>
                 {specialistUtilisation.map((specialist, index) => (
                   <tr key={index} className="border-b border-purple-500/[0.06] hover:bg-purple-900/30 transition-all">
-                    <td className="py-3 px-4 text-white font-medium">{specialist.name}</td>
+                    <td className="py-3 px-4 text-gray-800 font-medium">{specialist.name}</td>
                     <td className="py-3 px-4 text-center">
-                      <span className="inline-block px-3 py-1 bg-purple-900/30 border border-purple-500/10 rounded-full text-white font-bold text-sm">
+                      <span className="inline-block px-3 py-1 bg-purple-900/30 border border-purple-500/10 rounded-full text-gray-800 font-bold text-sm">
                         {specialist.day}%
                       </span>
                     </td>
                     <td className="py-3 px-4 text-center">
-                      <span className="inline-block px-3 py-1 bg-purple-900/30 border border-purple-500/10 rounded-full text-white font-bold text-sm">
+                      <span className="inline-block px-3 py-1 bg-purple-900/30 border border-purple-500/10 rounded-full text-gray-800 font-bold text-sm">
                         {specialist.week}%
                       </span>
                     </td>
                     <td className="py-3 px-4 text-center">
-                      <span className="inline-block px-3 py-1 bg-purple-900/30 border border-purple-500/10 rounded-full text-white font-bold text-sm">
+                      <span className="inline-block px-3 py-1 bg-purple-900/30 border border-purple-500/10 rounded-full text-gray-800 font-bold text-sm">
                         {specialist.month}%
                       </span>
                     </td>
                     <td className="py-3 px-4 text-center">
-                      <span className="inline-block px-3 py-1 bg-purple-900/30 border border-purple-500/10 rounded-full text-white font-bold text-sm">
+                      <span className="inline-block px-3 py-1 bg-purple-900/30 border border-purple-500/10 rounded-full text-gray-800 font-bold text-sm">
                         {specialist.quarter}%
                       </span>
                     </td>
@@ -671,12 +671,12 @@ export default function Reports() {
         <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 z-[1]">
           <div className="flex items-center space-x-3 mb-4">
             <ClipboardList className="w-5 h-5 text-purple-300" />
-            <h2 className="text-lg font-semibold text-white font-[Inter]">Peak Booking Hours</h2>
+            <h2 className="text-lg font-semibold text-gray-800 font-[Inter]">Peak Booking Hours</h2>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {peakHours.slice(0, 12).map((hour, index) => (
               <div key={index} className="text-center p-3 bg-purple-900/30 border border-purple-500/10 rounded-lg">
-                <p className="text-lg font-bold text-white">{hour.count}</p>
+                <p className="text-lg font-bold text-gray-800">{hour.count}</p>
                 <p className="text-sm text-purple-300 mt-1">{hour.hour}</p>
               </div>
             ))}

@@ -64,7 +64,7 @@ function ProductShowcase() {
 
             {/* CRM dashboard — slides in from right */}
             <motion.div style={{ x: crmX }} className="absolute inset-0">
-              <img src="/crm-dashboard.png" alt="Nyxie CRM Dashboard" className="w-full h-full object-cover object-top" />
+              <img src="/crm-dashboard.png" alt="Nyxie.Business Dashboard" className="w-full h-full object-cover object-top" />
             </motion.div>
 
             {/* Bottom label overlay */}

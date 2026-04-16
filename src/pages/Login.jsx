@@ -146,7 +146,7 @@ export default function Login() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              Streamline your salon operations, manage bookings, track revenue, and delight your customers with Nyxie CRM - the all-in-one facility management solution.
+              Streamline your salon operations, manage bookings, track revenue, and delight your customers with Nyxie.Business - the all-in-one facility management solution.
             </motion.p>
 
             <motion.div
@@ -422,7 +422,7 @@ export default function Login() {
                   >
                     <img
                       src="/logo.png"
-                      alt="Nyxie CRM Logo"
+                      alt="Nyxie.Business Logo"
                       className="w-[115px] h-[115px] object-contain mx-auto"
                       onError={(e) => {
                         // Fallback to Sparkles icon if image fails to load
@@ -441,7 +441,7 @@ export default function Login() {
                     transition={{ delay: 0.2 }}
                     className="text-3xl font-light font-[Inter] text-white"
                   >
-                    {isRegister ? 'Create Your Facility' : 'Welcome to Nyxie CRM'}
+                    {isRegister ? 'Create Your Facility' : 'Welcome to Nyxie.Business'}
                   </motion.h1>
 
                   <motion.p
@@ -450,7 +450,7 @@ export default function Login() {
                     transition={{ delay: 0.3 }}
                     className="text-white/50 text-sm font-[Inter] font-light"
                   >
-                    {isRegister ? 'Register your facility to get started' : 'Sign in to continue to Nyxie CRM'}
+                    {isRegister ? 'Register your facility to get started' : 'Sign in to continue to Nyxie.Business'}
                   </motion.p>
                 </div>
 

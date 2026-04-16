@@ -170,7 +170,7 @@ export default function HeroSection({
                         <motion.img
                           key={`desktop-${currentDesktopIndex}`}
                           src={`/screenshots/crm-desktop-${currentDesktopIndex + 1}.png`}
-                          alt={`Nyxie CRM Dashboard Screenshot ${currentDesktopIndex + 1}`}
+                          alt={`Nyxie.Business Dashboard Screenshot ${currentDesktopIndex + 1}`}
                           className="absolute inset-0 w-full h-full object-cover"
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}

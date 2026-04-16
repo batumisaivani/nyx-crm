@@ -1232,8 +1232,8 @@ export default function Specialists() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex-1 min-w-[140px] px-6 py-4 text-sm font-medium transition-all ${
                   activeTab === tab.id
-                    ? 'bg-purple-900/15 text-white'
-                    : 'text-gray-200 hover:text-white hover:bg-purple-900/5'
+                    ? 'bg-purple-900/15 text-gray-800'
+                    : 'text-gray-200 hover:text-gray-800 hover:bg-purple-900/5'
                 } ${
                   index === 0 ? 'rounded-tl-lg' : ''
                 } ${
@@ -1260,19 +1260,19 @@ export default function Specialists() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <AnimatedCard className="p-6 h-32 flex flex-col justify-between">
               <div className="text-sm text-purple-200 mb-1">Total Specialists</div>
-              <div className="text-3xl font-bold text-white">{totalSpecialists}</div>
+              <div className="text-3xl font-bold text-gray-800">{totalSpecialists}</div>
             </AnimatedCard>
             <AnimatedCard className="p-6 h-32 flex flex-col justify-between">
               <div className="text-sm text-purple-200 mb-1">Average Rating</div>
-              <div className="text-3xl font-bold text-white">{avgRating} ⭐</div>
+              <div className="text-3xl font-bold text-gray-800">{avgRating} ⭐</div>
             </AnimatedCard>
             <AnimatedCard className="p-6 h-32 flex flex-col justify-between">
               <div className="text-sm text-purple-200 mb-1">Utilisation Rate</div>
-              <div className="text-3xl font-bold text-white">{avgUtilisation.toFixed(1)}%</div>
+              <div className="text-3xl font-bold text-gray-800">{avgUtilisation.toFixed(1)}%</div>
             </AnimatedCard>
             <AnimatedCard className="p-6 h-32 flex flex-col justify-between">
               <div className="text-sm text-purple-200 mb-1">Services Covered</div>
-              <div className="text-3xl font-bold text-white">{totalServicesAssigned}</div>
+              <div className="text-3xl font-bold text-gray-800">{totalServicesAssigned}</div>
             </AnimatedCard>
           </div>
         )}
@@ -1282,7 +1282,7 @@ export default function Specialists() {
           <div className="flex items-center space-x-2">
             <button
               onClick={handleAdd}
-              className="px-4 py-2 bg-purple-900/15 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/20 font-medium transition-all flex items-center space-x-2"
+              className="px-4 py-2 bg-purple-900/15 border border-purple-500/10 text-gray-800 rounded-lg hover:bg-purple-900/20 font-medium transition-all flex items-center space-x-2"
             >
               <Plus className="w-5 h-5" />
               <span>Add Specialist</span>
@@ -1293,7 +1293,7 @@ export default function Specialists() {
                   onClick={() => setViewMode('grid')}
                   className={`p-2 rounded-lg transition-all border ${
                     viewMode === 'grid'
-                      ? 'bg-purple-900/15 border-purple-500/20 text-white'
+                      ? 'bg-purple-900/15 border-purple-500/20 text-gray-800'
                       : 'border-purple-500/[0.06] bg-black/15 text-gray-200 hover:border-purple-500/40'
                   }`}
                   title="Grid View"
@@ -1304,7 +1304,7 @@ export default function Specialists() {
                   onClick={() => setViewMode('list')}
                   className={`p-2 rounded-lg transition-all border ${
                     viewMode === 'list'
-                      ? 'bg-purple-900/15 border-purple-500/20 text-white'
+                      ? 'bg-purple-900/15 border-purple-500/20 text-gray-800'
                       : 'border-purple-500/[0.06] bg-black/15 text-gray-200 hover:border-purple-500/40'
                   }`}
                   title="List View"
@@ -1322,7 +1322,7 @@ export default function Specialists() {
       {activeTab === 'hours' && (
         <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 overflow-x-auto">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold text-white flex items-center font-[Inter]">
+            <h3 className="text-lg font-bold text-gray-800 flex items-center font-[Inter]">
               <Clock className="w-6 h-6 mr-2 text-purple-300" />
               Weekly Schedule
             </h3>
@@ -1331,7 +1331,7 @@ export default function Specialists() {
             <div className="flex items-center space-x-3">
               <button
                 onClick={saveAllWorkingHoursToDatabase}
-                className="px-4 py-2 text-sm font-medium text-white bg-green-900/15 border border-green-700 hover:bg-green-900/20 rounded-full transition-all flex items-center gap-2"
+                className="px-4 py-2 text-sm font-medium text-gray-800 bg-green-900/15 border border-green-700 hover:bg-green-900/20 rounded-full transition-all flex items-center gap-2"
                 title="Save all displayed hours to database"
               >
                 <Save className="w-4 h-4" />
@@ -1339,23 +1339,23 @@ export default function Specialists() {
               </button>
               <button
                 onClick={goToCurrentWeek}
-                className="px-4 py-2 text-sm font-medium text-white bg-purple-900/15 border border-purple-500/10 hover:bg-purple-900/20 rounded-full transition-all"
+                className="px-4 py-2 text-sm font-medium text-gray-800 bg-purple-900/15 border border-purple-500/10 hover:bg-purple-900/20 rounded-full transition-all"
               >
                 This Week
               </button>
               <div className="flex items-center">
                 <button
                   onClick={() => changeWeek(-1)}
-                  className="p-2 text-white bg-purple-900/15 border border-purple-500/10 hover:bg-purple-900/20 rounded-l-full transition-all"
+                  className="p-2 text-gray-800 bg-purple-900/15 border border-purple-500/10 hover:bg-purple-900/20 rounded-l-full transition-all"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
-                <div className="px-6 py-2 bg-purple-950/12 border-t border-b border-purple-500/10 text-white text-sm font-semibold min-w-[180px] text-center">
+                <div className="px-6 py-2 bg-purple-950/12 border-t border-b border-purple-500/10 text-gray-800 text-sm font-semibold min-w-[180px] text-center">
                   {formatWeekRange(selectedWeekStart)}
                 </div>
                 <button
                   onClick={() => changeWeek(1)}
-                  className="p-2 text-white bg-purple-900/15 border border-purple-500/10 hover:bg-purple-900/20 rounded-r-full transition-all"
+                  className="p-2 text-gray-800 bg-purple-900/15 border border-purple-500/10 hover:bg-purple-900/20 rounded-r-full transition-all"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </button>
@@ -1398,7 +1398,7 @@ export default function Specialists() {
                           alt={specialist.name}
                           className="w-8 h-8 rounded-full object-cover border-2 border-purple-500"
                         />
-                        <span className="text-sm font-semibold text-white truncate">{specialist.name}</span>
+                        <span className="text-sm font-semibold text-gray-800 truncate">{specialist.name}</span>
                       </div>
                       <button
                         type="button"
@@ -1445,7 +1445,7 @@ export default function Specialists() {
                                     <button
                                       type="button"
                                       onClick={() => openTimePicker(specialist.id, dayIndex, shift.id, shift)}
-                                      className={`flex-1 px-2 py-1.5 border text-white rounded hover:bg-purple-900/25 hover:border-purple-500/40 transition-all text-xs text-center ${
+                                      className={`flex-1 px-2 py-1.5 border text-gray-800 rounded hover:bg-purple-900/25 hover:border-purple-500/40 transition-all text-xs text-center ${
                                         shift.is_exception
                                           ? 'bg-amber-900/15 border-amber-500/30'
                                           : 'bg-purple-900/15 border-purple-500/[0.06]'
@@ -1507,7 +1507,7 @@ export default function Specialists() {
       {/* Vacations Tab */}
       {activeTab === 'vacations' && (
         <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
-          <h3 className="text-lg font-bold text-white mb-6 flex items-center font-[Inter]">
+          <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center font-[Inter]">
             <Plane className="w-6 h-6 mr-2 text-purple-300" />
             Specialist Vacations
           </h3>
@@ -1541,7 +1541,7 @@ export default function Specialists() {
                     onClick={() => setSalaryPeriod(p)}
                     className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-all ${
                       salaryPeriod === p
-                        ? 'bg-purple-600/30 border-purple-500/50 text-white'
+                        ? 'bg-purple-600/30 border-purple-500/50 text-gray-800'
                         : 'bg-white/[0.03] border-white/[0.06] text-gray-400 hover:border-purple-500/30'
                     }`}
                   >
@@ -1554,7 +1554,7 @@ export default function Specialists() {
                 placeholder="Search specialist..."
                 value={salarySearch}
                 onChange={e => setSalarySearch(e.target.value)}
-                className="px-3 py-1.5 text-xs bg-purple-950/40 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 placeholder-gray-500 w-48"
+                className="px-3 py-1.5 text-xs bg-purple-950/40 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 placeholder-gray-500 w-48"
               />
             </div>
 
@@ -1570,7 +1570,7 @@ export default function Specialists() {
               </div>
               <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4 text-center">
                 <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-1">Total · {periodLabel}</p>
-                <p className="text-2xl font-bold text-white">{(totalSalary + totalTips).toFixed(0)} <span className="text-xs text-gray-500">GEL</span></p>
+                <p className="text-2xl font-bold text-gray-800">{(totalSalary + totalTips).toFixed(0)} <span className="text-xs text-gray-500">GEL</span></p>
               </div>
             </div>
 
@@ -1593,7 +1593,7 @@ export default function Specialists() {
                         </div>
                       )}
                       <div className="min-w-0">
-                        <h3 className="text-xs font-bold text-white font-[Inter] truncate">{specialist.name}</h3>
+                        <h3 className="text-xs font-bold text-gray-800 font-[Inter] truncate">{specialist.name}</h3>
                         <p className="text-[9px] text-gray-500">{serviceEntries.length} service{serviceEntries.length !== 1 ? 's' : ''}</p>
                       </div>
                     </div>
@@ -1629,7 +1629,7 @@ export default function Specialists() {
                       </div>
                       <div className="text-center w-[70px] bg-white/[0.03] rounded-lg py-1">
                         <p className="text-[8px] text-gray-400 uppercase">Total</p>
-                        <p className="text-sm font-bold text-white">{(specEarnings.salary + specEarnings.tips).toFixed(0)} <span className="text-[8px] text-gray-500">GEL</span></p>
+                        <p className="text-sm font-bold text-gray-800">{(specEarnings.salary + specEarnings.tips).toFixed(0)} <span className="text-[8px] text-gray-500">GEL</span></p>
                       </div>
                     </div>
                   </div>
@@ -1644,13 +1644,13 @@ export default function Specialists() {
       {showAddForm && (
         <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg shadow-2xl p-6 mb-6 border border-purple-500/10">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-white flex items-center space-x-2 font-[Inter]">
+            <h3 className="text-lg font-bold text-gray-800 flex items-center space-x-2 font-[Inter]">
               {editingSpecialist ? <Edit className="w-5 h-5 text-purple-300" /> : <Plus className="w-5 h-5 text-purple-300" />}
               <span>{editingSpecialist ? 'Edit Specialist' : 'Add New Specialist'}</span>
             </h3>
             <button
               onClick={resetForm}
-              className="text-gray-300 hover:text-white transition-colors"
+              className="text-gray-300 hover:text-gray-800 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -1666,7 +1666,7 @@ export default function Specialists() {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/45 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/45 transition-all placeholder-gray-400"
                   placeholder="e.g., Nino Kapanadze"
                   required
                 />
@@ -1680,7 +1680,7 @@ export default function Specialists() {
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   rows={2}
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/45 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/45 transition-all placeholder-gray-400"
                   placeholder="Tell customers about this specialist..."
                 />
               </div>
@@ -1695,7 +1695,7 @@ export default function Specialists() {
                   onChange={(e) => setExperienceYears(e.target.value)}
                   min="0"
                   step="1"
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/45 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/45 transition-all placeholder-gray-400"
                   placeholder="5"
                 />
               </div>
@@ -1728,7 +1728,7 @@ export default function Specialists() {
                       }}
                       className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-all ${
                         selectedLanguages.includes(l.val)
-                          ? 'bg-purple-600/30 border-purple-500/50 text-white'
+                          ? 'bg-purple-600/30 border-purple-500/50 text-gray-800'
                           : 'bg-white/[0.03] border-white/[0.06] text-gray-400 hover:border-purple-500/30'
                       }`}
                     >
@@ -1755,7 +1755,7 @@ export default function Specialists() {
                       type="file"
                       accept="image/*"
                       onChange={handleImageChange}
-                      className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/45 transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-700 file:text-white hover:file:bg-purple-600"
+                      className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/45 transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-700 file:text-gray-800 hover:file:bg-purple-600"
                     />
                     <p className="text-xs text-gray-400 mt-1">
                       Upload a photo (max 5MB). Leave empty for default avatar.
@@ -1806,7 +1806,7 @@ export default function Specialists() {
               </button>
               <button
                 type="submit"
-                className="px-8 py-3 bg-purple-900/15 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/20 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
+                className="px-8 py-3 bg-purple-900/15 border border-purple-500/10 text-gray-800 rounded-lg hover:bg-purple-900/20 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
                 disabled={uploading}
               >
                 {uploading ? 'Saving...' : (editingSpecialist ? 'Update Specialist' : 'Add Specialist')}
@@ -1822,13 +1822,13 @@ export default function Specialists() {
           <div className="flex justify-center mb-4">
             <Users className="w-16 h-16 text-purple-300" />
           </div>
-          <h3 className="text-lg font-bold text-white mb-2 font-[Inter]">No Specialists Yet</h3>
+          <h3 className="text-lg font-bold text-gray-800 mb-2 font-[Inter]">No Specialists Yet</h3>
           <p className="text-gray-300 mb-6">
             Start by adding your first team member to appear in the mobile app
           </p>
           <button
             onClick={handleAdd}
-            className="px-8 py-3 bg-purple-900/15 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/20 font-medium transition-all transform hover:scale-105"
+            className="px-8 py-3 bg-purple-900/15 border border-purple-500/10 text-gray-800 rounded-lg hover:bg-purple-900/20 font-medium transition-all transform hover:scale-105"
           >
             Add Your First Specialist
           </button>
@@ -1857,12 +1857,12 @@ export default function Specialists() {
 
               {/* Name and Rating */}
               <div className="text-center mb-3">
-                <h3 className="text-base font-bold text-white mb-2 line-clamp-1 font-[Inter]">
+                <h3 className="text-base font-bold text-gray-800 mb-2 line-clamp-1 font-[Inter]">
                   {specialist.name}
                 </h3>
                 <div className="flex items-center justify-center space-x-1 mb-2">
                   <Star className={`w-4 h-4 ${specialist.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-500'}`} />
-                  <span className="text-sm font-bold text-white">{specialist.rating ?? '—'}</span>
+                  <span className="text-sm font-bold text-gray-800">{specialist.rating ?? '—'}</span>
                   <span className="text-xs text-gray-400">({specialist.reviewCount})</span>
                 </div>
               </div>
@@ -1937,7 +1937,7 @@ export default function Specialists() {
                       e.target.src = 'https://via.placeholder.com/150?text=' + encodeURIComponent(specialist.name)
                     }}
                   />
-                  <span className="text-white font-medium font-[Inter]">
+                  <span className="text-gray-800 font-medium font-[Inter]">
                     {specialist.name}
                   </span>
                 </div>
@@ -1947,7 +1947,7 @@ export default function Specialists() {
                 <div className="col-span-1 flex items-center justify-center">
                   <div className="flex items-center space-x-1">
                     <Star className={`w-4 h-4 ${specialist.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-500'}`} />
-                    <span className="text-white font-bold">{specialist.rating ?? '—'}</span>
+                    <span className="text-gray-800 font-bold">{specialist.rating ?? '—'}</span>
                     <span className="text-xs text-gray-400">({specialist.reviewCount})</span>
                   </div>
                 </div>
@@ -2002,20 +2002,20 @@ export default function Specialists() {
       {pendingTimeChange && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4">
           <div className="bg-gradient-to-br from-gray-900 to-gray-950 border border-purple-500/20 rounded-2xl shadow-2xl w-full max-w-xs p-5">
-            <h3 className="text-sm font-bold text-white mb-1">Save Working Hours</h3>
+            <h3 className="text-sm font-bold text-gray-800 mb-1">Save Working Hours</h3>
             <p className="text-[11px] text-gray-400 mb-4">
               {pendingTimeChange.openTime} — {pendingTimeChange.closeTime}
             </p>
             <div className="space-y-2">
               <button
                 onClick={saveThisDayOnly}
-                className="w-full py-2.5 text-xs font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-500 transition-all"
+                className="w-full py-2.5 text-xs font-medium text-gray-800 bg-purple-600 rounded-lg hover:bg-purple-500 transition-all"
               >
                 Save for this {['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][timePickerModal.day]} only
               </button>
               <button
                 onClick={saveAllSameDays}
-                className="w-full py-2.5 text-xs font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-500 transition-all"
+                className="w-full py-2.5 text-xs font-medium text-gray-800 bg-emerald-600 rounded-lg hover:bg-emerald-500 transition-all"
               >
                 Save for all future {['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][timePickerModal.day]}s
               </button>

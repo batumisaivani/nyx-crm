@@ -117,12 +117,12 @@ export default function CompletionModal({ isOpen, onClose, onComplete, booking, 
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-3 border-b border-purple-500/10">
             <div>
-              <h2 className="text-base font-bold text-white">Complete Booking</h2>
+              <h2 className="text-base font-bold text-gray-800">Complete Booking</h2>
               <p className="text-[11px] text-gray-400">
                 {booking?.customerName || booking?.customer_name || 'Customer'} — {booking?.serviceName || booking?.services?.name || 'Service'}
               </p>
             </div>
-            <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-all">
+            <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-800 hover:bg-white/10 rounded-lg transition-all">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -142,7 +142,7 @@ export default function CompletionModal({ isOpen, onClose, onComplete, booking, 
                         onClick={() => setPaymentMethod(method.id)}
                         className={`flex flex-col items-center gap-1 py-2 px-1 rounded-lg border text-[10px] font-medium transition-all ${
                           paymentMethod === method.id
-                            ? 'bg-purple-600/30 border-purple-500/60 text-white'
+                            ? 'bg-purple-600/30 border-purple-500/60 text-gray-800'
                             : 'bg-white/[0.03] border-white/[0.06] text-gray-400 hover:border-purple-500/30'
                         }`}
                       >
@@ -163,7 +163,7 @@ export default function CompletionModal({ isOpen, onClose, onComplete, booking, 
                     min="0"
                     value={loyaltyPoints}
                     onChange={(e) => setLoyaltyPoints(parseInt(e.target.value) || 0)}
-                    className="w-full px-2.5 py-1.5 text-xs bg-purple-950/30 border border-purple-500/15 text-white rounded-lg focus:ring-2 focus:ring-purple-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className="w-full px-2.5 py-1.5 text-xs bg-purple-950/30 border border-purple-500/15 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     placeholder="Points to redeem"
                   />
                 </div>
@@ -179,7 +179,7 @@ export default function CompletionModal({ isOpen, onClose, onComplete, booking, 
                     step="0.01"
                     value={finalPrice}
                     onChange={(e) => setFinalPrice(parseFloat(e.target.value) || 0)}
-                    className="w-full px-2.5 py-1.5 text-xs bg-purple-950/30 border border-purple-500/15 text-white rounded-lg focus:ring-2 focus:ring-purple-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className="w-full px-2.5 py-1.5 text-xs bg-purple-950/30 border border-purple-500/15 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
                 <div className="flex-1">
@@ -190,7 +190,7 @@ export default function CompletionModal({ isOpen, onClose, onComplete, booking, 
                     value={tipAmount}
                     onChange={(e) => setTipAmount(e.target.value)}
                     placeholder="0"
-                    className="w-full px-2.5 py-1.5 text-xs bg-purple-950/30 border border-purple-500/15 text-white rounded-lg focus:ring-2 focus:ring-purple-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className="w-full px-2.5 py-1.5 text-xs bg-purple-950/30 border border-purple-500/15 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
               </div>
@@ -220,7 +220,7 @@ export default function CompletionModal({ isOpen, onClose, onComplete, booking, 
                   value={paymentNotes}
                   onChange={(e) => setPaymentNotes(e.target.value)}
                   placeholder="Optional..."
-                  className="w-full px-2.5 py-1.5 text-xs bg-purple-950/30 border border-purple-500/15 text-white rounded-lg focus:ring-2 focus:ring-purple-500 placeholder-gray-500"
+                  className="w-full px-2.5 py-1.5 text-xs bg-purple-950/30 border border-purple-500/15 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 placeholder-gray-500"
                 />
               </div>
             </div>
@@ -245,7 +245,7 @@ export default function CompletionModal({ isOpen, onClose, onComplete, booking, 
                       <button
                         key={service.id}
                         onClick={() => addService(service)}
-                        className="w-full flex items-center justify-between px-2.5 py-1.5 text-[11px] text-white hover:bg-purple-800/30 transition-colors"
+                        className="w-full flex items-center justify-between px-2.5 py-1.5 text-[11px] text-gray-800 hover:bg-purple-800/30 transition-colors"
                       >
                         <span>{service.name}</span>
                         <span className="text-purple-400">{service.price} GEL</span>
@@ -258,7 +258,7 @@ export default function CompletionModal({ isOpen, onClose, onComplete, booking, 
                   <div className="space-y-1">
                     {additionalServices.map(service => (
                       <div key={service.tempId} className="flex items-center justify-between bg-purple-950/20 border border-purple-500/10 rounded-lg px-2.5 py-1.5">
-                        <span className="text-[11px] text-white truncate">{service.name}</span>
+                        <span className="text-[11px] text-gray-800 truncate">{service.name}</span>
                         <div className="flex items-center gap-1.5 flex-shrink-0">
                           <span className="text-[11px] text-purple-400">{service.price}</span>
                           <button onClick={() => removeService(service.tempId)} className="text-red-400 hover:text-red-300">
@@ -277,12 +277,12 @@ export default function CompletionModal({ isOpen, onClose, onComplete, booking, 
               <div className="bg-purple-950/30 border border-purple-500/15 rounded-xl p-3 space-y-1.5 mt-auto">
                 <div className="flex justify-between text-xs">
                   <span className="text-gray-400">Service</span>
-                  <span className="text-white">{finalPrice} GEL</span>
+                  <span className="text-gray-800">{finalPrice} GEL</span>
                 </div>
                 {totalAdditional > 0 && (
                   <div className="flex justify-between text-xs">
                     <span className="text-gray-400">Additional</span>
-                    <span className="text-white">+{totalAdditional} GEL</span>
+                    <span className="text-gray-800">+{totalAdditional} GEL</span>
                   </div>
                 )}
                 {tipNum > 0 && (
@@ -292,7 +292,7 @@ export default function CompletionModal({ isOpen, onClose, onComplete, booking, 
                   </div>
                 )}
                 <div className="border-t border-purple-500/10 pt-1.5 flex justify-between">
-                  <span className="text-xs font-semibold text-white">Total</span>
+                  <span className="text-xs font-semibold text-gray-800">Total</span>
                   <span className="text-base font-bold text-purple-400">{(grandTotal + tipNum).toFixed(2)} GEL</span>
                 </div>
               </div>
@@ -310,7 +310,7 @@ export default function CompletionModal({ isOpen, onClose, onComplete, booking, 
             <button
               onClick={handleSubmit}
               disabled={submitting}
-              className="flex-1 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl transition-all disabled:opacity-50"
+              className="flex-1 py-2 text-xs font-semibold text-gray-800 bg-emerald-600 hover:bg-emerald-500 rounded-xl transition-all disabled:opacity-50"
             >
               {submitting ? 'Processing...' : 'Complete & Pay'}
             </button>

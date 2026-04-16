@@ -75,7 +75,7 @@ export default function Settings() {
     <div className="w-full -mt-4">
       {/* Header */}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-white font-[Inter]">Settings & Support</h2>
+        <h2 className="text-2xl font-bold text-gray-800 font-[Inter]">Settings & Support</h2>
         <p className="text-gray-300 mt-1">Customize your experience and get help</p>
       </div>
 
@@ -84,7 +84,7 @@ export default function Settings() {
         <div className="flex items-center mb-6">
           <Globe className="w-6 h-6 text-purple-300 mr-3" />
           <div>
-            <h3 className="text-xl font-semibold text-white font-[Inter]">Language</h3>
+            <h3 className="text-xl font-semibold text-gray-800 font-[Inter]">Language</h3>
             <p className="text-sm text-gray-300">Choose your preferred language</p>
           </div>
         </div>
@@ -94,7 +94,7 @@ export default function Settings() {
             onClick={() => handleLanguageChange('en')}
             className={`relative w-full p-4 rounded-xl border-2 transition-all transform hover:scale-105 ${
               language === 'en'
-                ? 'border-purple-500 bg-purple-900/40 text-white shadow-lg shadow-purple-500/20'
+                ? 'border-purple-500 bg-purple-900/40 text-gray-800 shadow-lg shadow-purple-500/20'
                 : 'border-purple-500/10 bg-purple-950/25 text-gray-300 hover:border-purple-500/40'
             }`}
           >
@@ -107,7 +107,7 @@ export default function Settings() {
             onClick={() => handleLanguageChange('ka')}
             className={`relative w-full p-4 rounded-xl border-2 transition-all transform hover:scale-105 ${
               language === 'ka'
-                ? 'border-purple-500 bg-purple-900/40 text-white shadow-lg shadow-purple-500/20'
+                ? 'border-purple-500 bg-purple-900/40 text-gray-800 shadow-lg shadow-purple-500/20'
                 : 'border-purple-500/10 bg-purple-950/25 text-gray-300 hover:border-purple-500/40'
             }`}
           >
@@ -134,8 +134,8 @@ export default function Settings() {
         <div className="flex items-center mb-6">
           <Palette className="w-6 h-6 text-purple-300 mr-3" />
           <div>
-            <h3 className="text-xl font-semibold text-white font-[Inter]">Appearance</h3>
-            <p className="text-sm text-gray-300">Customize how Nyxie CRM looks</p>
+            <h3 className="text-xl font-semibold text-gray-800 font-[Inter]">Appearance</h3>
+            <p className="text-sm text-gray-300">Customize how Nyxie.Business looks</p>
           </div>
         </div>
 
@@ -144,7 +144,7 @@ export default function Settings() {
             onClick={() => handleThemeChange('light')}
             className={`relative w-full p-4 rounded-xl border-2 transition-all transform hover:scale-105 ${
               theme === 'light'
-                ? 'border-purple-500 bg-purple-900/40 text-white shadow-lg shadow-purple-500/20'
+                ? 'border-purple-500 bg-purple-900/40 text-gray-800 shadow-lg shadow-purple-500/20'
                 : 'border-purple-500/10 bg-purple-950/25 text-gray-300 hover:border-purple-500/40'
             }`}
           >
@@ -159,7 +159,7 @@ export default function Settings() {
             onClick={() => handleThemeChange('dark')}
             className={`relative w-full p-4 rounded-xl border-2 transition-all transform hover:scale-105 ${
               theme === 'dark'
-                ? 'border-purple-500 bg-purple-900/40 text-white shadow-lg shadow-purple-500/20'
+                ? 'border-purple-500 bg-purple-900/40 text-gray-800 shadow-lg shadow-purple-500/20'
                 : 'border-purple-500/10 bg-purple-950/25 text-gray-300 hover:border-purple-500/40'
             }`}
           >
@@ -177,7 +177,7 @@ export default function Settings() {
         <div className="flex items-center mb-6">
           <LifeBuoy className="w-6 h-6 text-purple-300 mr-3" />
           <div>
-            <h3 className="text-xl font-semibold text-white font-[Inter]">Support & Help</h3>
+            <h3 className="text-xl font-semibold text-gray-800 font-[Inter]">Support & Help</h3>
             <p className="text-sm text-gray-300">Get assistance from our team</p>
           </div>
         </div>
@@ -194,7 +194,7 @@ export default function Settings() {
                   <IconComponent className="w-6 h-6 text-purple-300 flex-shrink-0 mt-0.5" />
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-1">
-                      <h4 className="font-semibold text-white">{option.title}</h4>
+                      <h4 className="font-semibold text-gray-800">{option.title}</h4>
                       {option.comingSoon && (
                         <span className="px-2 py-1 text-xs bg-orange-900/30 text-orange-300 rounded-full font-medium border border-orange-700">
                           Coming Soon
@@ -213,7 +213,7 @@ export default function Settings() {
           <div className="flex items-start space-x-3">
             <Rocket className="w-5 h-5 text-purple-300 flex-shrink-0 mt-0.5" />
             <div>
-              <h4 className="font-semibold text-white mb-1">Post-Launch Features</h4>
+              <h4 className="font-semibold text-gray-800 mb-1">Post-Launch Features</h4>
               <p className="text-sm text-gray-200">
                 These support features will be available shortly after the platform launches.
                 We're working hard to deliver the best experience possible!
@@ -226,7 +226,7 @@ export default function Settings() {
       {/* About Section */}
       <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
         <div className="text-center">
-          <p className="text-sm text-gray-300">Nyxie CRM, Version 1.0.0</p>
+          <p className="text-sm text-gray-300">Nyxie.Business, Version 1.0.0</p>
         </div>
       </div>
     </div>

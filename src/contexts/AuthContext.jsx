@@ -111,16 +111,21 @@ export const AuthProvider = ({ children }) => {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-
-      if (session?.user) {
-        await checkFacilityAccess(session.user.id)
-      } else {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT') {
+        setSession(null)
+        setUser(null)
         setFacilityAccess(null)
         setHasFacilityAccess(false)
+        setFacilityCheckDone(true)
+      } else if (event === 'SIGNED_IN') {
+        setSession(session)
+        setUser(session?.user ?? null)
+        if (!hasFacilityAccess) {
+          await checkFacilityAccess(session.user.id)
+        }
       }
+      // Ignore TOKEN_REFRESHED and other events — don't update state
     })
 
     return () => subscription.unsubscribe()

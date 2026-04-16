@@ -26,38 +26,34 @@ export function NativeDelete({ onConfirm, onDelete, className = '' }) {
     }
   }
 
-  if (!showConfirm) {
-    return (
-      <button
-        onClick={handleDeleteClick}
-        className={`px-3 py-1.5 text-xs border border-red-600 text-red-300 rounded-lg hover:bg-red-900/50 transition-all flex items-center gap-1 font-medium ${className}`}
-        title="Delete"
-      >
-        <Trash2 className="w-3 h-3" />
-        <span>Delete</span>
-      </button>
-    )
-  }
-
   return (
-    <div className={`flex items-center space-x-2 ${className}`}>
-      <span className="text-xs text-red-300 font-medium whitespace-nowrap">Delete?</span>
-      <button
-        onClick={handleConfirmDelete}
-        className="px-2 py-1 text-xs bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all flex items-center space-x-1"
-        title="Confirm Delete"
-      >
-        <Check className="w-3 h-3" />
-        <span>Yes</span>
-      </button>
-      <button
-        onClick={handleCancel}
-        className="px-2 py-1 text-xs border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-800/50 transition-all flex items-center space-x-1"
-        title="Cancel"
-      >
-        <X className="w-3 h-3" />
-        <span>No</span>
-      </button>
+    <div className={`flex items-center gap-1 ${className}`}>
+      {!showConfirm ? (
+        <button
+          onClick={handleDeleteClick}
+          className="p-1.5 text-white bg-red-500 border border-red-500 rounded-lg hover:bg-red-600 transition-all"
+          title="Delete"
+        >
+          <Trash2 className="w-3 h-3" />
+        </button>
+      ) : (
+        <>
+          <button
+            onClick={handleConfirmDelete}
+            className="p-1.5 text-white bg-red-500 border border-red-500 rounded-lg hover:bg-red-600 transition-all"
+            title="Yes"
+          >
+            <Check className="w-3 h-3" />
+          </button>
+          <button
+            onClick={handleCancel}
+            className="p-1.5 text-gray-600 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition-all"
+            title="No"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        </>
+      )}
     </div>
   )
 }

@@ -658,7 +658,7 @@ export default function Profile() {
     <div className="w-full -mt-4">
       {/* Header */}
       <div className="mb-4">
-        <h2 className="text-2xl font-bold text-white font-[Inter]">Facility Profile</h2>
+        <h2 className="text-2xl font-bold text-gray-800 font-[Inter]">Facility Profile</h2>
       </div>
 
         {/* Tabs */}
@@ -672,8 +672,8 @@ export default function Profile() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex-1 min-w-[140px] px-6 py-4 text-sm font-medium transition-all ${
                     activeTab === tab.id
-                      ? 'bg-purple-900/15 text-white'
-                      : 'text-gray-200 hover:text-white hover:bg-purple-900/5'
+                      ? 'bg-purple-900/15 text-gray-800'
+                      : 'text-gray-200 hover:text-gray-800 hover:bg-purple-900/5'
                   } ${
                     index === 0 ? 'rounded-tl-lg' : ''
                   } ${
@@ -696,7 +696,7 @@ export default function Profile() {
       {activeTab === 'basic' && (
         <form onSubmit={handleSave} className="space-y-6">
           <div className="relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
-            <h3 className="text-lg font-bold text-white mb-6 flex items-center font-[Inter]">
+            <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center font-[Inter]">
               <Building2 className="w-6 h-6 mr-2 text-purple-300" />
               Basic Information
             </h3>
@@ -710,7 +710,7 @@ export default function Profile() {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
                   placeholder="e.g., Glamour Beauty Salon"
                   required
                 />
@@ -724,7 +724,7 @@ export default function Profile() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={4}
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
                   placeholder="Tell customers about your facility, your team, and what makes you special..."
                 />
                 <p className="mt-1 text-xs text-gray-400">{description.length} characters</p>
@@ -738,7 +738,7 @@ export default function Profile() {
                   type="text"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
                   placeholder="123 Main Street"
                   required
                 />
@@ -752,7 +752,7 @@ export default function Profile() {
                   type="text"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
                   placeholder="Tbilisi"
                   required
                 />
@@ -766,7 +766,7 @@ export default function Profile() {
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
                   placeholder="+995 XXX XXX XXX"
                   required
                 />
@@ -776,7 +776,7 @@ export default function Profile() {
 
           {/* Social Media */}
           <div className="relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
-            <h3 className="text-lg font-bold text-white mb-6 flex items-center font-[Inter]">
+            <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center font-[Inter]">
               <Globe className="w-6 h-6 mr-2 text-purple-300" />
               Social Media & Website
             </h3>
@@ -792,7 +792,7 @@ export default function Profile() {
                     type="text"
                     value={instagramUrl}
                     onChange={(e) => setInstagramUrl(e.target.value)}
-                    className="w-full pl-8 pr-4 py-3 bg-purple-950/12 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
+                    className="w-full pl-8 pr-4 py-3 bg-purple-950/12 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
                     placeholder="your_salon"
                   />
                 </div>
@@ -806,7 +806,7 @@ export default function Profile() {
                   type="url"
                   value={facebookUrl}
                   onChange={(e) => setFacebookUrl(e.target.value)}
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
                   placeholder="https://facebook.com/..."
                 />
               </div>
@@ -819,7 +819,7 @@ export default function Profile() {
                   type="url"
                   value={websiteUrl}
                   onChange={(e) => setWebsiteUrl(e.target.value)}
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
                   placeholder="https://..."
                 />
               </div>
@@ -832,7 +832,7 @@ export default function Profile() {
                   type="url"
                   value={googleMapsUrl}
                   onChange={(e) => setGoogleMapsUrl(e.target.value)}
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/20 transition-all placeholder-gray-400"
                   placeholder="Paste Google Maps share link..."
                 />
                 <p className="text-[10px] text-gray-500 mt-1">Open Google Maps → Find your salon → Share → Copy link → Paste here</p>
@@ -845,7 +845,7 @@ export default function Profile() {
             <button
               type="submit"
               disabled={saving || !salonId}
-              className="px-8 py-3 bg-purple-900/10 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/15 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
+              className="px-8 py-3 bg-purple-900/10 border border-purple-500/10 text-gray-800 rounded-lg hover:bg-purple-900/15 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
             >
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
@@ -858,7 +858,7 @@ export default function Profile() {
         <div className="space-y-6">
           {/* Service Categories */}
           <div className="relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
-            <h3 className="text-lg font-bold text-white mb-2 flex items-center font-[Inter]">
+            <h3 className="text-lg font-bold text-gray-800 mb-2 flex items-center font-[Inter]">
               <Scissors className="w-6 h-6 mr-2 text-purple-300" />
               Service Categories
             </h3>
@@ -872,7 +872,7 @@ export default function Profile() {
                   onClick={() => toggleCategory(category)}
                   className={`p-3 rounded-xl border transition-all transform hover:scale-105 ${
                     categories.includes(category)
-                      ? 'bg-purple-900/10 border-purple-500/20 text-white'
+                      ? 'bg-purple-900/10 border-purple-500/20 text-gray-800'
                       : 'border-purple-500/[0.06] bg-black/10 text-gray-200 hover:border-purple-500/40'
                   }`}
                 >
@@ -898,7 +898,7 @@ export default function Profile() {
 
           {/* Price Range */}
           <div className="relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
-            <h3 className="text-lg font-bold text-white mb-2 flex items-center font-[Inter]">
+            <h3 className="text-lg font-bold text-gray-800 mb-2 flex items-center font-[Inter]">
               <DollarSign className="w-6 h-6 mr-2 text-purple-300" />
               Price Range
             </h3>
@@ -917,7 +917,7 @@ export default function Profile() {
                   onClick={() => setPriceRange(option.value)}
                   className={`p-4 rounded-xl border transition-all transform hover:scale-105 ${
                     priceRange === option.value
-                      ? 'bg-purple-900/10 border-purple-500/20 text-white'
+                      ? 'bg-purple-900/10 border-purple-500/20 text-gray-800'
                       : 'border-purple-500/[0.06] bg-black/10 text-gray-200 hover:border-purple-500/40'
                   }`}
                 >
@@ -935,7 +935,7 @@ export default function Profile() {
 
           {/* Amenities */}
           <div className="relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
-            <h3 className="text-lg font-bold text-white mb-2 flex items-center font-[Inter]">
+            <h3 className="text-lg font-bold text-gray-800 mb-2 flex items-center font-[Inter]">
               <Target className="w-6 h-6 mr-2 text-purple-300" />
               Amenities & Features
             </h3>
@@ -951,7 +951,7 @@ export default function Profile() {
                     onClick={() => toggleAmenity(amenity.key)}
                     className={`p-4 rounded-xl border transition-all transform hover:scale-105 text-left ${
                       amenities[amenity.key]
-                        ? 'bg-purple-900/10 border-purple-500/20 text-white'
+                        ? 'bg-purple-900/10 border-purple-500/20 text-gray-800'
                         : 'border-purple-500/[0.06] bg-black/10 text-gray-200 hover:border-purple-500/40'
                     }`}
                   >
@@ -971,7 +971,7 @@ export default function Profile() {
               type="button"
               onClick={handleSave}
               disabled={saving || !salonId}
-              className="px-8 py-3 bg-purple-900/10 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/15 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
+              className="px-8 py-3 bg-purple-900/10 border border-purple-500/10 text-gray-800 rounded-lg hover:bg-purple-900/15 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
             >
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
@@ -984,7 +984,7 @@ export default function Profile() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Working Hours Section */}
           <div className="lg:col-span-2 relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
-            <h3 className="text-lg font-bold text-white mb-2 flex items-center font-[Inter]">
+            <h3 className="text-lg font-bold text-gray-800 mb-2 flex items-center font-[Inter]">
               <Clock className="w-6 h-6 mr-2 text-purple-300" />
               Working Hours
             </h3>
@@ -997,7 +997,7 @@ export default function Profile() {
               return (
                 <div key={day.value} className="flex items-center space-x-4 p-4 bg-black/10 border border-purple-500/10 rounded-lg min-h-[64px]">
                   <div className="w-32 flex-shrink-0">
-                    <span className="text-sm font-semibold text-white">{day.label}</span>
+                    <span className="text-sm font-semibold text-gray-800">{day.label}</span>
                   </div>
 
                   <label className="flex items-center flex-shrink-0">
@@ -1013,7 +1013,7 @@ export default function Profile() {
                   <div className="flex items-center space-x-2 flex-1">
                     {!hours.is_closed ? (
                       <>
-                        <span className="text-white font-medium text-sm">
+                        <span className="text-gray-800 font-medium text-sm">
                           {hours.open_time || '09:00'} - {hours.close_time || '18:00'}
                         </span>
                         <button
@@ -1038,7 +1038,7 @@ export default function Profile() {
                 type="button"
                 onClick={saveWorkingHours}
                 disabled={saving}
-                className="px-8 py-3 bg-purple-900/10 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/15 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
+                className="px-8 py-3 bg-purple-900/10 border border-purple-500/10 text-gray-800 rounded-lg hover:bg-purple-900/15 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
               >
                 {saving ? 'Saving...' : 'Save Working Hours'}
               </button>
@@ -1047,7 +1047,7 @@ export default function Profile() {
 
           {/* Weekly Summary Card */}
           <div className="relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
-            <h3 className="text-lg font-bold text-white mb-4 flex items-center font-[Inter]">
+            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center font-[Inter]">
               <TrendingUp className="w-5 h-5 mr-2 text-purple-300" />
               Weekly Summary
             </h3>
@@ -1055,7 +1055,7 @@ export default function Profile() {
             {/* Total Hours */}
             <div className="mb-6 p-4 bg-purple-900/10 rounded-lg border border-purple-500/15">
               <p className="text-xs text-gray-400 mb-1">Total Weekly Hours</p>
-              <p className="text-3xl font-bold text-white">
+              <p className="text-3xl font-bold text-gray-800">
                 {Object.values(workingHours).reduce((total, day) => {
                   if (day.is_closed || !day.open_time || !day.close_time) return total;
                   const [openHour, openMin] = day.open_time.split(':').map(Number);
@@ -1094,7 +1094,7 @@ export default function Profile() {
                             style={{ width: `${(dailyHours / 24) * 100}%` }}
                           />
                         </div>
-                        <span className="text-white font-medium w-10 text-right">{dailyHours.toFixed(1)}h</span>
+                        <span className="text-gray-800 font-medium w-10 text-right">{dailyHours.toFixed(1)}h</span>
                       </div>
                     )}
                   </div>
@@ -1119,7 +1119,7 @@ export default function Profile() {
                   setWorkingHours(prev => ({ ...prev, ...newHours }));
                   toast.info('Applied Mon-Fri schedule with weekend closed');
                 }}
-                className="w-full px-3 py-2 text-xs bg-purple-900/10 border border-purple-600 text-white rounded-lg hover:bg-purple-900/15 transition-all"
+                className="w-full px-3 py-2 text-xs bg-purple-900/10 border border-purple-600 text-gray-800 rounded-lg hover:bg-purple-900/15 transition-all"
               >
                 Set Mon-Fri (Weekend Closed)
               </button>
@@ -1134,7 +1134,7 @@ export default function Profile() {
                   setWorkingHours(prev => ({ ...prev, ...newHours }));
                   toast.info('Applied 9AM-6PM to all days');
                 }}
-                className="w-full px-3 py-2 text-xs bg-purple-900/10 border border-purple-600 text-white rounded-lg hover:bg-purple-900/15 transition-all"
+                className="w-full px-3 py-2 text-xs bg-purple-900/10 border border-purple-600 text-gray-800 rounded-lg hover:bg-purple-900/15 transition-all"
               >
                 Set All Days 9AM-6PM
               </button>
@@ -1143,7 +1143,7 @@ export default function Profile() {
               <div className="p-3 bg-purple-900/8 rounded-lg border border-purple-500/[0.06] mt-3">
                 <p className="text-xs text-gray-300 mb-2 font-medium">Set All Days To:</p>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="flex-1 text-white font-medium text-sm text-center">
+                  <span className="flex-1 text-gray-800 font-medium text-sm text-center">
                     {customOpenTime} - {customCloseTime}
                   </span>
                   <button
@@ -1193,9 +1193,9 @@ export default function Profile() {
                         value={blockDate}
                         onChange={(e) => setBlockDate(e.target.value)}
                         min={new Date().toISOString().split('T')[0]}
-                        className="flex-1 px-2 py-1 text-[11px] bg-purple-950/40 border border-purple-500/20 text-white rounded-lg focus:ring-2 focus:ring-purple-500"
+                        className="flex-1 px-2 py-1 text-[11px] bg-purple-950/40 border border-purple-500/20 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500"
                       />
-                      <button onClick={addBlockedDate} className="px-2 py-1 text-[11px] bg-purple-600 text-white rounded-lg hover:bg-purple-500 transition-all">Add</button>
+                      <button onClick={addBlockedDate} className="px-2 py-1 text-[11px] bg-purple-600 text-gray-800 rounded-lg hover:bg-purple-500 transition-all">Add</button>
                     </div>
                   )}
 
@@ -1226,7 +1226,7 @@ export default function Profile() {
         <div className="relative bg-purple-900/12 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h3 className="text-lg font-bold text-white flex items-center font-[Inter]">
+              <h3 className="text-lg font-bold text-gray-800 flex items-center font-[Inter]">
                 <Camera className="w-6 h-6 mr-2 text-purple-300" />
                 Photo Gallery
               </h3>
@@ -1238,12 +1238,12 @@ export default function Profile() {
                   type="button"
                   onClick={fixImageUrls}
                   disabled={saving}
-                  className="px-6 py-3 bg-purple-900/15 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/20 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
+                  className="px-6 py-3 bg-purple-900/15 border border-purple-500/10 text-gray-800 rounded-lg hover:bg-purple-900/20 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
                 >
                   {saving ? 'Fixing...' : 'Fix Image URLs'}
                 </button>
               )}
-              <label className="px-6 py-3 bg-purple-900/15 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/20 cursor-pointer font-medium transition-all transform hover:scale-105">
+              <label className="px-6 py-3 bg-purple-900/15 border border-purple-500/10 text-gray-800 rounded-lg hover:bg-purple-900/20 cursor-pointer font-medium transition-all transform hover:scale-105">
                 <input
                   type="file"
                   accept="image/*"
@@ -1292,11 +1292,11 @@ export default function Profile() {
                     <button
                       type="button"
                       onClick={() => deleteImage(image.id)}
-                      className="absolute top-2 right-2 bg-red-600 text-white px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-lg hover:bg-red-700 font-bold text-sm z-10"
+                      className="absolute top-2 right-2 bg-red-600 text-gray-800 px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-lg hover:bg-red-700 font-bold text-sm z-10"
                     >
                       Delete
                     </button>
-                    <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-xs p-2 opacity-0 group-hover:opacity-100 transition-all">
+                    <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-gray-800 text-xs p-2 opacity-0 group-hover:opacity-100 transition-all">
                       <div className="truncate" title={image.image_url}>
                         {image.image_url}
                       </div>
@@ -1314,12 +1314,12 @@ export default function Profile() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-bold text-white font-[Inter]">Closed Periods</h3>
+              <h3 className="text-lg font-bold text-gray-800 font-[Inter]">Closed Periods</h3>
               <p className="text-xs text-gray-400 mt-0.5">Holidays, renovations, or any dates your salon will be closed</p>
             </div>
             <button
               onClick={() => setShowAddClosed(true)}
-              className="px-4 py-2 text-xs font-medium bg-purple-600 text-white rounded-lg hover:bg-purple-500 transition-all"
+              className="px-4 py-2 text-xs font-medium bg-purple-600 text-gray-800 rounded-lg hover:bg-purple-500 transition-all"
             >
               + Add Period
             </button>
@@ -1335,7 +1335,7 @@ export default function Profile() {
                     type="date"
                     value={closedForm.startDate}
                     onChange={e => setClosedForm(prev => ({ ...prev, startDate: e.target.value }))}
-                    className="w-full px-3 py-2 text-sm bg-purple-950/40 border border-purple-500/20 text-white rounded-lg focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-3 py-2 text-sm bg-purple-950/40 border border-purple-500/20 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
                 <div className="flex-1">
@@ -1344,7 +1344,7 @@ export default function Profile() {
                     type="date"
                     value={closedForm.endDate}
                     onChange={e => setClosedForm(prev => ({ ...prev, endDate: e.target.value }))}
-                    className="w-full px-3 py-2 text-sm bg-purple-950/40 border border-purple-500/20 text-white rounded-lg focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-3 py-2 text-sm bg-purple-950/40 border border-purple-500/20 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
                 <div className="flex-1">
@@ -1354,11 +1354,11 @@ export default function Profile() {
                     value={closedForm.reason}
                     onChange={e => setClosedForm(prev => ({ ...prev, reason: e.target.value }))}
                     placeholder="Holiday, Renovation..."
-                    className="w-full px-3 py-2 text-sm bg-purple-950/40 border border-purple-500/20 text-white rounded-lg focus:ring-2 focus:ring-purple-500 placeholder-gray-500"
+                    className="w-full px-3 py-2 text-sm bg-purple-950/40 border border-purple-500/20 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 placeholder-gray-500"
                   />
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={addClosedPeriod} className="px-4 py-2 text-sm font-medium bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 transition-all">Save</button>
+                  <button onClick={addClosedPeriod} className="px-4 py-2 text-sm font-medium bg-emerald-600 text-gray-800 rounded-lg hover:bg-emerald-500 transition-all">Save</button>
                   <button onClick={() => setShowAddClosed(false)} className="px-4 py-2 text-sm text-gray-400 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-all">Cancel</button>
                 </div>
               </div>
@@ -1382,16 +1382,16 @@ export default function Profile() {
                   }`}>
                     <div className="flex items-center gap-4">
                       <div className="text-center w-20">
-                        <div className="text-lg font-bold text-white">{start.toLocaleDateString('en-US', { day: 'numeric' })}</div>
+                        <div className="text-lg font-bold text-gray-800">{start.toLocaleDateString('en-US', { day: 'numeric' })}</div>
                         <div className="text-[10px] text-gray-400 uppercase">{start.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</div>
                       </div>
                       <div className="text-gray-500">→</div>
                       <div className="text-center w-20">
-                        <div className="text-lg font-bold text-white">{end.toLocaleDateString('en-US', { day: 'numeric' })}</div>
+                        <div className="text-lg font-bold text-gray-800">{end.toLocaleDateString('en-US', { day: 'numeric' })}</div>
                         <div className="text-[10px] text-gray-400 uppercase">{end.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</div>
                       </div>
                       <div className="ml-2">
-                        <div className="text-sm font-medium text-white">{period.reason}</div>
+                        <div className="text-sm font-medium text-gray-800">{period.reason}</div>
                         <div className="text-[10px] text-gray-500">{days} day{days !== 1 ? 's' : ''}</div>
                       </div>
                       {isActive && <span className="px-2 py-0.5 text-[10px] font-bold bg-red-500/20 border border-red-500/30 text-red-300 rounded-full ml-2">Active Now</span>}

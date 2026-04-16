@@ -271,7 +271,7 @@ export default function Marketing() {
     <div className="w-full -mt-4">
       {/* Header */}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-white font-[Inter]">Marketing</h2>
+        <h2 className="text-2xl font-bold text-gray-800 font-[Inter]">Marketing</h2>
         <p className="text-gray-300 mt-1">Manage your marketing campaigns, analytics, and promotions</p>
       </div>
 
@@ -306,7 +306,7 @@ export default function Marketing() {
               <div className="flex items-center justify-between mb-4">
                 <Eye className="w-8 h-8 text-purple-300" />
               </div>
-              <div className="text-3xl font-bold text-white mb-2">{analytics.totalViews.toLocaleString()}</div>
+              <div className="text-3xl font-bold text-gray-800 mb-2">{analytics.totalViews.toLocaleString()}</div>
               <div className="text-sm text-gray-300">Total Profile Views</div>
             </div>
 
@@ -314,7 +314,7 @@ export default function Marketing() {
               <div className="flex items-center justify-between mb-4">
                 <Users className="w-8 h-8 text-purple-300" />
               </div>
-              <div className="text-3xl font-bold text-white mb-2">{analytics.uniqueVisitors.toLocaleString()}</div>
+              <div className="text-3xl font-bold text-gray-800 mb-2">{analytics.uniqueVisitors.toLocaleString()}</div>
               <div className="text-sm text-gray-300">Unique Visitors</div>
             </div>
 
@@ -322,7 +322,7 @@ export default function Marketing() {
               <div className="flex items-center justify-between mb-4">
                 <TrendingUp className="w-8 h-8 text-purple-300" />
               </div>
-              <div className="text-3xl font-bold text-white mb-2">{analytics.viewsThisWeek.toLocaleString()}</div>
+              <div className="text-3xl font-bold text-gray-800 mb-2">{analytics.viewsThisWeek.toLocaleString()}</div>
               <div className="text-sm text-gray-300">Views This Week</div>
             </div>
 
@@ -330,13 +330,13 @@ export default function Marketing() {
               <div className="flex items-center justify-between mb-4">
                 <BarChart3 className="w-8 h-8 text-purple-300" />
               </div>
-              <div className="text-3xl font-bold text-white mb-2">{analytics.viewsThisMonth.toLocaleString()}</div>
+              <div className="text-3xl font-bold text-gray-800 mb-2">{analytics.viewsThisMonth.toLocaleString()}</div>
               <div className="text-sm text-gray-300">Views This Month</div>
             </div>
           </div>
 
           <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
-            <h3 className="text-lg font-semibold text-white mb-4 font-[Inter]">Profile Views Over Time</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 font-[Inter]">Profile Views Over Time</h3>
             <div className="h-64 flex items-center justify-center text-gray-400">
               <div className="text-center">
                 <BarChart3 className="w-16 h-16 mx-auto mb-4 text-purple-300/30" />
@@ -352,7 +352,7 @@ export default function Marketing() {
         <div className="space-y-6">
           <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-16 text-center">
             <Image className="w-16 h-16 mx-auto mb-4 text-purple-300" />
-            <h3 className="text-lg font-semibold text-white mb-2 font-[Inter]">Stories Feature</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2 font-[Inter]">Stories Feature</h3>
             <p className="text-gray-300 mb-6">Share visual stories to engage with your customers</p>
             <p className="text-sm text-purple-300">Feature coming soon - Add and manage stories with engagement tracking</p>
           </div>
@@ -366,7 +366,7 @@ export default function Marketing() {
             <p className="text-gray-300">Create and manage discount codes for your customers</p>
             <button
               onClick={() => handleOpenPromoModal()}
-              className="px-8 py-3 bg-purple-900/30 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/40 font-medium transition-all transform hover:scale-105"
+              className="px-8 py-3 bg-purple-900/30 border border-purple-500/10 text-gray-800 rounded-lg hover:bg-purple-900/40 font-medium transition-all transform hover:scale-105"
             >
               + New Promo
             </button>
@@ -375,11 +375,11 @@ export default function Marketing() {
           {promos.length === 0 ? (
             <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-16 text-center">
               <Gift className="w-16 h-16 mx-auto mb-4 text-purple-300" />
-              <h3 className="text-lg font-semibold text-white mb-2 font-[Inter]">No Promos Yet</h3>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2 font-[Inter]">No Promos Yet</h3>
               <p className="text-gray-300 mb-6">Create your first promotional offer to attract more customers</p>
               <button
                 onClick={() => handleOpenPromoModal()}
-                className="px-8 py-3 bg-purple-900/30 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/40 font-medium transition-all transform hover:scale-105"
+                className="px-8 py-3 bg-purple-900/30 border border-purple-500/10 text-gray-800 rounded-lg hover:bg-purple-900/40 font-medium transition-all transform hover:scale-105"
               >
                 Create First Promo
               </button>
@@ -399,7 +399,7 @@ export default function Marketing() {
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-2 flex-wrap gap-2">
-                          <h3 className="text-lg font-bold text-white font-[Inter]">{promo.title}</h3>
+                          <h3 className="text-lg font-bold text-gray-800 font-[Inter]">{promo.title}</h3>
                           {active && (
                             <span className="px-2 py-1 text-xs bg-green-900/30 text-green-300 rounded-full border border-green-700">
                               Active
@@ -453,7 +453,7 @@ export default function Marketing() {
                       <div className="flex items-center space-x-2">
                         <Calendar className="w-4 h-4 text-purple-300" />
                         <span className="text-gray-300">Valid Period:</span>
-                        <span className="font-medium text-white ml-auto">
+                        <span className="font-medium text-gray-800 ml-auto">
                           {formatDate(promo.valid_from)} - {formatDate(promo.valid_until)}
                         </span>
                       </div>
@@ -465,7 +465,7 @@ export default function Marketing() {
                               <TrendingUp className="w-4 h-4 text-purple-300" />
                               <span className="text-gray-300">Usage:</span>
                             </div>
-                            <span className="font-medium text-white">
+                            <span className="font-medium text-gray-800">
                               {promo.current_uses} / {promo.max_uses}
                             </span>
                           </div>
@@ -481,7 +481,7 @@ export default function Marketing() {
                       {promo.applicable_service_ids && promo.applicable_service_ids.length > 0 && (
                         <div className="flex items-center justify-between">
                           <span className="text-gray-300">Services:</span>
-                          <span className="font-medium text-white">
+                          <span className="font-medium text-gray-800">
                             {promo.applicable_service_ids.length} service(s)
                           </span>
                         </div>
@@ -526,7 +526,7 @@ export default function Marketing() {
         <div className="space-y-6">
           <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-16 text-center">
             <Users className="w-16 h-16 mx-auto mb-4 text-purple-300" />
-            <h3 className="text-lg font-semibold text-white mb-2 font-[Inter]">Personal Promos</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2 font-[Inter]">Personal Promos</h3>
             <p className="text-gray-300 mb-6">Create targeted promotional offers for individual customers</p>
             <p className="text-sm text-purple-300">Feature coming soon - Send personalized promos to specific customers</p>
           </div>
@@ -539,12 +539,12 @@ export default function Marketing() {
           <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-purple-500/10">
             <div className="sticky top-0 bg-gradient-to-r from-purple-900/15 to-violet-900/15 border-b border-purple-500/10 px-6 py-4 rounded-t-lg">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-white font-[Inter]">
+                <h2 className="text-xl font-bold text-gray-800 font-[Inter]">
                   {editingPromo ? 'Edit Promo' : 'Create New Promo'}
                 </h2>
                 <button
                   onClick={handleClosePromoModal}
-                  className="text-gray-300 hover:text-white transition-all"
+                  className="text-gray-300 hover:text-gray-800 transition-all"
                 >
                   <X className="w-6 h-6" />
                 </button>
@@ -553,7 +553,7 @@ export default function Marketing() {
 
             <form onSubmit={handleSubmitPromo} className="p-6 space-y-6">
               <div>
-                <h3 className="text-lg font-semibold text-white mb-4 font-[Inter]">Basic Information</h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 font-[Inter]">Basic Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-200 mb-2">
@@ -563,7 +563,7 @@ export default function Marketing() {
                       type="text"
                       value={code}
                       onChange={(e) => setCode(e.target.value.toUpperCase())}
-                      className="w-full px-4 py-3 bg-purple-950/25 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/90 transition-all placeholder-gray-400 uppercase"
+                      className="w-full px-4 py-3 bg-purple-950/25 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/90 transition-all placeholder-gray-400 uppercase"
                       placeholder="SUMMER2024"
                       required
                       maxLength={50}
@@ -578,7 +578,7 @@ export default function Marketing() {
                       type="text"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
-                      className="w-full px-4 py-3 bg-purple-950/25 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/90 transition-all placeholder-gray-400"
+                      className="w-full px-4 py-3 bg-purple-950/25 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/90 transition-all placeholder-gray-400"
                       placeholder="Summer Special Discount"
                       required
                     />
@@ -592,7 +592,7 @@ export default function Marketing() {
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       rows={3}
-                      className="w-full px-4 py-3 bg-purple-950/25 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/90 transition-all placeholder-gray-400"
+                      className="w-full px-4 py-3 bg-purple-950/25 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/90 transition-all placeholder-gray-400"
                       placeholder="Get 20% off all services this summer!"
                     />
                   </div>
@@ -600,7 +600,7 @@ export default function Marketing() {
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold text-white mb-4 font-[Inter]">Discount Settings</h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 font-[Inter]">Discount Settings</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-200 mb-2">
@@ -609,7 +609,7 @@ export default function Marketing() {
                     <select
                       value={discountType}
                       onChange={(e) => setDiscountType(e.target.value)}
-                      className="w-full px-4 py-2 bg-purple-950/25 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/90 transition-all placeholder-gray-400"
+                      className="w-full px-4 py-2 bg-purple-950/25 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/90 transition-all placeholder-gray-400"
                     >
                       <option value="percentage">Percentage (%)</option>
                       <option value="fixed">Fixed Amount ($)</option>
@@ -624,7 +624,7 @@ export default function Marketing() {
                       type="number"
                       value={discountValue}
                       onChange={(e) => setDiscountValue(e.target.value)}
-                      className="w-full px-4 py-2 bg-purple-950/25 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/90 transition-all placeholder-gray-400"
+                      className="w-full px-4 py-2 bg-purple-950/25 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/90 transition-all placeholder-gray-400"
                       placeholder={discountType === 'percentage' ? '20' : '10.00'}
                       step={discountType === 'percentage' ? '1' : '0.01'}
                       min="0"
@@ -641,7 +641,7 @@ export default function Marketing() {
                       type="number"
                       value={minPurchaseAmount}
                       onChange={(e) => setMinPurchaseAmount(e.target.value)}
-                      className="w-full px-4 py-2 bg-purple-950/25 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/90 transition-all placeholder-gray-400"
+                      className="w-full px-4 py-2 bg-purple-950/25 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/90 transition-all placeholder-gray-400"
                       placeholder="50.00"
                       step="0.01"
                       min="0"
@@ -651,7 +651,7 @@ export default function Marketing() {
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold text-white mb-4 font-[Inter]">Validity Period</h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 font-[Inter]">Validity Period</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <CalendarPicker
                     label="Valid From *"
@@ -680,7 +680,7 @@ export default function Marketing() {
                     type="number"
                     value={maxUses}
                     onChange={(e) => setMaxUses(e.target.value)}
-                    className="w-full px-4 py-3 bg-purple-950/25 border border-purple-500/10 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/90 transition-all placeholder-gray-400"
+                    className="w-full px-4 py-3 bg-purple-950/25 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/90 transition-all placeholder-gray-400"
                     placeholder="Unlimited"
                     min="1"
                   />
@@ -688,7 +688,7 @@ export default function Marketing() {
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold text-white mb-4 font-[Inter]">Applicable Services</h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 font-[Inter]">Applicable Services</h3>
                 <p className="text-sm text-gray-400 mb-3">
                   Leave all unchecked to apply to all services
                 </p>
@@ -734,7 +734,7 @@ export default function Marketing() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-8 py-3 bg-purple-900/30 border border-purple-500/10 text-white rounded-lg hover:bg-purple-900/40 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
+                  className="px-8 py-3 bg-purple-900/30 border border-purple-500/10 text-gray-800 rounded-lg hover:bg-purple-900/40 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
                 >
                   {saving ? 'Saving...' : editingPromo ? 'Update Promo' : 'Create Promo'}
                 </button>

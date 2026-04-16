@@ -36,11 +36,11 @@ const generateTimeSlots = (startTime, endTime, intervalMinutes = 30) => {
 }
 
 const STATUS_COLORS = {
-  pending: 'bg-gradient-to-br from-yellow-700/35 to-yellow-800/35 border-2 border-yellow-400/60 text-yellow-50 shadow-lg shadow-yellow-900/20',
-  confirmed: 'bg-gradient-to-br from-blue-800/35 to-blue-700/35 border-2 border-blue-400/60 text-blue-100 shadow-lg shadow-blue-900/25',
-  in_progress: 'bg-gradient-to-br from-emerald-700/35 to-blue-700/35 border-2 border-emerald-400/60 text-emerald-100 shadow-lg shadow-emerald-900/25',
-  completed: 'bg-gradient-to-br from-emerald-800/35 to-green-800/35 border-2 border-emerald-500/60 text-emerald-200 shadow-lg shadow-emerald-900/20',
-  cancelled: 'bg-gradient-to-br from-rose-800/35 to-red-800/35 border-2 border-rose-500/60 text-rose-200 shadow-lg shadow-rose-900/20',
+  pending: 'bg-gradient-to-br from-yellow-500/40 to-yellow-600/40 border-2 border-yellow-400 text-gray-900 shadow-lg shadow-yellow-500/30',
+  confirmed: 'bg-gradient-to-br from-blue-500/40 to-blue-600/40 border-2 border-blue-400 text-gray-900 shadow-lg shadow-blue-500/30',
+  in_progress: 'bg-gradient-to-br from-emerald-500/40 to-blue-500/40 border-2 border-emerald-400 text-gray-900 shadow-lg shadow-emerald-500/30',
+  completed: 'bg-gradient-to-br from-emerald-500/40 to-green-600/40 border-2 border-emerald-400 text-gray-900 shadow-lg shadow-emerald-500/30',
+  cancelled: 'bg-gradient-to-br from-rose-500/40 to-red-600/40 border-2 border-rose-400 text-gray-900 shadow-lg shadow-rose-500/30',
 }
 
 export default function BookingCalendar() {
@@ -822,27 +822,27 @@ export default function BookingCalendar() {
         <div className="flex items-center space-x-3">
           <button
             onClick={goToToday}
-            className="px-4 py-2 text-sm font-medium text-white bg-purple-900/15 border border-purple-500/10 hover:bg-purple-900/20 rounded-full transition-all"
+            className="px-4 py-2 text-sm font-medium text-gray-800 bg-white/50 border border-gray-200 hover:bg-gray-100 shadow-[0_1px_4px_rgba(0,0,0,0.1)] rounded-full transition-all"
           >
             Today
           </button>
           <div className="flex items-center relative">
             <button
               onClick={() => changeDate(-1)}
-              className="p-2 text-white bg-purple-900/15 border border-purple-500/10 hover:bg-purple-900/20 rounded-l-full transition-all"
+              className="p-2 text-gray-800 bg-white/50 border border-gray-200 hover:bg-gray-100 shadow-[0_1px_4px_rgba(0,0,0,0.1)] rounded-l-full transition-all"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
               ref={dateButtonRef}
               onClick={toggleCalendar}
-              className="px-6 py-2 bg-purple-950/12 border-t border-b border-purple-500/10 text-white text-sm font-semibold w-40 text-center hover:bg-purple-950/20 transition-all cursor-pointer"
+              className="px-6 py-2 bg-gray-50 border-t border-b border-gray-200 text-gray-800 text-sm font-semibold w-40 text-center hover:bg-white/20 transition-all cursor-pointer"
             >
               {formatDateDisplay(selectedDate)}
             </button>
             <button
               onClick={() => changeDate(1)}
-              className="p-2 text-white bg-purple-900/15 border border-purple-500/10 hover:bg-purple-900/20 rounded-r-full transition-all"
+              className="p-2 text-gray-800 bg-white/50 border border-gray-200 hover:bg-gray-100 shadow-[0_1px_4px_rgba(0,0,0,0.1)] rounded-r-full transition-all"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -858,7 +858,7 @@ export default function BookingCalendar() {
 
                   {/* Calendar */}
                   <div
-                    className="fixed z-[99999] w-[580px] bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-3"
+                    className="fixed z-[99999] w-[580px] bg-white/95 backdrop-blur-sm rounded-lg border border-gray-200 shadow-2xl p-3"
                     style={{
                       top: `${calendarPosition.top}px`,
                       left: `${calendarPosition.left}px`
@@ -873,17 +873,17 @@ export default function BookingCalendar() {
                           newDate.setMonth(newDate.getMonth() - 1)
                           setCalendarViewDate(newDate)
                         }}
-                        className="p-1.5 hover:bg-purple-500/50/10 rounded-lg transition-all"
+                        className="p-1.5 hover:bg-gray-100 rounded-lg transition-all"
                       >
-                        <ChevronLeft className="w-5 h-5 text-purple-300" />
+                        <ChevronLeft className="w-5 h-5 text-[#9489E2]" />
                       </button>
 
                       <div className="flex items-center flex-1">
-                        <div className="flex-1 text-center text-sm font-semibold text-white">
+                        <div className="flex-1 text-center text-sm font-semibold text-gray-800">
                           {calendarViewDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                         </div>
-                        <div className="w-px h-6 bg-purple-700 mx-4"></div>
-                        <div className="flex-1 text-center text-sm font-semibold text-white">
+                        <div className="w-px h-6 bg-gray-300 mx-4"></div>
+                        <div className="flex-1 text-center text-sm font-semibold text-gray-800">
                           {(() => {
                             const nextMonth = new Date(calendarViewDate)
                             nextMonth.setMonth(nextMonth.getMonth() + 1)
@@ -899,9 +899,9 @@ export default function BookingCalendar() {
                           newDate.setMonth(newDate.getMonth() + 1)
                           setCalendarViewDate(newDate)
                         }}
-                        className="p-1.5 hover:bg-purple-500/50/10 rounded-lg transition-all"
+                        className="p-1.5 hover:bg-gray-100 rounded-lg transition-all"
                       >
-                        <ChevronRight className="w-5 h-5 text-purple-300" />
+                        <ChevronRight className="w-5 h-5 text-[#9489E2]" />
                       </button>
                     </div>
 
@@ -914,7 +914,7 @@ export default function BookingCalendar() {
                           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
                             <div
                               key={day}
-                              className="h-7 w-7 flex items-center justify-center text-[10.5px] font-bold text-white"
+                              className="h-7 w-7 flex items-center justify-center text-[10.5px] font-bold text-gray-800"
                             >
                               {day}
                             </div>
@@ -956,11 +956,11 @@ export default function BookingCalendar() {
                                     setIsCalendarOpen(false)
                                   }}
                                   className={`
-                                    h-8 w-7 rounded-lg text-xs font-medium transition-all hover:bg-purple-500/50/20 cursor-pointer
+                                    h-8 w-7 rounded-lg text-xs font-medium transition-all hover:bg-gray-100 cursor-pointer
                                     ${isSelected
-                                      ? 'bg-gradient-to-br from-purple-500 via-violet-500 to-fuchsia-500 text-white shadow-lg shadow-purple-500/20'
+                                      ? 'bg-[#9489E2] text-gray-800 shadow-lg shadow-[#9489E2]/20'
                                       : isToday
-                                      ? 'bg-purple-900/30 text-purple-300 border border-purple-500/10'
+                                      ? 'bg-gray-100 text-[#9489E2] border border-gray-200'
                                       : 'text-gray-300'
                                     }
                                   `}
@@ -976,7 +976,7 @@ export default function BookingCalendar() {
                       </div>
 
                       {/* Centered Separator */}
-                      <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-px bg-purple-700"></div>
+                      <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-px bg-gray-300"></div>
 
                       {/* Next Month */}
                       <div className="flex-1">
@@ -985,7 +985,7 @@ export default function BookingCalendar() {
                           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
                             <div
                               key={`next-${day}`}
-                              className="h-7 w-7 flex items-center justify-center text-[10.5px] font-bold text-white"
+                              className="h-7 w-7 flex items-center justify-center text-[10.5px] font-bold text-gray-800"
                             >
                               {day}
                             </div>
@@ -1029,11 +1029,11 @@ export default function BookingCalendar() {
                                     setIsCalendarOpen(false)
                                   }}
                                   className={`
-                                    h-8 w-7 rounded-lg text-xs font-medium transition-all hover:bg-purple-500/50/20 cursor-pointer
+                                    h-8 w-7 rounded-lg text-xs font-medium transition-all hover:bg-gray-100 cursor-pointer
                                     ${isSelected
-                                      ? 'bg-gradient-to-br from-purple-500 via-violet-500 to-fuchsia-500 text-white shadow-lg shadow-purple-500/20'
+                                      ? 'bg-[#9489E2] text-gray-800 shadow-lg shadow-[#9489E2]/20'
                                       : isToday
-                                      ? 'bg-purple-900/30 text-purple-300 border border-purple-500/10'
+                                      ? 'bg-gray-100 text-[#9489E2] border border-gray-200'
                                       : 'text-gray-300'
                                     }
                                   `}
@@ -1058,7 +1058,7 @@ export default function BookingCalendar() {
             value={selectedSpecialistFilter}
             onChange={setSelectedSpecialistFilter}
             placeholder="All Specialists"
-            className="w-[200px] !bg-purple-900/15 !border-purple-500/10 hover:!bg-purple-900/20 !rounded-full !px-4 !py-2 !text-sm !font-medium"
+            className="w-[200px] !bg-white/50 !border-gray-200 hover:!bg-gray-100 !rounded-full !px-4 !py-2 !text-sm !font-medium"
           />
         </div>
 
@@ -1066,13 +1066,13 @@ export default function BookingCalendar() {
           {/* Bookings List Button with Notification Badge */}
           <button
             onClick={handlePendingClick}
-            className="px-4 py-2 text-sm font-medium text-white bg-purple-900/15 border border-purple-500/10 hover:bg-purple-900/20 rounded-full transition-all flex items-center gap-2 relative"
+            className="px-4 py-2 text-sm font-medium text-gray-800 bg-white/50 border border-gray-200 hover:bg-gray-100 shadow-[0_1px_4px_rgba(0,0,0,0.1)] rounded-full transition-all flex items-center gap-2 relative"
             title="View Pending Bookings"
           >
             <List className="w-5 h-5" />
             <span>Bookings</span>
             {pendingCount > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-5 h-5 flex items-center justify-center px-1.5 text-xs font-bold bg-red-500 text-white rounded-full border-2 border-purple-950">
+              <span className="absolute -top-1 -right-1 min-w-5 h-5 flex items-center justify-center px-1.5 text-xs font-bold bg-red-500 text-gray-800 rounded-full border-2 border-white">
                 {pendingCount > 99 ? '99+' : pendingCount}
               </span>
             )}
@@ -1082,7 +1082,7 @@ export default function BookingCalendar() {
           <button
             ref={settingsButtonRef}
             onClick={toggleSettings}
-            className="px-4 py-2 text-sm font-medium text-white bg-purple-900/15 border border-purple-500/10 hover:bg-purple-900/20 rounded-full transition-all"
+            className="px-4 py-2 text-sm font-medium text-gray-800 bg-white/50 border border-gray-200 hover:bg-gray-100 shadow-[0_1px_4px_rgba(0,0,0,0.1)] rounded-full transition-all"
             title="Calendar Size Settings"
           >
             <Settings className="w-5 h-5" />
@@ -1096,7 +1096,7 @@ export default function BookingCalendar() {
                 onClick={() => setShowSizeSettings(false)}
               />
               <div
-                className="fixed z-[99999] w-44 bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-2"
+                className="fixed z-[99999] w-44 bg-white/95 backdrop-blur-sm rounded-lg border border-gray-200 shadow-2xl p-2"
                 style={{
                   top: `${settingsPosition.top}px`,
                   right: `${settingsPosition.right}px`
@@ -1104,13 +1104,13 @@ export default function BookingCalendar() {
               >
                 {/* Calendar Size Section */}
                 <div className="mb-3">
-                  <div className="text-xs font-semibold text-white mb-2 px-2 text-center">Calendar Size</div>
+                  <div className="text-xs font-semibold text-gray-800 mb-2 px-2 text-center">Calendar Size</div>
                   <button
                     onClick={() => handleSizeChange('small')}
                     className={`w-full text-center px-3 py-2 text-sm rounded-lg transition-all ${
                       calendarSize === 'small'
-                        ? 'bg-purple-600 text-white'
-                        : 'text-gray-300 hover:bg-purple-800/25'
+                        ? 'bg-[#9489E2] text-gray-800'
+                        : 'text-gray-600 hover:bg-gray-100'
                     }`}
                   >
                     Small
@@ -1119,8 +1119,8 @@ export default function BookingCalendar() {
                     onClick={() => handleSizeChange('medium')}
                     className={`w-full text-center px-3 py-2 text-sm rounded-lg transition-all ${
                       calendarSize === 'medium'
-                        ? 'bg-purple-600 text-white'
-                        : 'text-gray-300 hover:bg-purple-800/25'
+                        ? 'bg-[#9489E2] text-gray-800'
+                        : 'text-gray-600 hover:bg-gray-100'
                     }`}
                   >
                     Medium
@@ -1129,8 +1129,8 @@ export default function BookingCalendar() {
                     onClick={() => handleSizeChange('large')}
                     className={`w-full text-center px-3 py-2 text-sm rounded-lg transition-all ${
                       calendarSize === 'large'
-                        ? 'bg-purple-600 text-white'
-                        : 'text-gray-300 hover:bg-purple-800/25'
+                        ? 'bg-[#9489E2] text-gray-800'
+                        : 'text-gray-600 hover:bg-gray-100'
                     }`}
                   >
                     Large
@@ -1138,17 +1138,17 @@ export default function BookingCalendar() {
                 </div>
 
                 {/* Separator */}
-                <div className="border-t border-purple-500/10 my-2"></div>
+                <div className="border-t border-gray-200 my-2"></div>
 
                 {/* Time Window Section */}
                 <div>
-                  <div className="text-xs font-semibold text-white mb-2 px-2 text-center">Time Window</div>
+                  <div className="text-xs font-semibold text-gray-800 mb-2 px-2 text-center">Time Window</div>
                   <button
                     onClick={() => handleTimeWindowChange(15)}
                     className={`w-full text-center px-3 py-2 text-sm rounded-lg transition-all ${
                       timeWindow === 15
-                        ? 'bg-purple-600 text-white'
-                        : 'text-gray-300 hover:bg-purple-800/25'
+                        ? 'bg-[#9489E2] text-gray-800'
+                        : 'text-gray-600 hover:bg-gray-100'
                     }`}
                   >
                     15 minutes
@@ -1157,8 +1157,8 @@ export default function BookingCalendar() {
                     onClick={() => handleTimeWindowChange(30)}
                     className={`w-full text-center px-3 py-2 text-sm rounded-lg transition-all ${
                       timeWindow === 30
-                        ? 'bg-purple-600 text-white'
-                        : 'text-gray-300 hover:bg-purple-800/25'
+                        ? 'bg-[#9489E2] text-gray-800'
+                        : 'text-gray-600 hover:bg-gray-100'
                     }`}
                   >
                     30 minutes
@@ -1167,8 +1167,8 @@ export default function BookingCalendar() {
                     onClick={() => handleTimeWindowChange(60)}
                     className={`w-full text-center px-3 py-2 text-sm rounded-lg transition-all ${
                       timeWindow === 60
-                        ? 'bg-purple-600 text-white'
-                        : 'text-gray-300 hover:bg-purple-800/25'
+                        ? 'bg-[#9489E2] text-gray-800'
+                        : 'text-gray-600 hover:bg-gray-100'
                     }`}
                   >
                     1 hour
@@ -1176,19 +1176,19 @@ export default function BookingCalendar() {
                 </div>
 
                 {/* Separator */}
-                <div className="border-t border-purple-500/10 my-2"></div>
+                <div className="border-t border-gray-200 my-2"></div>
 
                 {/* Slot Duration Section */}
                 <div>
-                  <div className="text-xs font-semibold text-white mb-2 px-2 text-center">Slot Duration</div>
+                  <div className="text-xs font-semibold text-gray-800 mb-2 px-2 text-center">Slot Duration</div>
                   {[15, 30, 45, 60].map(mins => (
                     <button
                       key={mins}
                       onClick={() => handleSlotDurationChange(mins)}
                       className={`w-full text-center px-3 py-2 text-sm rounded-lg transition-all ${
                         slotDuration === mins
-                          ? 'bg-purple-600 text-white'
-                          : 'text-gray-300 hover:bg-purple-800/25'
+                          ? 'bg-[#9489E2] text-gray-800'
+                          : 'text-gray-600 hover:bg-gray-100'
                       }`}
                     >
                       {mins} min
@@ -1202,7 +1202,7 @@ export default function BookingCalendar() {
 
           <button
             onClick={handleNewBooking}
-            className="px-4 py-2 text-sm font-medium text-white bg-purple-900/15 border border-purple-500/10 hover:bg-purple-900/20 rounded-full transition-all"
+            className="px-4 py-2 text-sm font-medium text-white bg-[#9489E2] border border-[#9489E2] hover:bg-[#8078d0] shadow-[0_1px_4px_rgba(0,0,0,0.1)] rounded-full transition-all"
           >
             + New Booking
           </button>
@@ -1212,38 +1212,38 @@ export default function BookingCalendar() {
 
       {/* Closed Banner */}
       {isDateClosed && (
-        <div className="bg-gradient-to-r from-red-900/25 to-rose-900/25 border border-red-500/30 rounded-xl p-4 mb-4 flex items-center justify-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
-            <Clock className="w-4 h-4 text-red-400" />
+        <div className="bg-red-50 border border-red-300 rounded-xl p-4 mb-4 flex items-center justify-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+            <Clock className="w-4 h-4 text-red-600" />
           </div>
           <div>
-            <p className="text-sm font-bold text-red-300">Salon Closed — {closedReason}</p>
-            <p className="text-[10px] text-red-400/60">Bookings are blocked for this date. App users cannot book either.</p>
+            <p className="text-sm font-bold text-red-700">Salon Closed — {closedReason}</p>
+            <p className="text-[10px] text-red-500">Bookings are blocked for this date. App users cannot book either.</p>
           </div>
         </div>
       )}
 
       {/* Calendar Grid */}
       {isDateClosed ? null : specialists.length === 0 ? (
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl border-t border-b border-purple-500/10 p-12 text-center">
+        <div className="relative bg-white/50 backdrop-blur-sm border-t border-b border-gray-200 p-12 text-center">
           <div className="flex justify-center mb-4">
-            <Users className="w-16 h-16 text-purple-300" />
+            <Users className="w-16 h-16 text-[#9489E2]" />
           </div>
-          <h3 className="text-lg font-bold text-white mb-2 font-[Inter]">No Specialists Found</h3>
+          <h3 className="text-lg font-bold text-gray-800 mb-2 font-[Inter]">No Specialists Found</h3>
           <p className="text-gray-300">Add specialists first to view the calendar.</p>
         </div>
       ) : (
-        <div ref={tableContainerRef} className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl border-t border-b border-purple-500/10 overflow-hidden">
+        <div ref={tableContainerRef} className="relative bg-white/90 backdrop-blur-sm border-t border-b border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full border-collapse table-fixed">
                 <thead ref={theadRef}>
-                  <tr className="border-b border-purple-500/10">
-                    <th className="sticky left-0 z-10 px-3 py-3 text-center text-sm font-semibold text-white w-20">
+                  <tr className="border-b border-gray-200">
+                    <th className="sticky left-0 z-10 px-3 py-3 text-center text-sm font-semibold text-gray-800 w-20">
                     </th>
                     {filteredSpecialists.map((specialist) => (
                       <th
                         key={specialist.id}
-                        className="px-4 py-2 text-center text-sm font-semibold text-white"
+                        className="px-4 py-2 text-center text-sm font-semibold text-gray-800"
                         style={{ width: `${100 / filteredSpecialists.length}%` }}
                       >
                         <div className="flex flex-col items-center">
@@ -1251,7 +1251,7 @@ export default function BookingCalendar() {
                             <img
                               src={specialist.image_url}
                               alt={specialist.name}
-                              className="w-9 h-9 rounded-full object-cover mb-1.5 border border-purple-500"
+                              className="w-9 h-9 rounded-full object-cover mb-1.5 border border-[#9489E2]"
                             />
                           )}
                           <span>{specialist.name}</span>
@@ -1263,8 +1263,8 @@ export default function BookingCalendar() {
                 {!isDateClosed && <tbody>
                   {timeSlots.map((timeSlot, index) => {
                     return (
-                      <tr key={timeSlot} className="border-b-2 border-violet-700/25">
-                        <td className="sticky left-0 z-10 px-3 pt-2 pb-3 text-sm font-medium border-r border-violet-700/25 text-white w-20 text-center align-top">
+                      <tr key={timeSlot} className="border-b-2 border-gray-200">
+                        <td className="sticky left-0 z-10 px-3 pt-2 pb-3 text-sm font-medium border-r border-gray-200 text-gray-800 w-20 text-center align-top">
                           {formatTime(timeSlot)}
                         </td>
                         {filteredSpecialists.map((specialist) => {
@@ -1286,7 +1286,7 @@ export default function BookingCalendar() {
                           return (
                             <td
                               key={specialist.id}
-                              className={`px-2 py-0 border-r border-violet-700/25 relative group/slot ${
+                              className={`px-2 py-0 border-r border-gray-200 relative group/slot ${
                                 isOutsideWorkingHours
                                   ? 'cursor-not-allowed'
                                   : 'cursor-pointer'
@@ -1315,9 +1315,9 @@ export default function BookingCalendar() {
                                           e.stopPropagation()
                                           handleSlotClick(specialist.id, subTime, e)
                                         }}
-                                        className={`flex-1 flex items-center justify-center border-b border-purple-500/10 last:border-b-0 hover:bg-purple-700/25 transition-all cursor-pointer ${pixelHeight / subCount < 22 ? 'px-0.5' : 'px-1'}`}
+                                        className={`flex-1 flex items-center justify-center border-b border-gray-200 last:border-b-0 hover:bg-[#9489E2]/35 transition-all cursor-pointer ${pixelHeight / subCount < 22 ? 'px-0.5' : 'px-1'}`}
                                       >
-                                        <span className={`${pixelHeight / subCount < 22 ? 'text-[10px]' : 'text-xs'} font-bold text-white/70 hover:text-white transition-colors select-none`}>{subTime}</span>
+                                        <span className={`${pixelHeight / subCount < 22 ? 'text-[10px]' : 'text-xs'} font-bold text-gray-800/70 hover:text-gray-800 transition-colors select-none`}>{subTime}</span>
                                       </div>
                                     )
                                   })}
@@ -1359,7 +1359,7 @@ export default function BookingCalendar() {
                                   }}
                                 >
                                   <div className="flex items-start justify-between gap-1 mb-1">
-                                    <div className="font-bold truncate flex-1 text-[11px] leading-tight text-white">
+                                    <div className="font-bold truncate flex-1 text-[11px] leading-tight">
                                       {booking.services?.name || 'Service'} • {formatTime(booking.booking_time)} ({booking.services?.duration_minutes || 30}min)
                                     </div>
                                     <div className="flex items-center gap-1 flex-shrink-0">
@@ -1381,17 +1381,17 @@ export default function BookingCalendar() {
                                         </span>
                                       )}
                                       {booking.created_via === 'mobile' ? (
-                                        <span className="text-[10px] font-semibold px-1.5 py-0.5 bg-white/20 rounded text-white" title="Booked via Mobile App">App</span>
+                                        <span className="text-[10px] font-semibold px-1.5 py-0.5 bg-white/20 rounded" title="Booked via Mobile App">App</span>
                                       ) : booking.created_via === 'web' ? (
-                                        <span className="text-[10px] font-semibold px-1.5 py-0.5 bg-white/20 rounded text-white" title="Walk-in booking">Walk-in</span>
+                                        <span className="text-[10px] font-semibold px-1.5 py-0.5 bg-white/20 rounded" title="Walk-in booking">Walk-in</span>
                                       ) : null}
                                     </div>
                                   </div>
-                                  <div className="text-[12px] opacity-90 truncate text-white">
+                                  <div className="text-[12px] opacity-90 truncate">
                                     {booking.customer_name || 'Guest'}
                                   </div>
                                   {booking.customer_phone && (
-                                    <div className="text-[11px] opacity-80 truncate text-white">
+                                    <div className="text-[11px] opacity-80 truncate">
                                       {formatPhoneNumber(booking.customer_phone)}
                                     </div>
                                   )}
@@ -1422,7 +1422,7 @@ export default function BookingCalendar() {
                                       e.stopPropagation()
                                       deleteBreak(brk.id)
                                     }}
-                                    className="absolute top-0.5 right-0.5 w-4 h-4 bg-red-500/50 text-white rounded-full text-[8px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                    className="absolute top-0.5 right-0.5 w-4 h-4 bg-red-500/50 text-gray-800 rounded-full text-[8px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                                   >
                                     ×
                                   </button>
@@ -1494,20 +1494,20 @@ export default function BookingCalendar() {
       <div className="mt-3 px-8">
         <div className="flex flex-wrap gap-4">
           <div className="flex items-center space-x-2">
-            <div className="w-5 h-5 bg-gradient-to-br from-amber-900/15 to-yellow-900/15 border-2 border-amber-600/25 rounded shadow-lg shadow-amber-900/10"></div>
-            <span className="text-sm text-amber-200 font-medium">Pending</span>
+            <div className="w-5 h-5 bg-gradient-to-br from-yellow-500 to-yellow-600 border-2 border-yellow-400 rounded shadow-sm"></div>
+            <span className="text-sm text-gray-700 font-medium">Pending</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-5 h-5 bg-gradient-to-br from-purple-900/15 to-violet-900/15 border-2 border-purple-500/25 rounded shadow-lg shadow-purple-900/15"></div>
-            <span className="text-sm text-purple-100 font-medium">Confirmed</span>
+            <div className="w-5 h-5 bg-gradient-to-br from-blue-500 to-blue-600 border-2 border-blue-400 rounded shadow-sm"></div>
+            <span className="text-sm text-gray-700 font-medium">Confirmed</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-5 h-5 bg-gradient-to-br from-emerald-900/15 to-green-900/15 border-2 border-emerald-600/25 rounded shadow-lg shadow-emerald-900/10"></div>
-            <span className="text-sm text-emerald-200 font-medium">Completed</span>
+            <div className="w-5 h-5 bg-gradient-to-br from-emerald-500 to-green-600 border-2 border-emerald-400 rounded shadow-sm"></div>
+            <span className="text-sm text-gray-700 font-medium">Completed</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-5 h-5 bg-gradient-to-br from-rose-900/15 to-red-900/15 border-2 border-rose-600/25 rounded shadow-lg shadow-rose-900/10"></div>
-            <span className="text-sm text-rose-200 font-medium">Cancelled</span>
+            <div className="w-5 h-5 bg-gradient-to-br from-rose-500 to-red-600 border-2 border-rose-400 rounded shadow-sm"></div>
+            <span className="text-sm text-gray-700 font-medium">Cancelled</span>
           </div>
         </div>
       </div>
@@ -1519,70 +1519,64 @@ export default function BookingCalendar() {
             className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[99998]"
             onClick={() => setShowPendingPopout(false)}
           />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[99999] w-full max-w-[980px] max-h-[80vh] bg-purple-950/40 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl overflow-hidden">
-            <div className="sticky top-0 bg-black border-b border-purple-500/10 px-4 py-3 flex items-center justify-between z-10">
-              <h2 className="text-lg font-bold text-white font-[Inter]">Pending Bookings ({pendingCount})</h2>
-              <button
-                onClick={() => setShowPendingPopout(false)}
-                className="px-3 py-1 bg-purple-600 hover:bg-purple-500 text-white text-sm rounded-lg font-medium transition-all"
-              >
-                Close
-              </button>
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[99999] w-full max-w-[980px] max-h-[80vh] bg-white rounded-2xl border border-gray-200 overflow-hidden" style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.15)' }}>
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-5 py-3 flex items-center justify-between z-10">
+              <h2 className="text-lg font-bold text-gray-900 font-[Inter]">Pending Bookings ({pendingCount})</h2>
             </div>
 
             <div className="overflow-y-auto max-h-[60vh] p-4">
               {pendingBookings.length === 0 ? (
-                <div className="text-center py-12 text-gray-300">
+                <div className="text-center py-12 text-gray-400">
                   No pending bookings
                 </div>
               ) : (
                 <div className="space-y-2">
                   {/* Headers Row */}
-                  <div className="flex items-center gap-4 px-3 pb-2 border-b border-purple-500/[0.06]">
-                    <div className="flex-[3] text-center text-xs font-semibold text-purple-300 uppercase tracking-wide">Service / Specialist</div>
-                    <div className="flex-[2] text-center text-xs font-semibold text-purple-300 uppercase tracking-wide">Customer</div>
-                    <div className="flex-[1.5] text-center text-xs font-semibold text-purple-300 uppercase tracking-wide">Date</div>
-                    <div className="flex-[1] text-center text-xs font-semibold text-purple-300 uppercase tracking-wide">Time</div>
-                    <div className="flex-[2.5] text-center text-xs font-semibold text-purple-300 uppercase tracking-wide">Actions</div>
+                  <div className="flex items-center gap-4 px-3 pb-2 border-b border-gray-200">
+                    <div className="flex-[3] text-center text-xs font-semibold text-gray-500 uppercase tracking-wide">Service / Specialist</div>
+                    <div className="flex-[2] text-center text-xs font-semibold text-gray-500 uppercase tracking-wide">Customer</div>
+                    <div className="flex-[1.5] text-center text-xs font-semibold text-gray-500 uppercase tracking-wide">Date</div>
+                    <div className="flex-[1] text-center text-xs font-semibold text-gray-500 uppercase tracking-wide">Time</div>
+                    <div className="flex-[2.5] text-center text-xs font-semibold text-gray-500 uppercase tracking-wide">Actions</div>
                   </div>
 
                   {/* Bookings List */}
                   {pendingBookings.map((booking) => (
                     <div
                       key={booking.id}
-                      className={`relative overflow-hidden border rounded-lg p-3 hover:brightness-110 transition-all ${
+                      className={`relative overflow-hidden border rounded-lg p-3 hover:shadow-md transition-all ${
                         booking.status === 'pending'
-                          ? 'bg-gradient-to-r from-yellow-500/15 to-transparent border-yellow-500/25'
-                          : 'bg-gradient-to-r from-blue-500/15 to-transparent border-blue-500/25'
+                          ? 'bg-yellow-50 border-yellow-300'
+                          : 'bg-blue-50 border-blue-300'
                       }`}
                     >
                       <div className="flex items-center gap-2">
                         <div className="flex-[3] text-center truncate">
-                          <span className="text-sm font-semibold text-white">{booking.services?.name || 'Service'}</span>
+                          <span className="text-sm font-semibold text-gray-800">{booking.services?.name || 'Service'}</span>
                           <span className="text-[10px] text-gray-400 mx-1">by</span>
-                          <span className="text-sm font-semibold text-white">{booking.specialists?.name || '—'}</span>
+                          <span className="text-sm font-semibold text-gray-800">{booking.specialists?.name || '—'}</span>
                         </div>
                         <div className="flex-[2] text-center truncate">
-                          <div className="text-sm text-gray-300">{booking.customer_name || 'Guest'}</div>
+                          <div className="text-sm text-gray-700">{booking.customer_name || 'Guest'}</div>
                           <div className="text-[10px] text-gray-500">{booking.customer_phone || ''}</div>
                         </div>
-                        <div className="flex-[1.5] text-sm text-gray-300 text-center">
+                        <div className="flex-[1.5] text-sm text-gray-600 text-center">
                           {new Date(booking.booking_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         </div>
-                        <div className="flex-[1] text-sm text-gray-300 text-center">
+                        <div className="flex-[1] text-sm text-gray-600 text-center">
                           {booking.booking_time?.substring(0, 5)}
                         </div>
                         <div className="flex-[2.5] flex items-center justify-center gap-1">
                           <button
                             onClick={() => handleEditPendingBooking(booking)}
-                            className="px-3 py-1.5 bg-purple-600/40 border border-purple-400/50 text-purple-100 rounded-md transition-all hover:bg-purple-600/60"
+                            className="px-3 py-1.5 bg-[#9489E2] border border-[#9489E2] text-white rounded-md transition-all hover:bg-[#8078d0]"
                             title="Edit"
                           >
                             <Edit className="w-3 h-3" />
                           </button>
                           <button
                             onClick={() => updateBookingStatus(booking.id, 'confirmed')}
-                            className="px-3 py-1.5 bg-blue-600/40 border border-blue-400/50 text-blue-100 rounded-md transition-all hover:bg-blue-600/60"
+                            className="px-3 py-1.5 bg-blue-500 border border-blue-500 text-white rounded-md transition-all hover:bg-blue-600"
                             title="Confirm"
                           >
                             <CheckCircle className="w-3 h-3" />
@@ -1592,14 +1586,14 @@ export default function BookingCalendar() {
                               setCompletionBooking(booking)
                               setShowCompletionModal(true)
                             }}
-                            className="px-3 py-1.5 bg-emerald-600/40 border border-emerald-400/50 text-emerald-100 rounded-md transition-all hover:bg-emerald-600/60"
+                            className="px-3 py-1.5 bg-emerald-500 border border-emerald-500 text-white rounded-md transition-all hover:bg-emerald-600"
                             title="Complete"
                           >
                             <CheckCircle className="w-3 h-3" />
                           </button>
                           <button
                             onClick={() => updateBookingStatus(booking.id, 'cancelled')}
-                            className="px-3 py-1.5 bg-rose-600/40 border border-rose-400/50 text-rose-100 rounded-md transition-all hover:bg-rose-600/60"
+                            className="px-3 py-1.5 bg-rose-500 border border-rose-500 text-white rounded-md transition-all hover:bg-rose-600"
                             title="Cancel"
                           >
                             <XCircle className="w-3 h-3" />
@@ -1612,16 +1606,16 @@ export default function BookingCalendar() {
               )}
             </div>
 
-            <div className="sticky bottom-0 bg-[#120025] p-4 border-t border-purple-500/10 flex justify-between items-center">
+            <div className="sticky bottom-0 bg-gray-50 p-4 border-t border-gray-200 flex justify-between items-center">
               <button
                 onClick={() => navigate('/bookings')}
-                className="px-4 py-2 text-sm text-purple-200 hover:text-white  transition-all"
+                className="px-4 py-2 text-sm text-[#9489E2] hover:text-[#8078d0] font-medium transition-all"
               >
                 View All Bookings →
               </button>
               <button
                 onClick={() => setShowPendingPopout(false)}
-                className="px-6 py-2 bg-purple-700 hover:bg-purple-600 text-white text-sm rounded-lg font-medium transition-all"
+                className="px-6 py-2 bg-[#9489E2] hover:bg-[#8078d0] text-white text-sm rounded-lg font-medium transition-all"
               >
                 Close
               </button>
@@ -1684,12 +1678,12 @@ export default function BookingCalendar() {
         <>
           <div className="fixed inset-0 z-[99997]" onClick={() => setSlotMenu(null)} />
           <div
-            className="fixed z-[99998] bg-gray-900/95 border border-purple-500/30 rounded-lg shadow-2xl p-1.5 flex flex-col gap-1"
+            className="fixed z-[99998] bg-white/95 border border-[#9489E2]/30 rounded-lg shadow-2xl p-1.5 flex flex-col gap-1"
             style={{ top: slotMenu.y + 4, left: slotMenu.x + 4 }}
           >
             <button
               onClick={handleSlotNewBooking}
-              className="px-4 py-2 text-xs font-medium text-white bg-purple-600/30 border border-purple-500/30 rounded-md hover:bg-purple-600/50 transition-all text-left"
+              className="px-4 py-2 text-xs font-medium text-gray-800 bg-[#9489E2]/30 border border-[#9489E2]/30 rounded-md hover:bg-[#9489E2]/50 transition-all text-left"
             >
               + New Booking
             </button>
@@ -1707,8 +1701,8 @@ export default function BookingCalendar() {
       {/* Break Modal */}
       {showBreakModal && createPortal(
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[999999] p-4" onClick={() => setShowBreakModal(false)}>
-          <div className="bg-gradient-to-br from-gray-900 to-gray-950 border border-purple-500/20 rounded-2xl shadow-2xl w-full max-w-xs p-5" onClick={e => e.stopPropagation()}>
-            <h3 className="text-sm font-bold text-white mb-4">Add Break</h3>
+          <div className="bg-gradient-to-br from-gray-900 to-gray-950 border border-[#9489E2]/20 rounded-2xl shadow-2xl w-full max-w-xs p-5" onClick={e => e.stopPropagation()}>
+            <h3 className="text-sm font-bold text-gray-800 mb-4">Add Break</h3>
             <div className="space-y-3">
               <div>
                 <label className="text-[10px] text-gray-400 uppercase tracking-wide block mb-1">Label</label>
@@ -1719,8 +1713,8 @@ export default function BookingCalendar() {
                       onClick={() => setBreakForm(prev => ({ ...prev, label: l }))}
                       className={`px-2.5 py-1 text-[10px] font-medium rounded-md border transition-all ${
                         breakForm.label === l
-                          ? 'bg-purple-600/30 border-purple-500/50 text-white'
-                          : 'bg-white/[0.03] border-white/[0.06] text-gray-400 hover:border-purple-500/30'
+                          ? 'bg-[#9489E2]/30 border-[#9489E2]/50 text-gray-800'
+                          : 'bg-white/[0.03] border-white/[0.06] text-gray-400 hover:border-[#9489E2]/30'
                       }`}
                     >
                       {l}
@@ -1735,7 +1729,7 @@ export default function BookingCalendar() {
                     type="time"
                     value={breakForm.startTime}
                     onChange={e => setBreakForm(prev => ({ ...prev, startTime: e.target.value }))}
-                    className="w-full px-2.5 py-1.5 text-xs bg-purple-950/40 border border-purple-500/20 text-white rounded-lg focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-2.5 py-1.5 text-xs bg-gray-50 border border-[#9489E2]/20 text-gray-800 rounded-lg focus:ring-2 focus:ring-[#9489E2]"
                   />
                 </div>
                 <div className="flex-1">
@@ -1744,13 +1738,13 @@ export default function BookingCalendar() {
                     type="time"
                     value={breakForm.endTime}
                     onChange={e => setBreakForm(prev => ({ ...prev, endTime: e.target.value }))}
-                    className="w-full px-2.5 py-1.5 text-xs bg-purple-950/40 border border-purple-500/20 text-white rounded-lg focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-2.5 py-1.5 text-xs bg-gray-50 border border-[#9489E2]/20 text-gray-800 rounded-lg focus:ring-2 focus:ring-[#9489E2]"
                   />
                 </div>
               </div>
               <div className="flex gap-2 pt-1">
                 <button onClick={() => setShowBreakModal(false)} className="flex-1 py-2 text-xs text-gray-400 bg-white/[0.03] border border-white/[0.06] rounded-lg hover:bg-white/[0.06] transition-all">Cancel</button>
-                <button onClick={addBreak} className="flex-1 py-2 text-xs font-semibold text-white bg-purple-600 rounded-lg hover:bg-purple-500 transition-all">Add Break</button>
+                <button onClick={addBreak} className="flex-1 py-2 text-xs font-semibold text-gray-800 bg-[#9489E2] rounded-lg hover:bg-[#8078d0] transition-all">Add Break</button>
               </div>
             </div>
           </div>
@@ -1766,7 +1760,7 @@ export default function BookingCalendar() {
             animate={{ opacity: 1, scale: 1, x: 0 }}
             exit={{ opacity: 0, scale: 0.95, x: -4 }}
             transition={{ type: 'spring', stiffness: 400, damping: 25, duration: 0.15 }}
-            className="fixed z-[9999] w-72 bg-gray-900/95 backdrop-blur-xl border border-purple-500/40 rounded-xl shadow-2xl shadow-purple-900/30 p-4 pointer-events-none"
+            className="fixed z-[9999] w-72 bg-white/95 backdrop-blur-xl border border-[#9489E2]/40 rounded-xl shadow-2xl shadow-gray-300 p-4 pointer-events-none"
             style={{
               top: Math.min(tooltipPos.y, window.innerHeight - 340),
               left: Math.min(tooltipPos.x, window.innerWidth - 300),
@@ -1785,7 +1779,7 @@ export default function BookingCalendar() {
                   {hoveredBooking.status}
                 </span>
                 <span className="text-gray-500">·</span>
-                <span className="text-white font-bold text-sm">{hoveredBooking.services?.name || 'Service'}</span>
+                <span className="text-gray-800 font-bold text-sm">{hoveredBooking.services?.name || 'Service'}</span>
               </div>
               {hoveredBooking.created_via && (
                 <span className="text-[10px] text-gray-400 flex items-center gap-1">
@@ -1798,9 +1792,9 @@ export default function BookingCalendar() {
             {/* Details grid */}
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-xs">
-                <User className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+                <User className="w-3.5 h-3.5 text-[#9489E2] flex-shrink-0" />
                 <span className="text-gray-400">Customer</span>
-                <span className="text-white ml-auto font-medium">
+                <span className="text-gray-800 ml-auto font-medium">
                   {hoveredBooking.customers?.preferred_language === 'en' ? '🇬🇧 ' : hoveredBooking.customers?.preferred_language === 'ru' ? '🇷🇺 ' : '🇬🇪 '}
                   {hoveredBooking.customer_name || 'Guest'}
                 </span>
@@ -1808,36 +1802,36 @@ export default function BookingCalendar() {
 
               {hoveredBooking.customer_phone && (
                 <div className="flex items-center gap-2 text-xs">
-                  <Phone className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+                  <Phone className="w-3.5 h-3.5 text-[#9489E2] flex-shrink-0" />
                   <span className="text-gray-400">Phone</span>
-                  <span className="text-white ml-auto font-medium">{formatPhoneNumber(hoveredBooking.customer_phone)}</span>
+                  <span className="text-gray-800 ml-auto font-medium">{formatPhoneNumber(hoveredBooking.customer_phone)}</span>
                 </div>
               )}
 
               {hoveredBooking.customer_email && (
                 <div className="flex items-center gap-2 text-xs">
-                  <Mail className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+                  <Mail className="w-3.5 h-3.5 text-[#9489E2] flex-shrink-0" />
                   <span className="text-gray-400">Email</span>
-                  <span className="text-white ml-auto font-medium truncate max-w-[140px]">{hoveredBooking.customer_email}</span>
+                  <span className="text-gray-800 ml-auto font-medium truncate max-w-[140px]">{hoveredBooking.customer_email}</span>
                 </div>
               )}
 
               <div className="flex items-center gap-2 text-xs">
-                <Clock className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+                <Clock className="w-3.5 h-3.5 text-[#9489E2] flex-shrink-0" />
                 <span className="text-gray-400">Time</span>
-                <span className="text-white ml-auto font-medium">{formatTime(hoveredBooking.booking_time)} · {hoveredBooking.services?.duration_minutes || 30} min</span>
+                <span className="text-gray-800 ml-auto font-medium">{formatTime(hoveredBooking.booking_time)} · {hoveredBooking.services?.duration_minutes || 30} min</span>
               </div>
 
               <div className="flex items-center gap-2 text-xs">
-                <Users className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+                <Users className="w-3.5 h-3.5 text-[#9489E2] flex-shrink-0" />
                 <span className="text-gray-400">Specialist</span>
-                <span className="text-white ml-auto font-medium">{hoveredBooking.specialists?.name || '—'}</span>
+                <span className="text-gray-800 ml-auto font-medium">{hoveredBooking.specialists?.name || '—'}</span>
               </div>
 
               <div className="flex items-center gap-2 text-xs">
-                <DollarSign className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+                <DollarSign className="w-3.5 h-3.5 text-[#9489E2] flex-shrink-0" />
                 <span className="text-gray-400">Price</span>
-                <span className="text-white ml-auto font-medium">
+                <span className="text-gray-800 ml-auto font-medium">
                   {hoveredBooking.final_price || hoveredBooking.services?.price || 0} GEL
                   {hoveredBooking.discount_amount > 0 && (
                     <span className="text-green-400 ml-1">(-{hoveredBooking.discount_amount})</span>
@@ -1846,36 +1840,36 @@ export default function BookingCalendar() {
               </div>
 
               {hoveredBooking.additional_services?.length > 0 && (
-                <div className="pt-1.5 mt-1 border-t border-purple-500/15 space-y-1">
+                <div className="pt-1.5 mt-1 border-t border-[#9489E2]/15 space-y-1">
                   <span className="text-[10px] text-gray-500 uppercase tracking-wide">Additional Services</span>
                   {hoveredBooking.additional_services.map((s, i) => (
                     <div key={i} className="flex items-center justify-between text-xs">
                       <span className="text-gray-300">+ {s.service_name}</span>
-                      <span className="text-purple-400 font-medium">{s.price} GEL</span>
+                      <span className="text-[#9489E2] font-medium">{s.price} GEL</span>
                     </div>
                   ))}
                 </div>
               )}
 
               <div className="flex items-start gap-2 text-xs">
-                <FileText className="w-3.5 h-3.5 text-purple-400 flex-shrink-0 mt-0.5" />
+                <FileText className="w-3.5 h-3.5 text-[#9489E2] flex-shrink-0 mt-0.5" />
                 <span className="text-gray-400">Notes</span>
                 <span className="text-gray-300 ml-auto font-medium max-w-[160px] text-right leading-relaxed">{hoveredBooking.notes || '—'}</span>
               </div>
 
               {hoveredBooking.promo_code && (
                 <div className="flex items-center gap-2 text-xs">
-                  <Tag className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+                  <Tag className="w-3.5 h-3.5 text-[#9489E2] flex-shrink-0" />
                   <span className="text-gray-400">Promo</span>
                   <span className="text-green-300 ml-auto font-medium">{hoveredBooking.promo_code}</span>
                 </div>
               )}
 
               {hoveredBooking.created_at && (
-                <div className="flex items-center gap-2 text-xs pt-2 border-t border-purple-500/20">
-                  <CalendarIcon className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+                <div className="flex items-center gap-2 text-xs pt-2 border-t border-[#9489E2]/20">
+                  <CalendarIcon className="w-3.5 h-3.5 text-[#9489E2] flex-shrink-0" />
                   <span className="text-gray-400">Booked on</span>
-                  <span className="text-white/60 ml-auto font-medium">{new Date(hoveredBooking.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                  <span className="text-gray-800/60 ml-auto font-medium">{new Date(hoveredBooking.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
               )}
             </div>

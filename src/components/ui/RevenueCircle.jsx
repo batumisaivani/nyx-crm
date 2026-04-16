@@ -41,7 +41,7 @@ export default function RevenueCircle({ total = 0, earned = 0, projected = 0, pr
       viewport={{ once: true, margin: '-40px' }}
       variants={containerVariants}
     >
-      <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl overflow-hidden h-full">
+      <div className="bg-white/50 backdrop-blur-sm rounded-2xl overflow-hidden h-full" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
         <div className="relative px-4 pb-4 pt-6 overflow-hidden h-full">
 
           {/* Dots visualisation */}
@@ -59,7 +59,7 @@ export default function RevenueCircle({ total = 0, earned = 0, projected = 0, pr
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none -mt-16 -ml-6" style={{ zIndex: 20 }}>
               <div className="text-center">
                 <motion.p
-                  className="text-xs font-medium text-white/40 tracking-[0.25em] uppercase mb-1.5"
+                  className="text-xs font-medium text-gray-800/40 tracking-[0.25em] uppercase mb-1.5"
                   initial={{ opacity: 0, y: -8 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
@@ -68,7 +68,7 @@ export default function RevenueCircle({ total = 0, earned = 0, projected = 0, pr
                   Revenue
                 </motion.p>
                 <motion.p
-                  className="text-4xl font-bold text-white leading-none"
+                  className="text-4xl font-bold text-gray-800 leading-none"
                   initial={{ opacity: 0, y: 16, scale: 0.85, filter: 'blur(4px)' }}
                   whileInView={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
                   viewport={{ once: true }}
@@ -77,7 +77,7 @@ export default function RevenueCircle({ total = 0, earned = 0, projected = 0, pr
                   {total.toLocaleString()}
                 </motion.p>
                 <motion.p
-                  className="text-[11px] text-white/25 mt-1"
+                  className="text-[11px] text-gray-800/25 mt-1"
                   initial={{ opacity: 0 }}
                   whileInView={{ opacity: 1 }}
                   viewport={{ once: true }}
@@ -93,7 +93,7 @@ export default function RevenueCircle({ total = 0, earned = 0, projected = 0, pr
           <div
             className="absolute -inset-4 pointer-events-none rounded-xl"
             style={{
-              background: 'linear-gradient(to bottom, transparent 0%, transparent 35%, rgba(0,0,0,0.80) 46%, rgba(0,0,0,0.94) 56%, rgba(0,0,0,1) 66%)',
+              background: 'linear-gradient(to bottom, transparent 0%, transparent 35%, rgba(255,255,255,0.70) 46%, rgba(255,255,255,0.90) 56%, rgba(255,255,255,0.97) 66%)',
               zIndex: 5,
             }}
           />
@@ -111,16 +111,16 @@ export default function RevenueCircle({ total = 0, earned = 0, projected = 0, pr
                     viewport={{ once: true }}
                     transition={{ delay: 0.4, type: 'spring' }}
                   />
-                  <span className="text-sm font-medium text-white/40">Earned</span>
+                  <span className="text-sm font-medium text-gray-800/40">Earned</span>
                 </div>
                 <motion.p
-                  className="text-xl font-bold text-white"
+                  className="text-xl font-bold text-gray-800"
                   initial={{ opacity: 0, y: -8 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: 0.55 }}
                 >
-                  {earned.toLocaleString()} <span className="text-sm font-normal text-white/25">GEL</span>
+                  {earned.toLocaleString()} <span className="text-sm font-normal text-gray-800/25">GEL</span>
                 </motion.p>
                 <motion.span
                   className="text-xs font-semibold text-purple-400"
@@ -143,16 +143,16 @@ export default function RevenueCircle({ total = 0, earned = 0, projected = 0, pr
                     viewport={{ once: true }}
                     transition={{ delay: 0.7, type: 'spring' }}
                   />
-                  <span className="text-sm font-medium text-white/40">Projected</span>
+                  <span className="text-sm font-medium text-gray-800/40">Projected</span>
                 </div>
                 <motion.p
-                  className="text-xl font-bold text-white"
+                  className="text-xl font-bold text-gray-800"
                   initial={{ opacity: 0, y: -8 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: 0.8 }}
                 >
-                  {projected.toLocaleString()} <span className="text-sm font-normal text-white/25">GEL</span>
+                  {projected.toLocaleString()} <span className="text-sm font-normal text-gray-800/25">GEL</span>
                 </motion.p>
               </div>
             </div>
@@ -165,7 +165,7 @@ export default function RevenueCircle({ total = 0, earned = 0, projected = 0, pr
             >
               <Link
                 to="/reports"
-                className="flex items-center justify-center w-full py-2.5 rounded-xl border border-white/[0.08] text-white/60 text-sm font-medium hover:bg-white/[0.04] hover:text-white/80 transition-all"
+                className="flex items-center justify-center w-full py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 hover:text-gray-800 transition-all"
               >
                 View Full Report
               </Link>
