@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 import AnimatedCard from '../components/ui/AnimatedCard'
-import CalendarPicker from '../components/ui/CalendarPicker'
+import DateRangeCalendar from '../components/ui/DateRangeCalendar'
 import ClassicLoader from '../components/ui/loader'
-import { DollarSign, ClipboardList, BarChart3, TrendingUp, Calendar, Gift } from 'lucide-react'
+import { DollarSign, ClipboardList, BarChart3, TrendingUp, Calendar, Gift, CalendarDays } from 'lucide-react'
 
 export default function Reports() {
   const { facilityAccess } = useAuth()
@@ -12,7 +12,9 @@ export default function Reports() {
   const [dateRange, setDateRange] = useState('30') // days
   const [customStartDate, setCustomStartDate] = useState('')
   const [customEndDate, setCustomEndDate] = useState('')
-  const [openCalendar, setOpenCalendar] = useState(null) // 'from', 'to', or null
+  const [reportsCalendarOpen, setReportsCalendarOpen] = useState(false)
+  const reportsCalendarAnchorRef = useRef(null)
+  const [hoveredSlice, setHoveredSlice] = useState(null)
 
   // Analytics data
   const [revenueData, setRevenueData] = useState({
@@ -122,14 +124,18 @@ export default function Reports() {
       // Revenue trend by day (completed only)
       const revenueTrend = {}
       completedBookings.forEach((booking) => {
-        const date = new Date(booking.created_at).toLocaleDateString()
-        revenueTrend[date] = (revenueTrend[date] || 0) + (booking.final_price || booking.service?.price || 0)
+        const d = new Date(booking.created_at)
+        const isoKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+        if (!revenueTrend[isoKey]) revenueTrend[isoKey] = { amount: 0, label: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) }
+        revenueTrend[isoKey].amount += (booking.final_price || booking.service?.price || 0)
       })
 
       setRevenueData({
         total: totalRevenue,
         totalPrevious: previousRevenue,
-        trend: Object.entries(revenueTrend).map(([date, amount]) => ({ date, amount })).sort((a, b) => new Date(b.date) - new Date(a.date)),
+        trend: Object.entries(revenueTrend)
+          .map(([key, { amount, label }]) => ({ date: label, sortKey: key, amount }))
+          .sort((a, b) => a.sortKey.localeCompare(b.sortKey)),
       })
 
       // Bookings by status (all bookings for status counts)
@@ -346,34 +352,28 @@ export default function Reports() {
     <div className="w-full -mt-4 overflow-visible">
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800 font-[Inter]">Analytics & Reports</h2>
-          <p className="text-gray-300 mt-1">Insights and performance metrics</p>
-        </div>
+        <h2 className="text-2xl font-bold text-gray-800 font-[Inter]">Analytics & Reports</h2>
         <button
           onClick={exportToCSV}
-          className="px-8 py-3 bg-purple-900/30 border border-purple-500/10 text-gray-800 rounded-lg hover:bg-purple-900/40 font-medium transition-all transform hover:scale-105"
+          className="px-5 py-2 bg-[#9489E2] text-white border border-[#9489E2] rounded-lg hover:bg-[#8078d0] font-medium text-sm transition-all flex items-center gap-2"
         >
-          📥 Export CSV
+          <TrendingUp className="w-4 h-4" />
+          Export CSV
         </button>
       </div>
 
       {/* Date Range Selector */}
-      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 mb-8 overflow-visible z-[1000]">
+      <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6 overflow-visible z-[1000]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
         <div className="flex items-center gap-3 overflow-visible">
-          <div className="flex items-center space-x-2">
-            <Calendar className="w-5 h-5 text-purple-300" />
-            <label className="text-sm font-medium text-gray-200">Date Range:</label>
-          </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
             {['7', '30', '90', 'custom'].map((range) => (
               <button
                 key={range}
                 onClick={() => setDateRange(range)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all ${
                   dateRange === range
-                    ? 'bg-purple-900/30 border border-purple-500/10 text-gray-800'
-                    : 'bg-black/30 border border-purple-500/[0.06] text-gray-200 hover:border-purple-500/40'
+                    ? 'bg-white text-gray-800 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
                 {range === 'custom' ? 'Custom' : `${range} Days`}
@@ -382,232 +382,387 @@ export default function Reports() {
           </div>
           {dateRange === 'custom' && (
             <>
-              <div className="relative z-[100] overflow-visible">
-                <CalendarPicker
-                  value={customStartDate}
-                  onChange={setCustomStartDate}
-                  label="From"
-                  isOpen={openCalendar === 'from'}
-                  onToggle={(open) => setOpenCalendar(open ? 'from' : null)}
-                />
-              </div>
-              <div className="relative z-[100] overflow-visible">
-                <CalendarPicker
-                  value={customEndDate}
-                  onChange={setCustomEndDate}
-                  minDate={customStartDate}
-                  label="To"
-                  isOpen={openCalendar === 'to'}
-                  onToggle={(open) => setOpenCalendar(open ? 'to' : null)}
-                />
-              </div>
-              <div className="pt-[18px]">
+              <div className="h-6 w-px bg-gray-200" />
+              <div className="relative">
                 <button
-                  onClick={() => {
-                    setCustomStartDate('')
-                    setCustomEndDate('')
-                    setOpenCalendar(null)
+                  ref={reportsCalendarAnchorRef}
+                  onClick={() => setReportsCalendarOpen(!reportsCalendarOpen)}
+                  className={`flex items-center gap-2 px-4 py-1.5 bg-white/50 border border-gray-200 rounded-full shadow-[0_1px_4px_rgba(0,0,0,0.1)] hover:bg-gray-50 transition-all ${customStartDate && customEndDate ? 'border-[#9489E2]/40' : ''}`}
+                >
+                  <CalendarDays className="w-4 h-4 text-[#9489E2]" />
+                  <span className="text-xs font-medium text-gray-800">
+                    {customStartDate && customEndDate
+                      ? `${new Date(customStartDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} — ${new Date(customEndDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+                      : 'Select Range'
+                    }
+                  </span>
+                </button>
+                <DateRangeCalendar
+                  isOpen={reportsCalendarOpen}
+                  onClose={() => setReportsCalendarOpen(false)}
+                  dateFrom={customStartDate}
+                  dateTo={customEndDate}
+                  anchorRef={reportsCalendarAnchorRef}
+                  onSelect={(from, to) => {
+                    setCustomStartDate(from)
+                    setCustomEndDate(to)
                   }}
-                  className="px-3 py-2 bg-black/30 border border-purple-500/[0.06] text-gray-200 rounded-lg hover:border-purple-500/40 text-xs font-medium transition-all"
+                />
+              </div>
+              {customStartDate && customEndDate && (
+                <button
+                  onClick={() => { setCustomStartDate(''); setCustomEndDate('') }}
+                  className="px-3 py-1.5 bg-gray-50 border border-gray-200 text-gray-500 rounded-lg hover:bg-gray-100 text-xs font-medium transition-all"
                 >
                   Reset
                 </button>
-              </div>
+              )}
             </>
           )}
         </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 relative z-[1]">
-        {/* Total Revenue */}
-        <AnimatedCard className="p-6">
-          <div className="flex items-center space-x-3 mb-3">
-            <DollarSign className="w-5 h-5 text-green-400" />
-            <div className="text-sm text-purple-200">Total Revenue</div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 relative z-[1]">
+        <AnimatedCard className="px-4 py-3">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+              <DollarSign className="w-4 h-4 text-emerald-500" />
+            </div>
+            <span className="text-[11px] text-gray-800 font-semibold uppercase tracking-wide">Total Revenue</span>
           </div>
-          <div className="text-3xl font-bold text-gray-800 mb-2">{revenueData.total.toFixed(2)} GEL</div>
-          <div className="flex items-center space-x-2">
-            <span
-              className={`text-sm font-medium ${
-                revenueChange >= 0 ? 'text-green-400' : 'text-red-400'
-              }`}
-            >
+          <div className="text-2xl font-bold text-gray-800">{revenueData.total.toFixed(0)} <span className="text-xs font-medium text-gray-400">₾</span></div>
+          <div className="flex items-center gap-1.5 mt-1">
+            <span className={`text-xs font-medium ${revenueChange >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
               {revenueChange >= 0 ? '↑' : '↓'} {Math.abs(revenueChange).toFixed(1)}%
             </span>
-            <span className="text-xs text-purple-300">vs previous period</span>
+            <span className="text-[10px] text-gray-400">vs previous period</span>
           </div>
         </AnimatedCard>
 
-        {/* Total Bookings */}
-        <AnimatedCard className="p-6">
-          <div className="flex items-center space-x-3 mb-3">
-            <ClipboardList className="w-5 h-5 text-blue-400" />
-            <div className="text-sm text-purple-200">Total Bookings</div>
+        <AnimatedCard className="px-4 py-3">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+              <ClipboardList className="w-4 h-4 text-blue-500" />
+            </div>
+            <span className="text-[11px] text-gray-800 font-semibold uppercase tracking-wide">Total Bookings</span>
           </div>
-          <div className="text-3xl font-bold text-gray-800 mb-2">{bookingsData.total}</div>
-          <div className="flex items-center space-x-2">
-            <span
-              className={`text-sm font-medium ${
-                bookingsChange >= 0 ? 'text-green-400' : 'text-red-400'
-              }`}
-            >
+          <div className="text-2xl font-bold text-gray-800">{bookingsData.total}</div>
+          <div className="flex items-center gap-1.5 mt-1">
+            <span className={`text-xs font-medium ${bookingsChange >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
               {bookingsChange >= 0 ? '↑' : '↓'} {Math.abs(bookingsChange).toFixed(1)}%
             </span>
-            <span className="text-xs text-purple-300">vs previous period</span>
+            <span className="text-[10px] text-gray-400">vs previous period</span>
           </div>
         </AnimatedCard>
 
-        {/* Avg Transaction Value */}
-        <AnimatedCard className="p-6">
-          <div className="flex items-center space-x-3 mb-3">
-            <BarChart3 className="w-5 h-5 text-purple-300" />
-            <div className="text-sm text-purple-200">Avg Transaction</div>
+        <AnimatedCard className="px-4 py-3">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-8 rounded-lg bg-[#9489E2]/10 flex items-center justify-center">
+              <BarChart3 className="w-4 h-4 text-[#9489E2]" />
+            </div>
+            <span className="text-[11px] text-gray-800 font-semibold uppercase tracking-wide">Avg Transaction</span>
           </div>
-          <div className="text-3xl font-bold text-gray-800 mb-2">{avgTransactionValue.toFixed(2)} GEL</div>
-          <div className="text-xs text-purple-300">Per booking</div>
+          <div className="text-2xl font-bold text-gray-800">{avgTransactionValue.toFixed(0)} <span className="text-xs font-medium text-gray-400">₾</span></div>
+          <div className="text-[10px] text-gray-400 mt-1">Per booking</div>
         </AnimatedCard>
 
-        {/* Total Discounts */}
-        <AnimatedCard className="p-6">
-          <div className="flex items-center space-x-3 mb-3">
-            <Gift className="w-5 h-5 text-pink-400" />
-            <div className="text-sm text-purple-200">Total Discounts</div>
+        <AnimatedCard className="px-4 py-3">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-8 rounded-lg bg-pink-50 flex items-center justify-center">
+              <Gift className="w-4 h-4 text-pink-500" />
+            </div>
+            <span className="text-[11px] text-gray-800 font-semibold uppercase tracking-wide">Total Discounts</span>
           </div>
-          <div className="text-3xl font-bold text-gray-800 mb-2">{promoData.totalDiscount.toFixed(2)} GEL</div>
-          <div className="text-xs text-purple-300">
-            {((promoData.totalDiscount / revenueData.total) * 100).toFixed(1)}% of revenue
+          <div className="text-2xl font-bold text-gray-800">{promoData.totalDiscount.toFixed(0)} <span className="text-xs font-medium text-gray-400">₾</span></div>
+          <div className="text-[10px] text-gray-400 mt-1">
+            {revenueData.total > 0 ? ((promoData.totalDiscount / revenueData.total) * 100).toFixed(1) : '0.0'}% of revenue
           </div>
         </AnimatedCard>
       </div>
 
-      {/* Revenue Trend */}
-      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 mb-6 z-[1]">
-        <div className="flex items-center space-x-3 mb-4">
-          <TrendingUp className="w-5 h-5 text-purple-300" />
-          <h2 className="text-lg font-semibold text-gray-800 font-[Inter]">Revenue Trend</h2>
+      {/* Revenue Trend + Pie Chart */}
+      <div className="flex gap-4 mb-6 z-[1]">
+      <div className="flex-1 bg-white rounded-xl border border-gray-200 p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+        <div className="flex items-center gap-2 mb-2">
+          <TrendingUp className="w-5 h-5 text-[#9489E2]" />
+          <h2 className="text-sm font-bold text-gray-800 font-[Inter]">Revenue Trend</h2>
         </div>
-        {revenueData.trend.length > 0 ? (
-          <div className="space-y-3">
-            {revenueData.trend.map((item, index) => (
-              <div key={index}>
-                <div className="flex items-center gap-4">
-                  <div className="text-sm text-gray-300 w-28 font-medium">{item.date}</div>
-                  <div className="flex-1 bg-black/30 rounded-full h-7 overflow-hidden border border-purple-500/[0.06]">
-                    <div
-                      className="bg-gradient-to-r from-purple-800/100 via-purple-900/100 to-violet-900/100 h-full rounded-full flex items-center justify-end px-3 shadow-lg"
-                      style={{
-                        width: `${Math.max((item.amount / Math.max(...revenueData.trend.map((t) => t.amount))) * 100, 5)}%`,
-                      }}
-                    >
-                      <span className="text-xs font-semibold text-gray-800 whitespace-nowrap">{item.amount.toFixed(2)} GEL</span>
-                    </div>
+        {revenueData.trend.length > 0 ? (() => {
+          const sorted = revenueData.trend
+          const maxAmount = Math.max(...sorted.map(t => t.amount), 1)
+          const chartH = 220
+          const n = sorted.length
+          const padLeftPct = 6
+          const padRightPct = 1
+          const padTop = 10
+          // Percentage-based x, pixel-based y
+          const xPct = (i) => padLeftPct + (n > 1 ? i / (n - 1) : 0.5) * (100 - padLeftPct - padRightPct)
+          const yPx = (amount) => padTop + (1 - amount / maxAmount) * (chartH - padTop)
+          const points = sorted.map((item, i) => ({ xPct: xPct(i), yPx: yPx(item.amount) }))
+
+          // Use a fixed viewBox that matches the container aspect for the SVG overlay
+          const vbW = 1000
+          const xVb = (i) => (xPct(i) / 100) * vbW
+          const svgPoints = sorted.map((item, i) => ({ x: xVb(i), y: yPx(item.amount) }))
+          const linePath = svgPoints.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ')
+          const areaPath = `${linePath} L${svgPoints[svgPoints.length - 1].x},${chartH} L${svgPoints[0].x},${chartH} Z`
+
+          return (
+            <div className="mt-2">
+              {/* Chart area */}
+              <div className="relative" style={{ height: chartH }}>
+                {/* Y-axis grid lines + labels */}
+                {[0, 0.25, 0.5, 0.75, 1].map(frac => (
+                  <div key={frac} className="absolute left-0 right-0 flex items-center" style={{ top: padTop + (1 - frac) * (chartH - padTop) }}>
+                    <span className="text-[9px] text-gray-800 w-[6%] text-right pr-1.5 -translate-y-1/2">{Math.round(maxAmount * frac).toLocaleString()}</span>
+                    <div className="flex-1 border-t border-gray-200" />
                   </div>
-                </div>
-                {index < revenueData.trend.length - 1 && (
-                  <div className="ml-28 border-b border-purple-500/[0.06] my-2" />
-                )}
+                ))}
+
+                {/* SVG: line + area + dots */}
+                <svg className="absolute inset-0 w-full overflow-visible" viewBox={`0 0 ${vbW} ${chartH}`} preserveAspectRatio="none" style={{ height: chartH, pointerEvents: 'none' }}>
+                  <defs>
+                    <linearGradient id="areaGrad" x1="0" x2="0" y1="0" y2="1">
+                      <stop offset="0%" stopColor="#9489E2" stopOpacity="0.25" />
+                      <stop offset="100%" stopColor="#9489E2" stopOpacity="0.02" />
+                    </linearGradient>
+                  </defs>
+                  <path d={areaPath} fill="url(#areaGrad)" />
+                  <path d={linePath} fill="none" stroke="#9489E2" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+                  {svgPoints.map((p, i) => (
+                    <circle key={i} cx={p.x} cy={p.y} r="4" fill="#9489E2" stroke="white" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+                  ))}
+                </svg>
+
+                {/* Hover zones */}
+                {sorted.map((item, i) => {
+                  const halfGap = n > 1 ? (100 - padLeftPct - padRightPct) / (n - 1) / 2 : 50
+                  return (
+                    <div key={i} className="absolute inset-y-0 group cursor-crosshair" style={{ left: `${points[i].xPct - halfGap}%`, width: `${halfGap * 2}%` }}>
+                      <div className="absolute inset-y-0 left-1/2 w-px bg-[#9489E2]/30 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="absolute left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10" style={{ top: points[i].yPx - 45 }}>
+                        <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-2.5 py-1.5 whitespace-nowrap">
+                          <p className="text-[10px] text-gray-500">{item.date}</p>
+                          <p className="text-xs font-bold text-gray-800">{item.amount.toFixed(0)} ₾</p>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-300 text-center py-8">No revenue data for this period</p>
+
+              {/* X-axis labels */}
+              <div className="relative" style={{ height: 50, marginLeft: `${padLeftPct}%`, marginRight: `${padRightPct}%` }}>
+                {sorted.map((item, i) => {
+                  const leftPct = n > 1 ? (i / (n - 1)) * 100 : 50
+                  return (
+                    <div key={i} className="absolute" style={{ left: `${leftPct}%`, top: 24, transform: 'translateX(-50%)' }}>
+                      <span className="text-[8px] text-gray-800 whitespace-nowrap" style={{ display: 'inline-block', transform: 'rotate(-45deg)', transformOrigin: 'top left' }}>
+                        {item.date}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })() : (
+          <p className="text-gray-400 text-center py-8 text-sm">No revenue data for this period</p>
         )}
       </div>
 
-      {/* Booking Status Breakdown */}
-      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 mb-6 z-[1]">
-        <div className="flex items-center space-x-3 mb-4">
-          <ClipboardList className="w-5 h-5 text-purple-300" />
-          <h2 className="text-lg font-semibold text-gray-800 font-[Inter]">Booking Status</h2>
+      {/* Pie Chart — Revenue by Service */}
+      <div className="w-[330px] flex-shrink-0 bg-white rounded-xl border border-gray-200 p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+        <div className="flex items-center gap-2 mb-4">
+          <BarChart3 className="w-5 h-5 text-[#9489E2]" />
+          <h2 className="text-sm font-bold text-gray-800 font-[Inter]">Revenue by Service</h2>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {Object.entries(bookingsData.byStatus).map(([status, count]) => (
-            <div key={status} className="text-center p-4 bg-purple-900/30 border border-purple-500/10 rounded-lg">
-              <p className="text-2xl font-bold text-gray-800">{count}</p>
-              <p className="text-sm text-purple-300 mt-1 capitalize">{status}</p>
+        {servicesData.length > 0 ? (() => {
+          const colors = ['#9489E2', '#F472B6', '#34D399', '#FBBF24', '#60A5FA', '#FB923C', '#A78BFA', '#F87171']
+          const totalRev = servicesData.reduce((s, d) => s + d.revenue, 0) || 1
+          const slices = servicesData.slice(0, 7)
+          const otherRev = servicesData.slice(7).reduce((s, d) => s + d.revenue, 0)
+          if (otherRev > 0) slices.push({ name: 'Other', revenue: otherRev })
+
+          // Build pie segments
+          let cumAngle = -90
+          const segments = slices.map((s, i) => {
+            const pct = (s.revenue / totalRev) * 100
+            const angle = (pct / 100) * 360
+            const startAngle = cumAngle
+            cumAngle += angle
+            return { ...s, pct, startAngle, angle, color: colors[i % colors.length] }
+          })
+
+          const r = 80
+          const cx = 100
+          const cy = 95
+          const toRad = (deg) => (deg * Math.PI) / 180
+
+          const hovered = hoveredSlice !== null ? segments[hoveredSlice] : null
+
+          return (
+            <div className="relative" style={{ margin: '0 auto' }}>
+              <svg viewBox="0 0 200 190" className="w-full">
+                {segments.map((seg, i) => {
+                  if (seg.angle <= 0) return null
+                  const a1 = toRad(seg.startAngle)
+                  const a2 = toRad(seg.startAngle + seg.angle)
+                  const x1 = cx + r * Math.cos(a1)
+                  const y1 = cy + r * Math.sin(a1)
+                  const x2 = cx + r * Math.cos(a2)
+                  const y2 = cy + r * Math.sin(a2)
+                  const largeArc = seg.angle > 180 ? 1 : 0
+                  const isHovered = hoveredSlice === i
+                  const isFaded = hoveredSlice !== null && !isHovered
+                  // Explode hovered slice slightly outward
+                  const midAngle = toRad(seg.startAngle + seg.angle / 2)
+                  const explode = isHovered ? 4 : 0
+                  const tx = Math.cos(midAngle) * explode
+                  const ty = Math.sin(midAngle) * explode
+                  const path = seg.angle >= 359.9
+                    ? `M${cx - r},${cy} A${r},${r} 0 1,1 ${cx + r},${cy} A${r},${r} 0 1,1 ${cx - r},${cy}`
+                    : `M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${largeArc},1 ${x2},${y2} Z`
+                  return (
+                    <path
+                      key={i}
+                      d={path}
+                      fill={seg.color}
+                      stroke="white"
+                      strokeWidth="2"
+                      className="transition-all duration-200 cursor-pointer"
+                      style={{ opacity: isFaded ? 0.35 : 1, transform: `translate(${tx}px, ${ty}px)` }}
+                      onMouseEnter={() => setHoveredSlice(i)}
+                      onMouseLeave={() => setHoveredSlice(null)}
+                    />
+                  )
+                })}
+                {/* Center hole */}
+                <circle cx={cx} cy={cy} r="45" fill="white" />
+                {/* Center text — default or hovered */}
+                {hovered ? (
+                  <>
+                    <text x={cx} y={cy - 14} textAnchor="middle" className="fill-gray-800 font-bold" style={{ fontSize: 9 }}>{hovered.name}</text>
+                    <text x={cx} y={cy + 2} textAnchor="middle" className="fill-gray-800 font-bold" style={{ fontSize: 13 }}>{hovered.revenue.toLocaleString()} ₾</text>
+                    <text x={cx} y={cy + 16} textAnchor="middle" className="fill-gray-800 font-bold" style={{ fontSize: 11 }}>{hovered.pct.toFixed(1)}%</text>
+                  </>
+                ) : (
+                  <>
+                    <text x={cx} y={cy - 4} textAnchor="middle" className="fill-gray-800 font-bold" style={{ fontSize: 16 }}>{totalRev.toLocaleString()}</text>
+                    <text x={cx} y={cy + 10} textAnchor="middle" className="fill-gray-400" style={{ fontSize: 8 }}>₾ total</text>
+                  </>
+                )}
+              </svg>
             </div>
-          ))}
+          )
+        })() : (
+          <p className="text-gray-400 text-center py-8 text-sm">No data</p>
+        )}
+      </div>
+      </div>
+
+      {/* Booking Status Breakdown */}
+      <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6 z-[1]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+        <div className="flex items-center gap-2 mb-4">
+          <ClipboardList className="w-5 h-5 text-[#9489E2]" />
+          <h2 className="text-sm font-bold text-gray-800 font-[Inter]">Booking Status</h2>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {Object.entries(bookingsData.byStatus).map(([status, count]) => {
+            const colors = {
+              completed: 'bg-emerald-50 border-emerald-200 text-emerald-700',
+              confirmed: 'bg-blue-50 border-blue-200 text-blue-700',
+              pending: 'bg-amber-50 border-amber-200 text-amber-700',
+              cancelled: 'bg-red-50 border-red-200 text-red-700',
+            }
+            return (
+              <div key={status} className={`text-center p-3 rounded-xl border ${colors[status] || 'bg-gray-50 border-gray-200 text-gray-700'}`}>
+                <p className="text-2xl font-bold">{count}</p>
+                <p className="text-xs mt-0.5 capitalize opacity-70">{status}</p>
+              </div>
+            )
+          })}
         </div>
       </div>
 
       {/* Two Column Layout for Services and Specialists */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 relative z-[1]">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6 relative z-[1]">
         {/* Top Services */}
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
-          <div className="flex items-center space-x-3 mb-4">
-            <BarChart3 className="w-5 h-5 text-purple-300" />
-            <h2 className="text-lg font-semibold text-gray-800 font-[Inter]">Top Services</h2>
+        <div className="bg-white rounded-xl border border-gray-200 p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+          <div className="flex items-center gap-2 mb-4">
+            <BarChart3 className="w-5 h-5 text-[#9489E2]" />
+            <h2 className="text-sm font-bold text-gray-800 font-[Inter]">Top Services</h2>
           </div>
           {servicesData.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {servicesData.slice(0, 5).map((service, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-purple-900/30 border border-purple-500/10 rounded-lg">
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-800">{service.name}</p>
-                    <p className="text-sm text-purple-300">{service.bookings} bookings</p>
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-gray-400 w-5">#{index + 1}</span>
+                    <div>
+                      <p className="text-sm font-medium text-gray-800">{service.name}</p>
+                      <p className="text-[10px] text-gray-400">{service.bookings} bookings</p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-green-400">{service.revenue.toFixed(2)} GEL</p>
-                  </div>
+                  <p className="text-sm font-bold text-gray-800">{service.revenue.toFixed(0)} ₾</p>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-gray-300 text-center py-8">No service data</p>
+            <p className="text-gray-400 text-center py-8 text-sm">No service data</p>
           )}
         </div>
 
         {/* Top Specialists */}
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
-          <div className="flex items-center space-x-3 mb-4">
-            <TrendingUp className="w-5 h-5 text-purple-300" />
-            <h2 className="text-lg font-semibold text-gray-800 font-[Inter]">Top Specialists</h2>
+        <div className="bg-white rounded-xl border border-gray-200 p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+          <div className="flex items-center gap-2 mb-4">
+            <TrendingUp className="w-5 h-5 text-[#9489E2]" />
+            <h2 className="text-sm font-bold text-gray-800 font-[Inter]">Top Specialists</h2>
           </div>
           {specialistsData.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {specialistsData.slice(0, 5).map((specialist, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-purple-900/30 border border-purple-500/10 rounded-lg">
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-800">{specialist.name}</p>
-                    <p className="text-sm text-purple-300">{specialist.bookings} bookings</p>
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-gray-400 w-5">#{index + 1}</span>
+                    <div>
+                      <p className="text-sm font-medium text-gray-800">{specialist.name}</p>
+                      <p className="text-[10px] text-gray-400">{specialist.bookings} bookings</p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-green-400">{specialist.revenue.toFixed(2)} GEL</p>
-                  </div>
+                  <p className="text-sm font-bold text-gray-800">{specialist.revenue.toFixed(0)} ₾</p>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-gray-300 text-center py-8">No specialist data</p>
+            <p className="text-gray-400 text-center py-8 text-sm">No specialist data</p>
           )}
         </div>
       </div>
 
       {/* Promo Performance */}
       {promoData.promoUsage.length > 0 && (
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 mb-6 z-[1]">
-          <div className="flex items-center space-x-3 mb-4">
-            <Gift className="w-5 h-5 text-pink-400" />
-            <h2 className="text-lg font-semibold text-gray-800 font-[Inter]">Promo Code Performance</h2>
+        <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6 z-[1]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+          <div className="flex items-center gap-2 mb-4">
+            <Gift className="w-5 h-5 text-pink-500" />
+            <h2 className="text-sm font-bold text-gray-800 font-[Inter]">Promo Code Performance</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-purple-500/10">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-purple-200">Promo Code</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-purple-200">Uses</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-purple-200">Total Discount</th>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-2.5 px-4 text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Promo Code</th>
+                  <th className="text-left py-2.5 px-4 text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Uses</th>
+                  <th className="text-left py-2.5 px-4 text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Total Discount</th>
                 </tr>
               </thead>
               <tbody>
                 {promoData.promoUsage.map((promo, index) => (
-                  <tr key={index} className="border-b border-purple-500/[0.06]">
-                    <td className="py-3 px-4 font-medium text-gray-800">{promo.code}</td>
-                    <td className="py-3 px-4 text-gray-300">{promo.uses}</td>
-                    <td className="py-3 px-4 text-green-400 font-semibold">
-                      {promo.totalDiscount.toFixed(2)} GEL
-                    </td>
+                  <tr key={index} className="border-b border-gray-100 hover:bg-gray-50 transition-all">
+                    <td className="py-2.5 px-4 text-sm font-medium text-gray-800">{promo.code}</td>
+                    <td className="py-2.5 px-4 text-sm text-gray-500">{promo.uses}</td>
+                    <td className="py-2.5 px-4 text-sm font-bold text-gray-800">{promo.totalDiscount.toFixed(0)} ₾</td>
                   </tr>
                 ))}
               </tbody>
@@ -618,46 +773,40 @@ export default function Reports() {
 
       {/* Specialist Utilisation Rate */}
       {specialistUtilisation.length > 0 && (
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 mb-6 z-[1]">
-          <div className="flex items-center space-x-3 mb-4">
-            <TrendingUp className="w-5 h-5 text-purple-300" />
-            <h2 className="text-lg font-semibold text-gray-800 font-[Inter]">Specialist Utilisation Rate</h2>
+        <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6 z-[1]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+          <div className="flex items-center gap-2 mb-4">
+            <TrendingUp className="w-5 h-5 text-[#9489E2]" />
+            <h2 className="text-sm font-bold text-gray-800 font-[Inter]">Specialist Utilisation Rate</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-purple-500/10">
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-purple-200">Specialist</th>
-                  <th className="text-center py-3 px-4 text-sm font-semibold text-purple-200">Day</th>
-                  <th className="text-center py-3 px-4 text-sm font-semibold text-purple-200">Week</th>
-                  <th className="text-center py-3 px-4 text-sm font-semibold text-purple-200">Month</th>
-                  <th className="text-center py-3 px-4 text-sm font-semibold text-purple-200">Quarter</th>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-2.5 px-4 text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Specialist</th>
+                  <th className="text-center py-2.5 px-4 text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Day</th>
+                  <th className="text-center py-2.5 px-4 text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Week</th>
+                  <th className="text-center py-2.5 px-4 text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Month</th>
+                  <th className="text-center py-2.5 px-4 text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Quarter</th>
                 </tr>
               </thead>
               <tbody>
                 {specialistUtilisation.map((specialist, index) => (
-                  <tr key={index} className="border-b border-purple-500/[0.06] hover:bg-purple-900/30 transition-all">
-                    <td className="py-3 px-4 text-gray-800 font-medium">{specialist.name}</td>
-                    <td className="py-3 px-4 text-center">
-                      <span className="inline-block px-3 py-1 bg-purple-900/30 border border-purple-500/10 rounded-full text-gray-800 font-bold text-sm">
-                        {specialist.day}%
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      <span className="inline-block px-3 py-1 bg-purple-900/30 border border-purple-500/10 rounded-full text-gray-800 font-bold text-sm">
-                        {specialist.week}%
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      <span className="inline-block px-3 py-1 bg-purple-900/30 border border-purple-500/10 rounded-full text-gray-800 font-bold text-sm">
-                        {specialist.month}%
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      <span className="inline-block px-3 py-1 bg-purple-900/30 border border-purple-500/10 rounded-full text-gray-800 font-bold text-sm">
-                        {specialist.quarter}%
-                      </span>
-                    </td>
+                  <tr key={index} className="border-b border-gray-100 hover:bg-gray-50 transition-all">
+                    <td className="py-2.5 px-4 text-sm text-gray-800 font-medium">{specialist.name}</td>
+                    {['day', 'week', 'month', 'quarter'].map(period => {
+                      const val = parseFloat(specialist[period])
+                      return (
+                        <td key={period} className="py-2.5 px-4 text-center">
+                          <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                            val >= 70 ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' :
+                            val >= 40 ? 'bg-amber-50 text-amber-600 border border-amber-200' :
+                            'bg-gray-50 text-gray-500 border border-gray-200'
+                          }`}>
+                            {specialist[period]}%
+                          </span>
+                        </td>
+                      )
+                    })}
                   </tr>
                 ))}
               </tbody>
@@ -668,16 +817,18 @@ export default function Reports() {
 
       {/* Peak Hours */}
       {peakHours.length > 0 && (
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 z-[1]">
-          <div className="flex items-center space-x-3 mb-4">
-            <ClipboardList className="w-5 h-5 text-purple-300" />
-            <h2 className="text-lg font-semibold text-gray-800 font-[Inter]">Peak Booking Hours</h2>
+        <div className="bg-white rounded-xl border border-gray-200 p-5 z-[1]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+          <div className="flex items-center gap-2 mb-4">
+            <Calendar className="w-5 h-5 text-[#9489E2]" />
+            <h2 className="text-sm font-bold text-gray-800 font-[Inter]">Peak Booking Hours</h2>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {peakHours.slice(0, 12).map((hour, index) => (
-              <div key={index} className="text-center p-3 bg-purple-900/30 border border-purple-500/10 rounded-lg">
+              <div key={index} className={`text-center p-3 rounded-xl border ${
+                index === 0 ? 'bg-[#9489E2]/5 border-[#9489E2]/20' : 'bg-gray-50 border-gray-200'
+              }`}>
                 <p className="text-lg font-bold text-gray-800">{hour.count}</p>
-                <p className="text-sm text-purple-300 mt-1">{hour.hour}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{hour.hour}</p>
               </div>
             ))}
           </div>

@@ -950,185 +950,100 @@ export default function Profile() {
 
       {/* Working Hours Tab */}
       {activeTab === 'hours' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Working Hours Section */}
-          <div className="lg:col-span-2 relative bg-white backdrop-blur-xl rounded-lg border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.1)] p-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-2 flex items-center font-[Inter]">
-              <Clock className="w-6 h-6 mr-2 text-[#9489E2]" />
-              Working Hours
-            </h3>
-            <p className="text-sm text-gray-300 mb-6">Set your operating hours for each day of the week</p>
-
-            <div className="space-y-4">
-            {DAYS_OF_WEEK.map((day) => {
-              const hours = workingHours[day.value] || { open_time: '09:00', close_time: '18:00', is_closed: false }
-
-              return (
-                <div key={day.value} className="flex items-center space-x-4 p-4 bg-gray-50 border border-gray-200 rounded-lg min-h-[64px]">
-                  <div className="w-32 flex-shrink-0">
-                    <span className="text-sm font-semibold text-gray-800">{day.label}</span>
-                  </div>
-
-                  <label className="flex items-center flex-shrink-0">
-                    <input
-                      type="checkbox"
-                      checked={hours.is_closed}
-                      onChange={(e) => handleHoursChange(day.value, 'is_closed', e.target.checked)}
-                      className="w-4 h-4 text-[#9489E2] border-[#9489E2] rounded focus:ring-[#9489E2] bg-gray-50"
-                    />
-                    <span className="ml-2 text-sm text-gray-300 font-medium w-16">Closed</span>
-                  </label>
-
-                  <div className="flex items-center space-x-2 flex-1">
-                    {!hours.is_closed ? (
-                      <>
-                        <span className="text-gray-800 font-medium text-sm">
-                          {hours.open_time || '09:00'} - {hours.close_time || '18:00'}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => openTimePicker(day.value, 'hours')}
-                          className="p-2 bg-gray-50 border border-gray-200 text-[#9489E2] rounded-lg hover:bg-gray-50 transition-all"
-                        >
-                          <Clock className="w-4 h-4" />
-                        </button>
-                      </>
-                    ) : (
-                      <span className="text-gray-400 italic text-sm">No hours set for this day</span>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
-            </div>
-
-            <div className="mt-6 flex justify-end">
-              <button
-                type="button"
-                onClick={saveWorkingHours}
-                disabled={saving}
-                className="px-8 py-3 bg-gray-50 border border-gray-200 text-gray-800 rounded-lg hover:bg-gray-50 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
-              >
-                {saving ? 'Saving...' : 'Save Working Hours'}
-              </button>
+        <div className="flex gap-4">
+          {/* Column 1: Working Hours */}
+          <div className="w-[700px] flex-shrink-0 bg-white rounded-xl border border-gray-200 overflow-hidden" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+            <div className="h-14 bg-gradient-to-r from-[#9489E2]/25 via-[#b8b0f0]/15 to-[#9489E2]/10" />
+            <div className="px-5 pb-5 pt-3">
+              <div className="space-y-2">
+                {DAYS_OF_WEEK.map((day) => {
+                  const hours = workingHours[day.value] || { open_time: '09:00', close_time: '18:00', is_closed: false }
+                  return (
+                    <div key={day.value} className="flex items-center gap-3 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+                      <span className="text-xs font-semibold text-gray-800 w-20">{day.label}</span>
+                      <label className="flex items-center flex-shrink-0">
+                        <input type="checkbox" checked={hours.is_closed} onChange={(e) => handleHoursChange(day.value, 'is_closed', e.target.checked)}
+                          className="w-3.5 h-3.5 text-[#9489E2] border-[#9489E2] rounded focus:ring-[#9489E2]" />
+                        <span className="ml-1.5 text-[11px] text-gray-400">Closed</span>
+                      </label>
+                      {!hours.is_closed ? (
+                        <div className="flex items-center gap-2 flex-1">
+                          <span className="text-sm font-medium text-gray-800">{hours.open_time || '09:00'} — {hours.close_time || '18:00'}</span>
+                          <button type="button" onClick={() => openTimePicker(day.value, 'hours')}
+                            className="p-1.5 text-[#9489E2] hover:bg-[#9489E2]/10 rounded-lg transition-all">
+                            <Clock className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-[11px] text-gray-400 italic">—</span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+              <div className="mt-4 flex justify-end">
+                <button type="button" onClick={saveWorkingHours} disabled={saving}
+                  className="px-5 py-2 text-sm font-medium bg-[#9489E2] text-white rounded-lg hover:bg-[#8078d0] disabled:opacity-50 transition-all">
+                  {saving ? 'Saving...' : 'Save Working Hours'}
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Weekly Summary Card */}
-          <div className="relative bg-white backdrop-blur-xl rounded-lg border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.1)] p-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center font-[Inter]">
-              <TrendingUp className="w-5 h-5 mr-2 text-[#9489E2]" />
-              Weekly Summary
-            </h3>
-
-            {/* Total Hours */}
-            <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <p className="text-xs text-gray-400 mb-1">Total Weekly Hours</p>
-              <p className="text-3xl font-bold text-gray-800">
-                {Object.values(workingHours).reduce((total, day) => {
-                  if (day.is_closed || !day.open_time || !day.close_time) return total;
-                  const [openHour, openMin] = day.open_time.split(':').map(Number);
-                  const [closeHour, closeMin] = day.close_time.split(':').map(Number);
-                  const hours = (closeHour * 60 + closeMin - (openHour * 60 + openMin)) / 60;
-                  return total + hours;
-                }, 0).toFixed(1)}
-                <span className="text-lg text-gray-400 ml-1">hrs</span>
-              </p>
-            </div>
-
-            {/* Daily Overview */}
-            <div className="space-y-3 mb-6">
-              <p className="text-sm font-semibold text-gray-300 mb-2">Daily Overview</p>
-              {DAYS_OF_WEEK.map((day) => {
-                const hours = workingHours[day.value] || { is_closed: true };
-                const isClosed = hours.is_closed || !hours.open_time || !hours.close_time;
-
-                let dailyHours = 0;
-                if (!isClosed) {
-                  const [openHour, openMin] = hours.open_time.split(':').map(Number);
-                  const [closeHour, closeMin] = hours.close_time.split(':').map(Number);
-                  dailyHours = (closeHour * 60 + closeMin - (openHour * 60 + openMin)) / 60;
-                }
-
-                return (
-                  <div key={day.value} className="flex items-center justify-between text-sm">
-                    <span className="text-gray-300">{day.short}</span>
-                    {isClosed ? (
-                      <span className="text-gray-400 italic">Closed</span>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <div className="w-20 h-2 bg-white/5 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-[#9489E2]/10"
-                            style={{ width: `${(dailyHours / 24) * 100}%` }}
-                          />
-                        </div>
-                        <span className="text-gray-800 font-medium w-10 text-right">{dailyHours.toFixed(1)}h</span>
+          {/* Column 2: Weekly Hours Chart */}
+          <div className="flex-1 flex flex-col gap-4">
+            <div className="flex-1 bg-white rounded-xl border border-gray-200 overflow-hidden" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+              <div className="h-14 bg-gradient-to-r from-[#9489E2]/25 via-[#b8b0f0]/15 to-[#9489E2]/10" />
+              <div className="px-4 pb-4 pt-3">
+                <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200 text-center">
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wide">Weekly Hours</p>
+                  <p className="text-2xl font-bold text-gray-800">
+                    {Object.values(workingHours).reduce((total, day) => {
+                      if (day.is_closed || !day.open_time || !day.close_time) return total;
+                      const [openHour, openMin] = day.open_time.split(':').map(Number);
+                      const [closeHour, closeMin] = day.close_time.split(':').map(Number);
+                      const hours = (closeHour * 60 + closeMin - (openHour * 60 + openMin)) / 60;
+                      return total + hours;
+                    }, 0).toFixed(1)}
+                    <span className="text-sm text-gray-400 ml-1">hrs</span>
+                  </p>
+                </div>
+                <div className="space-y-1.5">
+                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Daily Overview</p>
+                  {DAYS_OF_WEEK.map((day) => {
+                    const hours = workingHours[day.value] || { is_closed: true };
+                    const isClosed = hours.is_closed || !hours.open_time || !hours.close_time;
+                    let dailyHours = 0;
+                    if (!isClosed) {
+                      const [openHour, openMin] = hours.open_time.split(':').map(Number);
+                      const [closeHour, closeMin] = hours.close_time.split(':').map(Number);
+                      dailyHours = (closeHour * 60 + closeMin - (openHour * 60 + openMin)) / 60;
+                    }
+                    return (
+                      <div key={day.value} className="flex items-center justify-between text-xs">
+                        <span className="text-gray-500 w-8">{day.short}</span>
+                        {isClosed ? (
+                          <span className="text-gray-400 italic text-[10px]">Closed</span>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                              <div className="h-full bg-[#9489E2]/40 rounded-full" style={{ width: `${(dailyHours / 24) * 100}%` }} />
+                            </div>
+                            <span className="text-gray-700 font-medium w-8 text-right">{dailyHours.toFixed(1)}h</span>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Quick Actions */}
-            <div className="space-y-2">
-              <p className="text-sm font-semibold text-gray-300 mb-2">Quick Actions</p>
-              <button
-                type="button"
-                onClick={() => {
-                  const weekdayHours = workingHours[1] || { open_time: '09:00', close_time: '18:00', is_closed: false };
-                  const newHours = {};
-                  [1, 2, 3, 4, 5].forEach(day => {
-                    newHours[day] = { ...weekdayHours };
-                  });
-                  [6, 0].forEach(day => {
-                    newHours[day] = { open_time: '09:00', close_time: '18:00', is_closed: true };
-                  });
-                  setWorkingHours(prev => ({ ...prev, ...newHours }));
-                  toast.info('Applied Mon-Fri schedule with weekend closed');
-                }}
-                className="w-full px-3 py-2 text-xs bg-gray-50 border border-[#9489E2] text-gray-800 rounded-lg hover:bg-gray-50 transition-all"
-              >
-                Set Mon-Fri (Weekend Closed)
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  const template = { open_time: '09:00', close_time: '18:00', is_closed: false };
-                  const newHours = {};
-                  DAYS_OF_WEEK.forEach(day => {
-                    newHours[day.value] = { ...template };
-                  });
-                  setWorkingHours(prev => ({ ...prev, ...newHours }));
-                  toast.info('Applied 9AM-6PM to all days');
-                }}
-                className="w-full px-3 py-2 text-xs bg-gray-50 border border-[#9489E2] text-gray-800 rounded-lg hover:bg-gray-50 transition-all"
-              >
-                Set All Days 9AM-6PM
-              </button>
-
-              {/* Custom Time Setter */}
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 mt-3">
-                <p className="text-xs text-gray-300 mb-2 font-medium">Set All Days To:</p>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="flex-1 text-gray-800 font-medium text-sm text-center">
-                    {customOpenTime} - {customCloseTime}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => openTimePicker(null, 'custom')}
-                    className="p-2 bg-gray-50 border border-gray-200 text-[#9489E2] rounded-lg hover:bg-gray-50 transition-all"
-                  >
-                    <Clock className="w-4 h-4" />
-                  </button>
+                    );
+                  })}
                 </div>
               </div>
+            </div>
 
-              {/* Online Booking Control */}
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-xs text-gray-300 font-medium">Online Booking</p>
+            {/* Online Booking Control */}
+            <div className="h-[120px] bg-white rounded-xl border border-gray-200 overflow-hidden" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+              <div className="px-4 py-3">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold">Online Booking</p>
                   <button
                     onClick={async () => {
                       const newVal = !onlineBooking
@@ -1140,50 +1055,113 @@ export default function Profile() {
                     <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${onlineBooking ? 'left-[22px]' : 'left-0.5'}`} />
                   </button>
                 </div>
-                <p className="text-[10px] text-gray-500 mb-3">
+                <p className="text-[10px] text-gray-500">
                   {onlineBooking ? 'App users can book online.' : 'Online booking disabled. Walk-in only.'}
                 </p>
+              </div>
+            </div>
+          </div>
 
-                <div className="border-t border-gray-200 pt-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold">Blocked Dates</span>
+          {/* Column 3: Quick Actions */}
+          <div className="flex-1 flex flex-col gap-4">
+            <div className="flex-1 bg-white rounded-xl border border-gray-200 overflow-hidden" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+              <div className="h-14 bg-gradient-to-r from-[#9489E2]/25 via-[#b8b0f0]/15 to-[#9489E2]/10" />
+              <div className="px-4 pb-4 pt-3 space-y-2">
+                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Quick Actions</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const weekdayHours = workingHours[1] || { open_time: '09:00', close_time: '18:00', is_closed: false };
+                    const newHours = {};
+                    [1, 2, 3, 4, 5].forEach(day => {
+                      newHours[day] = { ...weekdayHours };
+                    });
+                    [6, 0].forEach(day => {
+                      newHours[day] = { open_time: '09:00', close_time: '18:00', is_closed: true };
+                    });
+                    setWorkingHours(prev => ({ ...prev, ...newHours }));
+                    toast.info('Applied Mon-Fri schedule with weekend closed');
+                  }}
+                  className="w-full py-2 text-[11px] text-[#9489E2] bg-[#9489E2]/5 border border-[#9489E2]/20 rounded-lg hover:bg-[#9489E2]/10 transition-all font-medium"
+                >
+                  Set Mon-Fri (Weekend Closed)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const template = { open_time: '09:00', close_time: '18:00', is_closed: false };
+                    const newHours = {};
+                    DAYS_OF_WEEK.forEach(day => {
+                      newHours[day.value] = { ...template };
+                    });
+                    setWorkingHours(prev => ({ ...prev, ...newHours }));
+                    toast.info('Applied 9AM-6PM to all days');
+                  }}
+                  className="w-full py-2 text-[11px] text-[#9489E2] bg-[#9489E2]/5 border border-[#9489E2]/20 rounded-lg hover:bg-[#9489E2]/10 transition-all font-medium"
+                >
+                  Set All Days 9AM-6PM
+                </button>
+
+                {/* Custom Time Setter */}
+                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 mt-1">
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-2 font-semibold">Set All Days To:</p>
+                  <div className="flex items-center gap-2">
+                    <span className="flex-1 text-gray-800 font-medium text-sm text-center">
+                      {customOpenTime} - {customCloseTime}
+                    </span>
                     <button
-                      onClick={() => setShowBlockDateForm(!showBlockDateForm)}
-                      className="text-[10px] text-[#9489E2] hover:text-gray-500 transition-colors"
+                      type="button"
+                      onClick={() => openTimePicker(null, 'custom')}
+                      className="p-2 bg-gray-50 border border-gray-200 text-[#9489E2] rounded-lg hover:bg-gray-50 transition-all"
                     >
-                      + Add
+                      <Clock className="w-4 h-4" />
                     </button>
                   </div>
-
-                  {showBlockDateForm && (
-                    <div className="flex gap-2 mb-2">
-                      <input
-                        type="date"
-                        value={blockDate}
-                        onChange={(e) => setBlockDate(e.target.value)}
-                        min={new Date().toISOString().split('T')[0]}
-                        className="flex-1 px-2 py-1 text-[11px] bg-gray-50 border border-[#9489E2]/30 text-gray-800 rounded-lg focus:ring-2 focus:ring-[#9489E2]"
-                      />
-                      <button onClick={addBlockedDate} className="px-2 py-1 text-[11px] bg-[#9489E2] text-white rounded-lg hover:bg-[#8078d0] transition-all">Add</button>
-                    </div>
-                  )}
-
-                  {blockedDates.length > 0 ? (
-                    <div className="flex flex-wrap gap-1.5">
-                      {blockedDates.map(d => {
-                        const date = new Date(d.blocked_date + 'T00:00:00')
-                        return (
-                          <div key={d.id} className="flex items-center gap-1 px-2 py-0.5 bg-red-500/10 border border-red-500/20 rounded text-[10px]">
-                            <span className="text-red-300">{date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-                            <button onClick={() => removeBlockedDate(d.id)} className="text-red-400 hover:text-red-300">×</button>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  ) : (
-                    <p className="text-[10px] text-gray-500">No dates blocked.</p>
-                  )}
                 </div>
+              </div>
+            </div>
+
+            {/* Blocked Dates */}
+            <div className="h-[120px] bg-white rounded-xl border border-gray-200 overflow-hidden overflow-y-auto" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+              <div className="px-4 py-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold">Blocked Dates</span>
+                  <button
+                    onClick={() => setShowBlockDateForm(!showBlockDateForm)}
+                    className="text-[10px] text-[#9489E2] hover:text-gray-500 transition-colors"
+                  >
+                    + Add
+                  </button>
+                </div>
+
+                {showBlockDateForm && (
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="date"
+                      value={blockDate}
+                      onChange={(e) => setBlockDate(e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
+                      className="flex-1 px-2 py-1 text-[11px] bg-gray-50 border border-[#9489E2]/30 text-gray-800 rounded-lg focus:ring-2 focus:ring-[#9489E2]"
+                    />
+                    <button onClick={addBlockedDate} className="px-2 py-1 text-[11px] bg-[#9489E2] text-white rounded-lg hover:bg-[#8078d0] transition-all">Add</button>
+                  </div>
+                )}
+
+                {blockedDates.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {blockedDates.map(d => {
+                      const date = new Date(d.blocked_date + 'T00:00:00')
+                      return (
+                        <div key={d.id} className="flex items-center gap-1 px-2 py-0.5 bg-red-500/10 border border-red-500/20 rounded text-[10px]">
+                          <span className="text-red-300">{date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                          <button onClick={() => removeBlockedDate(d.id)} className="text-red-400 hover:text-red-300">×</button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-[10px] text-gray-500">No dates blocked.</p>
+                )}
               </div>
             </div>
           </div>

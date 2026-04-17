@@ -18,13 +18,11 @@ export default function Settings() {
   const handleLanguageChange = (lang) => {
     setLanguage(lang)
     localStorage.setItem('language', lang)
-    // Will trigger app-wide language change when we implement i18n
   }
 
   const handleThemeChange = (newTheme) => {
     setTheme(newTheme)
     localStorage.setItem('theme', newTheme)
-    // Will apply theme when we implement dark mode
     if (newTheme === 'dark') {
       document.documentElement.classList.add('dark')
     } else {
@@ -76,157 +74,170 @@ export default function Settings() {
       {/* Header */}
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-800 font-[Inter]">Settings & Support</h2>
-        <p className="text-gray-300 mt-1">Customize your experience and get help</p>
       </div>
 
-      {/* Language Settings */}
-      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 mb-6">
-        <div className="flex items-center mb-6">
-          <Globe className="w-6 h-6 text-purple-300 mr-3" />
-          <div>
-            <h3 className="text-xl font-semibold text-gray-800 font-[Inter]">Language</h3>
-            <p className="text-sm text-gray-300">Choose your preferred language</p>
-          </div>
-        </div>
+      <div className="flex gap-4">
+        {/* Left column */}
+        <div className="flex-1 space-y-4">
+          {/* Language & Appearance */}
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+            <div className="h-14 bg-gradient-to-r from-[#9489E2]/25 via-[#b8b0f0]/15 to-[#9489E2]/10" />
+            <div className="px-5 pb-5 pt-3">
+              {/* Language */}
+              <div className="flex items-center mb-4">
+                <Globe className="w-5 h-5 text-[#9489E2] mr-2.5" />
+                <div>
+                  <h3 className="text-sm font-bold text-gray-800 font-[Inter]">Language</h3>
+                  <p className="text-[11px] text-gray-500">Choose your preferred language</p>
+                </div>
+              </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <button
-            onClick={() => handleLanguageChange('en')}
-            className={`relative w-full p-4 rounded-xl border-2 transition-all transform hover:scale-105 ${
-              language === 'en'
-                ? 'border-purple-500 bg-purple-900/40 text-gray-800 shadow-lg shadow-purple-500/20'
-                : 'border-purple-500/10 bg-purple-950/25 text-gray-300 hover:border-purple-500/40'
-            }`}
-          >
-            <div className="text-3xl mb-2">🇬🇧</div>
-            <div className="font-medium">English</div>
-            <div className="text-xs text-purple-300 mt-1">Default</div>
-          </button>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => handleLanguageChange('en')}
+                  className={`relative w-full p-3 rounded-xl border-2 transition-all ${
+                    language === 'en'
+                      ? 'border-[#9489E2] bg-[#9489E2]/5 text-gray-800 shadow-sm shadow-[#9489E2]/10'
+                      : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="text-2xl mb-1">🇬🇧</div>
+                  <div className="text-sm font-medium">English</div>
+                  <div className="text-[10px] text-gray-400 mt-0.5">Default</div>
+                </button>
 
-          <button
-            onClick={() => handleLanguageChange('ka')}
-            className={`relative w-full p-4 rounded-xl border-2 transition-all transform hover:scale-105 ${
-              language === 'ka'
-                ? 'border-purple-500 bg-purple-900/40 text-gray-800 shadow-lg shadow-purple-500/20'
-                : 'border-purple-500/10 bg-purple-950/25 text-gray-300 hover:border-purple-500/40'
-            }`}
-          >
-            <div className="text-3xl mb-2">🇬🇪</div>
-            <div className="font-medium">ქართული</div>
-            <div className="text-xs text-purple-300 mt-1">Georgian</div>
-          </button>
-        </div>
+                <button
+                  onClick={() => handleLanguageChange('ka')}
+                  className={`relative w-full p-3 rounded-xl border-2 transition-all ${
+                    language === 'ka'
+                      ? 'border-[#9489E2] bg-[#9489E2]/5 text-gray-800 shadow-sm shadow-[#9489E2]/10'
+                      : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="text-2xl mb-1">🇬🇪</div>
+                  <div className="text-sm font-medium">ქართული</div>
+                  <div className="text-[10px] text-gray-400 mt-0.5">Georgian</div>
+                </button>
+              </div>
 
-        {language === 'ka' && (
-          <div className="mt-4 p-4 bg-blue-900/30 border border-blue-700 rounded-lg">
-            <div className="flex items-start space-x-2">
-              <span className="text-blue-400">ℹ️</span>
-              <div className="text-sm text-gray-200">
-                <strong className="text-blue-300">Coming Soon:</strong> Full Georgian translation is in progress. The interface will automatically switch when ready.
+              {language === 'ka' && (
+                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-start space-x-2">
+                    <span className="text-blue-500 text-sm">ℹ️</span>
+                    <div className="text-xs text-gray-700">
+                      <strong className="text-blue-600">Coming Soon:</strong> Full Georgian translation is in progress. The interface will automatically switch when ready.
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Divider */}
+              <div className="my-5 h-px bg-gray-200" />
+
+              {/* Appearance */}
+              <div className="flex items-center mb-4">
+                <Palette className="w-5 h-5 text-[#9489E2] mr-2.5" />
+                <div>
+                  <h3 className="text-sm font-bold text-gray-800 font-[Inter]">Appearance</h3>
+                  <p className="text-[11px] text-gray-500">Customize how Nyxie.Business looks</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => handleThemeChange('light')}
+                  className={`relative w-full p-3 rounded-xl border-2 transition-all ${
+                    theme === 'light'
+                      ? 'border-[#9489E2] bg-[#9489E2]/5 text-gray-800 shadow-sm shadow-[#9489E2]/10'
+                      : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="mb-1.5 flex justify-center">
+                    <Sun className="w-8 h-8 text-yellow-400" />
+                  </div>
+                  <div className="text-sm font-medium">Light Mode</div>
+                  <div className="text-[10px] text-gray-400 mt-0.5">Default theme</div>
+                </button>
+
+                <button
+                  onClick={() => handleThemeChange('dark')}
+                  className={`relative w-full p-3 rounded-xl border-2 transition-all ${
+                    theme === 'dark'
+                      ? 'border-[#9489E2] bg-[#9489E2]/5 text-gray-800 shadow-sm shadow-[#9489E2]/10'
+                      : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="mb-1.5 flex justify-center">
+                    <Moon className="w-8 h-8 text-blue-400" />
+                  </div>
+                  <div className="text-sm font-medium">Dark Mode</div>
+                  <div className="text-[10px] text-gray-400 mt-0.5">Easy on eyes</div>
+                </button>
               </div>
             </div>
           </div>
-        )}
-      </div>
 
-      {/* Theme Settings */}
-      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 mb-6">
-        <div className="flex items-center mb-6">
-          <Palette className="w-6 h-6 text-purple-300 mr-3" />
-          <div>
-            <h3 className="text-xl font-semibold text-gray-800 font-[Inter]">Appearance</h3>
-            <p className="text-sm text-gray-300">Customize how Nyxie.Business looks</p>
+          {/* About */}
+          <div className="bg-white rounded-xl border border-gray-200 p-4 text-center" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+            <p className="text-xs text-gray-500">Nyxie.Business, Version 1.0.0</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <button
-            onClick={() => handleThemeChange('light')}
-            className={`relative w-full p-4 rounded-xl border-2 transition-all transform hover:scale-105 ${
-              theme === 'light'
-                ? 'border-purple-500 bg-purple-900/40 text-gray-800 shadow-lg shadow-purple-500/20'
-                : 'border-purple-500/10 bg-purple-950/25 text-gray-300 hover:border-purple-500/40'
-            }`}
-          >
-            <div className="mb-2 flex justify-center">
-              <Sun className="w-10 h-10 text-yellow-400" />
-            </div>
-            <div className="font-medium">Light Mode</div>
-            <div className="text-xs text-purple-300 mt-1">Default theme</div>
-          </button>
+        {/* Right column — Support */}
+        <div className="flex-1">
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+            <div className="h-14 bg-gradient-to-r from-[#9489E2]/25 via-[#b8b0f0]/15 to-[#9489E2]/10" />
+            <div className="px-5 pb-5 pt-3">
+              <div className="flex items-center mb-4">
+                <LifeBuoy className="w-5 h-5 text-[#9489E2] mr-2.5" />
+                <div>
+                  <h3 className="text-sm font-bold text-gray-800 font-[Inter]">Support & Help</h3>
+                  <p className="text-[11px] text-gray-500">Get assistance from our team</p>
+                </div>
+              </div>
 
-          <button
-            onClick={() => handleThemeChange('dark')}
-            className={`relative w-full p-4 rounded-xl border-2 transition-all transform hover:scale-105 ${
-              theme === 'dark'
-                ? 'border-purple-500 bg-purple-900/40 text-gray-800 shadow-lg shadow-purple-500/20'
-                : 'border-purple-500/10 bg-purple-950/25 text-gray-300 hover:border-purple-500/40'
-            }`}
-          >
-            <div className="mb-2 flex justify-center">
-              <Moon className="w-10 h-10 text-blue-400" />
-            </div>
-            <div className="font-medium">Dark Mode</div>
-            <div className="text-xs text-purple-300 mt-1">Easy on eyes</div>
-          </button>
-        </div>
-      </div>
-
-      {/* Support Section */}
-      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 mb-6">
-        <div className="flex items-center mb-6">
-          <LifeBuoy className="w-6 h-6 text-purple-300 mr-3" />
-          <div>
-            <h3 className="text-xl font-semibold text-gray-800 font-[Inter]">Support & Help</h3>
-            <p className="text-sm text-gray-300">Get assistance from our team</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {supportOptions.map((option, index) => {
-            const IconComponent = option.icon
-            return (
-              <div
-                key={index}
-                className="relative p-4 border-2 border-purple-500/10 rounded-xl hover:border-purple-500/40 transition-all bg-purple-950/25"
-              >
-                <div className="flex items-start space-x-3">
-                  <IconComponent className="w-6 h-6 text-purple-300 flex-shrink-0 mt-0.5" />
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-1">
-                      <h4 className="font-semibold text-gray-800">{option.title}</h4>
-                      {option.comingSoon && (
-                        <span className="px-2 py-1 text-xs bg-orange-900/30 text-orange-300 rounded-full font-medium border border-orange-700">
-                          Coming Soon
-                        </span>
-                      )}
+              <div className="space-y-2.5">
+                {supportOptions.map((option, index) => {
+                  const IconComponent = option.icon
+                  return (
+                    <div
+                      key={index}
+                      className="relative p-3 border border-gray-200 rounded-xl hover:border-[#9489E2]/30 hover:bg-[#9489E2]/[0.02] transition-all"
+                    >
+                      <div className="flex items-start space-x-3">
+                        <div className="w-8 h-8 rounded-lg bg-[#9489E2]/10 flex items-center justify-center flex-shrink-0">
+                          <IconComponent className="w-4 h-4 text-[#9489E2]" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-0.5">
+                            <h4 className="text-sm font-semibold text-gray-800">{option.title}</h4>
+                            {option.comingSoon && (
+                              <span className="px-2 py-0.5 text-[10px] bg-amber-50 text-amber-600 rounded-full font-medium border border-amber-200">
+                                Coming Soon
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-500">{option.description}</p>
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-sm text-gray-300">{option.description}</p>
+                  )
+                })}
+              </div>
+
+              <div className="mt-4 p-3 bg-[#9489E2]/5 border border-[#9489E2]/15 rounded-xl">
+                <div className="flex items-start space-x-2.5">
+                  <Rocket className="w-4 h-4 text-[#9489E2] flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-xs font-semibold text-gray-800 mb-0.5">Post-Launch Features</h4>
+                    <p className="text-[11px] text-gray-500">
+                      These support features will be available shortly after the platform launches. We're working hard to deliver the best experience possible!
+                    </p>
                   </div>
                 </div>
               </div>
-            )
-          })}
-        </div>
-
-        <div className="mt-6 p-4 bg-gradient-to-r from-purple-900/15 to-pink-900/15 border border-purple-500/10 rounded-xl">
-          <div className="flex items-start space-x-3">
-            <Rocket className="w-5 h-5 text-purple-300 flex-shrink-0 mt-0.5" />
-            <div>
-              <h4 className="font-semibold text-gray-800 mb-1">Post-Launch Features</h4>
-              <p className="text-sm text-gray-200">
-                These support features will be available shortly after the platform launches.
-                We're working hard to deliver the best experience possible!
-              </p>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* About Section */}
-      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
-        <div className="text-center">
-          <p className="text-sm text-gray-300">Nyxie.Business, Version 1.0.0</p>
         </div>
       </div>
     </div>

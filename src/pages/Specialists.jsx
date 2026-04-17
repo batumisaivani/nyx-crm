@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { supabase } from '../lib/supabase'
@@ -6,7 +6,8 @@ import AnimatedCard from '../components/ui/AnimatedCard'
 import { NativeDelete } from '../components/ui/delete-button'
 import ClassicLoader from '../components/ui/loader'
 import TimePickerModal from '../components/ui/TimePickerModal'
-import { Users, Edit, Plus, Trash2, X, LayoutGrid, List, Star, Briefcase, Clock, DollarSign, Plane, Copy, ChevronLeft, ChevronRight, Ban, Save } from 'lucide-react'
+import { Users, Edit, Plus, Trash2, X, LayoutGrid, List, Star, Briefcase, Clock, DollarSign, Plane, Copy, ChevronLeft, ChevronRight, Ban, Save, ImagePlus, Camera, Scissors, TrendingUp, CalendarDays } from 'lucide-react'
+import DateRangeCalendar from '../components/ui/DateRangeCalendar'
 
 const DAYS_OF_WEEK = [
   { value: 1, label: 'Monday', short: 'Mon' },
@@ -27,6 +28,7 @@ export default function Specialists() {
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingSpecialist, setEditingSpecialist] = useState(null)
   const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef(null)
   const [viewMode, setViewMode] = useState('list') // 'grid' or 'list'
   const [activeTab, setActiveTab] = useState('specialists') // 'specialists', 'hours', 'salaries'
 
@@ -36,6 +38,11 @@ export default function Specialists() {
   const [salaryLoading, setSalaryLoading] = useState(false)
   const [salaryPeriod, setSalaryPeriod] = useState('month') // day, week, month
   const [salarySearch, setSalarySearch] = useState('')
+  const [commissionModalSpecialist, setCommissionModalSpecialist] = useState(null)
+  const [salaryDateFrom, setSalaryDateFrom] = useState('')
+  const [salaryDateTo, setSalaryDateTo] = useState('')
+  const [salaryCalendarOpen, setSalaryCalendarOpen] = useState(false)
+  const salaryCalendarAnchorRef = useRef(null)
 
   // Working hours management - grid format
   const [allSpecialistsWorkingHours, setAllSpecialistsWorkingHours] = useState({})
@@ -101,7 +108,7 @@ export default function Specialists() {
       fetchCommissions()
       fetchSalaryData()
     }
-  }, [activeTab, specialists, salaryPeriod])
+  }, [activeTab, specialists, salaryPeriod, salaryDateFrom, salaryDateTo])
 
   const fetchServices = async () => {
     try {
@@ -1112,8 +1119,12 @@ export default function Specialists() {
       const now = new Date()
       const today = toLocalDateStr(now)
 
-      let startDate
-      if (salaryPeriod === 'day') {
+      let startDate, endDate
+      if (salaryPeriod === 'custom') {
+        if (!salaryDateFrom || !salaryDateTo) return
+        startDate = salaryDateFrom
+        endDate = salaryDateTo
+      } else if (salaryPeriod === 'day') {
         startDate = today
       } else if (salaryPeriod === 'week') {
         const dayOfWeek = now.getDay() || 7
@@ -1124,23 +1135,29 @@ export default function Specialists() {
         startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
       }
 
+      let bookingsQuery = supabase
+        .from('bookings')
+        .select('id, specialist_id, service_id, booking_date, final_price, status, services(price)')
+        .eq('salon_id', facilityAccess.salon_id)
+        .eq('status', 'completed')
+        .gte('booking_date', startDate)
+      if (endDate) bookingsQuery = bookingsQuery.lte('booking_date', endDate)
+
+      let paymentsQuery = supabase
+        .from('payments')
+        .select('booking_id, specialist_id, amount_paid, tip_amount, created_at')
+        .eq('salon_id', facilityAccess.salon_id)
+        .in('specialist_id', specialists.map(s => s.id))
+        .gte('created_at', startDate)
+      if (endDate) paymentsQuery = paymentsQuery.lte('created_at', endDate + 'T23:59:59')
+
       const [{ data: bookings, error }, { data: commData }, { data: payments }] = await Promise.all([
-        supabase
-          .from('bookings')
-          .select('id, specialist_id, service_id, booking_date, final_price, status, services(price)')
-          .eq('salon_id', facilityAccess.salon_id)
-          .eq('status', 'completed')
-          .gte('booking_date', startDate),
+        bookingsQuery,
         supabase
           .from('specialist_services')
           .select('specialist_id, service_id, commission_rate')
           .in('specialist_id', specialists.map(s => s.id)),
-        supabase
-          .from('payments')
-          .select('booking_id, specialist_id, amount_paid, tip_amount, created_at')
-          .eq('salon_id', facilityAccess.salon_id)
-          .in('specialist_id', specialists.map(s => s.id))
-          .gte('created_at', startDate)
+        paymentsQuery
       ])
 
       if (error) throw error
@@ -1221,8 +1238,13 @@ export default function Specialists() {
 
   return (
     <div className="w-full -mt-4">
+      {/* Header */}
+      <div className="mb-3">
+        <h2 className="text-2xl font-bold text-gray-800 font-[Inter]">Specialists</h2>
+      </div>
+
       {/* Tabs */}
-      <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl mb-6">
+      <div className="relative bg-white rounded-lg border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.1)] mb-6">
         <div className="flex overflow-x-auto">
           {tabs.map((tab, index) => {
             const Icon = tab.Icon
@@ -1232,14 +1254,14 @@ export default function Specialists() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex-1 min-w-[140px] px-6 py-4 text-sm font-medium transition-all ${
                   activeTab === tab.id
-                    ? 'bg-purple-900/15 text-gray-800'
-                    : 'text-gray-200 hover:text-gray-800 hover:bg-purple-900/5'
+                    ? 'bg-[#9489E2] text-white shadow-sm'
+                    : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
                 } ${
                   index === 0 ? 'rounded-tl-lg' : ''
                 } ${
                   index === tabs.length - 1 ? 'rounded-tr-lg' : ''
                 } ${
-                  index < tabs.length - 1 ? 'border-r border-purple-500/[0.06]' : ''
+                  index < tabs.length - 1 ? 'border-r border-gray-200' : ''
                 }`}
               >
                 <div className="flex items-center justify-center space-x-2">
@@ -1258,21 +1280,21 @@ export default function Specialists() {
         {/* Stats Cards */}
         {specialists.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <AnimatedCard className="p-6 h-32 flex flex-col justify-between">
-              <div className="text-sm text-purple-200 mb-1">Total Specialists</div>
-              <div className="text-3xl font-bold text-gray-800">{totalSpecialists}</div>
+            <AnimatedCard className="px-4 py-3">
+              <div className="text-[11px] text-gray-500">Total Specialists</div>
+              <div className="text-xl font-bold text-gray-800">{totalSpecialists}</div>
             </AnimatedCard>
-            <AnimatedCard className="p-6 h-32 flex flex-col justify-between">
-              <div className="text-sm text-purple-200 mb-1">Average Rating</div>
-              <div className="text-3xl font-bold text-gray-800">{avgRating} ⭐</div>
+            <AnimatedCard className="px-4 py-3">
+              <div className="text-[11px] text-gray-500">Average Rating</div>
+              <div className="text-xl font-bold text-gray-800">{avgRating} <Star className="w-4 h-4 inline text-yellow-400 fill-yellow-400" /></div>
             </AnimatedCard>
-            <AnimatedCard className="p-6 h-32 flex flex-col justify-between">
-              <div className="text-sm text-purple-200 mb-1">Utilisation Rate</div>
-              <div className="text-3xl font-bold text-gray-800">{avgUtilisation.toFixed(1)}%</div>
+            <AnimatedCard className="px-4 py-3">
+              <div className="text-[11px] text-gray-500">Utilisation Rate</div>
+              <div className="text-xl font-bold text-gray-800">{avgUtilisation.toFixed(1)}%</div>
             </AnimatedCard>
-            <AnimatedCard className="p-6 h-32 flex flex-col justify-between">
-              <div className="text-sm text-purple-200 mb-1">Services Covered</div>
-              <div className="text-3xl font-bold text-gray-800">{totalServicesAssigned}</div>
+            <AnimatedCard className="px-4 py-3">
+              <div className="text-[11px] text-gray-500">Services Covered</div>
+              <div className="text-xl font-bold text-gray-800">{totalServicesAssigned}</div>
             </AnimatedCard>
           </div>
         )}
@@ -1282,9 +1304,9 @@ export default function Specialists() {
           <div className="flex items-center space-x-2">
             <button
               onClick={handleAdd}
-              className="px-4 py-2 bg-purple-900/15 border border-purple-500/10 text-gray-800 rounded-lg hover:bg-purple-900/20 font-medium transition-all flex items-center space-x-2"
+              className="px-3 py-1.5 text-sm bg-[#9489E2] border border-[#9489E2] text-white rounded-lg hover:bg-[#8078d0] font-medium transition-all flex items-center space-x-1.5"
             >
-              <Plus className="w-5 h-5" />
+              <Plus className="w-4 h-4" />
               <span>Add Specialist</span>
             </button>
             {specialists.length > 0 && (
@@ -1293,8 +1315,8 @@ export default function Specialists() {
                   onClick={() => setViewMode('grid')}
                   className={`p-2 rounded-lg transition-all border ${
                     viewMode === 'grid'
-                      ? 'bg-purple-900/15 border-purple-500/20 text-gray-800'
-                      : 'border-purple-500/[0.06] bg-black/15 text-gray-200 hover:border-purple-500/40'
+                      ? 'bg-[#9489E2]/10 border-[#9489E2] text-gray-800'
+                      : 'border-gray-200 bg-white text-gray-400 hover:border-gray-300'
                   }`}
                   title="Grid View"
                 >
@@ -1304,8 +1326,8 @@ export default function Specialists() {
                   onClick={() => setViewMode('list')}
                   className={`p-2 rounded-lg transition-all border ${
                     viewMode === 'list'
-                      ? 'bg-purple-900/15 border-purple-500/20 text-gray-800'
-                      : 'border-purple-500/[0.06] bg-black/15 text-gray-200 hover:border-purple-500/40'
+                      ? 'bg-[#9489E2]/10 border-[#9489E2] text-gray-800'
+                      : 'border-gray-200 bg-white text-gray-400 hover:border-gray-300'
                   }`}
                   title="List View"
                 >
@@ -1320,10 +1342,10 @@ export default function Specialists() {
 
       {/* Working Hours Tab - Weekly Grid */}
       {activeTab === 'hours' && (
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6 overflow-x-auto">
+        <div className="relative bg-white rounded-lg border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.08)] p-6 overflow-x-auto">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-bold text-gray-800 flex items-center font-[Inter]">
-              <Clock className="w-6 h-6 mr-2 text-purple-300" />
+              <Clock className="w-6 h-6 mr-2 text-[#9489E2]" />
               Weekly Schedule
             </h3>
 
@@ -1331,7 +1353,7 @@ export default function Specialists() {
             <div className="flex items-center space-x-3">
               <button
                 onClick={saveAllWorkingHoursToDatabase}
-                className="px-4 py-2 text-sm font-medium text-gray-800 bg-green-900/15 border border-green-700 hover:bg-green-900/20 rounded-full transition-all flex items-center gap-2"
+                className="px-4 py-2 text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 rounded-full transition-all flex items-center gap-2"
                 title="Save all displayed hours to database"
               >
                 <Save className="w-4 h-4" />
@@ -1339,23 +1361,23 @@ export default function Specialists() {
               </button>
               <button
                 onClick={goToCurrentWeek}
-                className="px-4 py-2 text-sm font-medium text-gray-800 bg-purple-900/15 border border-purple-500/10 hover:bg-purple-900/20 rounded-full transition-all"
+                className="px-4 py-2 text-sm font-medium text-[#9489E2] bg-[#9489E2]/10 border border-[#9489E2]/20 hover:bg-[#9489E2]/15 rounded-full transition-all"
               >
                 This Week
               </button>
               <div className="flex items-center">
                 <button
                   onClick={() => changeWeek(-1)}
-                  className="p-2 text-gray-800 bg-purple-900/15 border border-purple-500/10 hover:bg-purple-900/20 rounded-l-full transition-all"
+                  className="p-2 text-gray-600 bg-gray-50 border border-gray-200 hover:bg-gray-100 rounded-l-full transition-all"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
-                <div className="px-6 py-2 bg-purple-950/12 border-t border-b border-purple-500/10 text-gray-800 text-sm font-semibold min-w-[180px] text-center">
+                <div className="px-6 py-2 bg-gray-50 border-t border-b border-gray-200 text-gray-800 text-sm font-semibold min-w-[180px] text-center">
                   {formatWeekRange(selectedWeekStart)}
                 </div>
                 <button
                   onClick={() => changeWeek(1)}
-                  className="p-2 text-gray-800 bg-purple-900/15 border border-purple-500/10 hover:bg-purple-900/20 rounded-r-full transition-all"
+                  className="p-2 text-gray-600 bg-gray-50 border border-gray-200 hover:bg-gray-100 rounded-r-full transition-all"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </button>
@@ -1371,16 +1393,16 @@ export default function Specialists() {
           ) : (
             <div className="min-w-full">
               {/* Table Header */}
-              <div className="grid gap-2 mb-4 sticky top-0 bg-purple-900/25 p-2 rounded-lg" style={{gridTemplateColumns: '200px repeat(7, 1fr)'}}>
-                <div className="text-sm font-bold text-purple-200">Specialist</div>
+              <div className="grid gap-2 mb-4 sticky top-0 bg-gray-50 p-2 rounded-lg border border-gray-200" style={{gridTemplateColumns: '200px repeat(7, 1fr)'}}>
+                <div className="text-sm font-bold text-gray-500">Specialist</div>
                 {weekDates.map((date, index) => {
                   const dayName = DAYS_OF_WEEK[index].short
                   const dayNum = date.getDate()
                   const month = (date.getMonth() + 1).toString().padStart(2, '0')
                   return (
-                    <div key={index} className="text-sm font-bold text-purple-200 text-center">
+                    <div key={index} className="text-sm font-bold text-gray-500 text-center">
                       <div>{dayName}</div>
-                      <div className="text-xs text-purple-300">{dayNum}/{month}</div>
+                      <div className="text-xs text-gray-400">{dayNum}/{month}</div>
                     </div>
                   )
                 })}
@@ -1389,21 +1411,21 @@ export default function Specialists() {
               {/* Table Body */}
               <div className="space-y-2">
                 {specialists.map((specialist) => (
-                  <div key={specialist.id} className="grid gap-2 items-center p-2 bg-black/15 border border-purple-500/10 rounded-lg hover:bg-purple-900/10 transition-all" style={{gridTemplateColumns: '200px repeat(7, 1fr)'}}>
+                  <div key={specialist.id} className="grid gap-2 items-center p-2 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-all" style={{gridTemplateColumns: '200px repeat(7, 1fr)'}}>
                     {/* Specialist Name & Photo */}
                     <div className="flex items-center gap-2 justify-between">
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         <img
                           src={specialist.image_url}
                           alt={specialist.name}
-                          className="w-8 h-8 rounded-full object-cover border-2 border-purple-500"
+                          className="w-8 h-8 rounded-full object-cover border-2 border-[#9489E2]"
                         />
                         <span className="text-sm font-semibold text-gray-800 truncate">{specialist.name}</span>
                       </div>
                       <button
                         type="button"
                         onClick={() => copyFacilityHoursToSpecialist(specialist.id)}
-                        className="p-1.5 bg-purple-900/15 border border-purple-500/10 text-purple-300 rounded-lg hover:bg-purple-900/25 hover:border-purple-500/40 transition-all flex-shrink-0"
+                        className="p-1.5 bg-[#9489E2]/10 border border-[#9489E2]/20 text-[#9489E2] rounded-lg hover:bg-[#9489E2]/20 transition-all flex-shrink-0"
                         title="Copy facility hours"
                       >
                         <Copy className="w-3.5 h-3.5" />
@@ -1420,8 +1442,8 @@ export default function Specialists() {
                           key={day.value}
                           className={`group p-1.5 rounded-lg space-y-1 min-h-[50px] flex flex-col ${
                             notWorking
-                              ? 'bg-black/20 border border-purple-500/[0.06]'
-                              : 'bg-purple-950/12 border border-purple-500/10'
+                              ? 'bg-gray-100 border border-gray-200'
+                              : 'bg-white border border-gray-200'
                           }`}
                         >
                           {notWorking ? (
@@ -1429,7 +1451,7 @@ export default function Specialists() {
                               <button
                                 type="button"
                                 onClick={() => toggleNotWorking(specialist.id, dayIndex)}
-                                className="w-full px-2 py-2 bg-white/5 border border-purple-500/[0.06] text-gray-400 rounded hover:bg-white/10 hover:border-gray-500 transition-all text-[10px] flex items-center justify-center gap-1"
+                                className="w-full px-2 py-2 bg-gray-50 border border-gray-200 text-gray-400 rounded hover:bg-gray-100 hover:border-gray-300 transition-all text-[10px] flex items-center justify-center gap-1"
                                 title="Mark as working"
                               >
                                 <Ban className="w-3 h-3" />
@@ -1445,14 +1467,14 @@ export default function Specialists() {
                                     <button
                                       type="button"
                                       onClick={() => openTimePicker(specialist.id, dayIndex, shift.id, shift)}
-                                      className={`flex-1 px-2 py-1.5 border text-gray-800 rounded hover:bg-purple-900/25 hover:border-purple-500/40 transition-all text-xs text-center ${
+                                      className={`flex-1 px-2 py-1.5 border text-gray-800 rounded hover:bg-[#9489E2]/10 hover:border-[#9489E2]/30 transition-all text-xs text-center ${
                                         shift.is_exception
-                                          ? 'bg-amber-900/15 border-amber-500/30'
-                                          : 'bg-purple-900/15 border-purple-500/[0.06]'
+                                          ? 'bg-amber-50 border-amber-200'
+                                          : 'bg-[#9489E2]/5 border-[#9489E2]/15'
                                       }`}
                                     >
                                       <div className="font-medium whitespace-nowrap flex items-center justify-center gap-1">
-                                        {shift.is_exception && <span className="text-amber-400 text-[8px]" title="Exception — different from usual">★</span>}
+                                        {shift.is_exception && <span className="text-amber-500 text-[8px]" title="Exception — different from usual">★</span>}
                                         {shift.open_time} - {shift.close_time}
                                       </div>
                                     </button>
@@ -1460,7 +1482,7 @@ export default function Specialists() {
                                       <button
                                         type="button"
                                         onClick={() => deleteShift(shift.id, specialist.id, dayIndex)}
-                                        className="p-1 bg-red-900/15 border border-red-700/50 text-red-300 rounded hover:bg-red-900/25 hover:border-red-600 transition-all"
+                                        className="p-1 bg-red-50 border border-red-200 text-red-400 rounded hover:bg-red-100 hover:border-red-300 transition-all"
                                         title="Delete shift"
                                       >
                                         <X className="w-2.5 h-2.5" />
@@ -1475,7 +1497,7 @@ export default function Specialists() {
                                 <button
                                   type="button"
                                   onClick={() => addShiftToDay(specialist.id, dayIndex)}
-                                  className="flex-1 px-1.5 py-0.5 bg-green-900/15 border border-green-700/50 text-green-300 rounded hover:bg-green-900/25 hover:border-green-600 transition-all text-[10px] flex items-center justify-center gap-0.5"
+                                  className="flex-1 px-1.5 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-600 rounded hover:bg-emerald-100 transition-all text-[10px] flex items-center justify-center gap-0.5"
                                   title="Add shift"
                                 >
                                   <Plus className="w-2.5 h-2.5" />
@@ -1484,7 +1506,7 @@ export default function Specialists() {
                                 <button
                                   type="button"
                                   onClick={() => toggleNotWorking(specialist.id, dayIndex)}
-                                  className="flex-1 px-1.5 py-0.5 bg-black/15 border border-purple-500/[0.06] text-gray-400 rounded hover:bg-black/25 hover:border-purple-500/10 transition-all text-[10px] flex items-center justify-center gap-0.5"
+                                  className="flex-1 px-1.5 py-0.5 bg-gray-50 border border-gray-200 text-gray-400 rounded hover:bg-gray-100 transition-all text-[10px] flex items-center justify-center gap-0.5"
                                   title="Mark as not working"
                                 >
                                   <Ban className="w-2.5 h-2.5" />
@@ -1506,18 +1528,17 @@ export default function Specialists() {
 
       {/* Vacations Tab */}
       {activeTab === 'vacations' && (
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl p-6">
+        <div className="relative bg-white rounded-lg border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.08)] p-6">
           <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center font-[Inter]">
-            <Plane className="w-6 h-6 mr-2 text-purple-300" />
+            <Plane className="w-6 h-6 mr-2 text-[#9489E2]" />
             Specialist Vacations
           </h3>
-          <p className="text-gray-300 mb-6">
+          <p className="text-gray-500 mb-6">
             Manage vacation schedules and time off for your specialists.
           </p>
 
-          {/* Placeholder for vacations management */}
           <div className="text-center py-12 text-gray-400">
-            <Plane className="w-16 h-16 mx-auto mb-4 opacity-50" />
+            <Plane className="w-16 h-16 mx-auto mb-4 opacity-30" />
             <p>Vacation management coming soon...</p>
           </div>
         </div>
@@ -1528,425 +1549,606 @@ export default function Specialists() {
         const filteredSpecs = specialists.filter(s => !salarySearch || s.name.toLowerCase().includes(salarySearch.toLowerCase()))
         const totalSalary = filteredSpecs.reduce((sum, s) => sum + (salaryData[s.id]?.salary || 0), 0)
         const totalTips = filteredSpecs.reduce((sum, s) => sum + (salaryData[s.id]?.tips || 0), 0)
-        const periodLabel = salaryPeriod === 'day' ? 'Today' : salaryPeriod === 'week' ? 'This Week' : 'This Month'
+        const periodLabel = salaryPeriod === 'day' ? 'Today' : salaryPeriod === 'week' ? 'This Week' : salaryPeriod === 'month' ? 'This Month' : `${salaryDateFrom} — ${salaryDateTo}`
+        const topEarner = filteredSpecs.length > 0 ? filteredSpecs.reduce((top, s) => {
+          const total = (salaryData[s.id]?.salary || 0) + (salaryData[s.id]?.tips || 0)
+          const topTotal = (salaryData[top.id]?.salary || 0) + (salaryData[top.id]?.tips || 0)
+          return total > topTotal ? s : top
+        }, filteredSpecs[0]) : null
 
         return (
-          <div className="space-y-4">
-            {/* Top bar: period + search */}
+          <div className="space-y-5">
+            {/* Top bar: period selector + date range + search */}
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {['day', 'week', 'month'].map(p => (
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
+                  {['day', 'week', 'month'].map(p => (
+                    <button
+                      key={p}
+                      onClick={() => { setSalaryPeriod(p); setSalaryDateFrom(''); setSalaryDateTo('') }}
+                      className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all ${
+                        salaryPeriod === p
+                          ? 'bg-white text-gray-800 shadow-sm'
+                          : 'text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      {p === 'day' ? 'Today' : p === 'week' ? 'This Week' : 'This Month'}
+                    </button>
+                  ))}
+                </div>
+                <div className="h-6 w-px bg-gray-200" />
+                <div className="relative">
                   <button
-                    key={p}
-                    onClick={() => setSalaryPeriod(p)}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-all ${
-                      salaryPeriod === p
-                        ? 'bg-purple-600/30 border-purple-500/50 text-gray-800'
-                        : 'bg-white/[0.03] border-white/[0.06] text-gray-400 hover:border-purple-500/30'
-                    }`}
+                    ref={salaryCalendarAnchorRef}
+                    onClick={() => setSalaryCalendarOpen(!salaryCalendarOpen)}
+                    className={`flex items-center gap-2 px-4 py-1.5 bg-white/50 border border-gray-200 rounded-full shadow-[0_1px_4px_rgba(0,0,0,0.1)] hover:bg-gray-50 transition-all ${salaryPeriod === 'custom' ? 'border-[#9489E2]/40' : ''}`}
                   >
-                    {p === 'day' ? 'Day' : p === 'week' ? 'Week' : 'Month'}
+                    <CalendarDays className="w-4 h-4 text-[#9489E2]" />
+                    <span className="text-xs font-medium text-gray-800">
+                      {salaryDateFrom && salaryDateTo
+                        ? `${new Date(salaryDateFrom + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} — ${new Date(salaryDateTo + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+                        : 'Custom Range'
+                      }
+                    </span>
                   </button>
-                ))}
+                  <DateRangeCalendar
+                    isOpen={salaryCalendarOpen}
+                    onClose={() => setSalaryCalendarOpen(false)}
+                    dateFrom={salaryDateFrom}
+                    dateTo={salaryDateTo}
+                    anchorRef={salaryCalendarAnchorRef}
+                    onSelect={(from, to) => {
+                      setSalaryDateFrom(from)
+                      setSalaryDateTo(to)
+                      setSalaryPeriod('custom')
+                    }}
+                  />
+                </div>
               </div>
               <input
                 type="text"
                 placeholder="Search specialist..."
                 value={salarySearch}
                 onChange={e => setSalarySearch(e.target.value)}
-                className="px-3 py-1.5 text-xs bg-purple-950/40 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 placeholder-gray-500 w-48"
+                className="h-8 px-3 text-xs bg-white border border-gray-200 text-gray-800 rounded-lg focus:border-[#9489E2] focus:ring-[3px] focus:ring-[#9489E2]/20 focus:outline-none placeholder-gray-400 w-48"
               />
             </div>
 
             {/* Summary cards */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="bg-purple-950/30 border border-purple-500/10 rounded-xl p-4 text-center">
-                <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-1">Salaries · {periodLabel}</p>
-                <p className="text-2xl font-bold text-purple-400">{totalSalary.toFixed(0)} <span className="text-xs text-gray-500">GEL</span></p>
+            <div className="grid grid-cols-4 gap-4">
+              <div className="bg-white rounded-xl border border-gray-200 p-4" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-[#9489E2]/10 flex items-center justify-center">
+                    <DollarSign className="w-4 h-4 text-[#9489E2]" />
+                  </div>
+                  <span className="text-[10px] text-gray-800 uppercase tracking-wide font-semibold">Commissions</span>
+                </div>
+                <p className="text-2xl font-bold text-gray-800">{totalSalary.toFixed(0)}</p>
+                <p className="text-[10px] text-gray-800 mt-0.5">GEL · {periodLabel}</p>
               </div>
-              <div className="bg-green-950/20 border border-green-500/10 rounded-xl p-4 text-center">
-                <p className="text-[10px] text-green-400/60 uppercase tracking-wide mb-1">Tips · {periodLabel}</p>
-                <p className="text-2xl font-bold text-green-400">{totalTips.toFixed(0)} <span className="text-xs text-green-400/40">GEL</span></p>
+              <div className="bg-white rounded-xl border border-gray-200 p-4" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                    <Star className="w-4 h-4 text-emerald-500" />
+                  </div>
+                  <span className="text-[10px] text-gray-800 uppercase tracking-wide font-semibold">Tips</span>
+                </div>
+                <p className="text-2xl font-bold text-gray-800">{totalTips.toFixed(0)}</p>
+                <p className="text-[10px] text-gray-800 mt-0.5">GEL · {periodLabel}</p>
               </div>
-              <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4 text-center">
-                <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-1">Total · {periodLabel}</p>
-                <p className="text-2xl font-bold text-gray-800">{(totalSalary + totalTips).toFixed(0)} <span className="text-xs text-gray-500">GEL</span></p>
+              <div className="bg-white rounded-xl border border-gray-200 p-4" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
+                    <Briefcase className="w-4 h-4 text-gray-500" />
+                  </div>
+                  <span className="text-[10px] text-gray-800 uppercase tracking-wide font-semibold">Total Payout</span>
+                </div>
+                <p className="text-2xl font-bold text-gray-800">{(totalSalary + totalTips).toFixed(0)}</p>
+                <p className="text-[10px] text-gray-800 mt-0.5">GEL · {periodLabel}</p>
+              </div>
+              <div className="bg-white rounded-xl border border-gray-200 p-4" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+                    <TrendingUp className="w-4 h-4 text-amber-500" />
+                  </div>
+                  <span className="text-[10px] text-gray-800 uppercase tracking-wide font-semibold">Top Earner</span>
+                </div>
+                <p className="text-sm font-bold text-gray-800 truncate">{topEarner?.name || '—'}</p>
+                <p className="text-[10px] text-gray-400 mt-0.5">{topEarner ? ((salaryData[topEarner.id]?.salary || 0) + (salaryData[topEarner.id]?.tips || 0)).toFixed(0) + ' GEL' : ''}</p>
               </div>
             </div>
 
-            {/* Specialist cards */}
-            {filteredSpecs.map(specialist => {
-              const specCommissions = commissions[specialist.id] || {}
-              const specEarnings = salaryData[specialist.id] || { salary: 0, tips: 0 }
-              const serviceEntries = Object.entries(specCommissions)
+            {/* Specialist Table */}
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+              {/* Table Header */}
+              <div className="grid grid-cols-12 gap-3 px-5 py-3 bg-gray-50 border-b border-gray-200">
+                <div className="col-span-4 text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Specialist</div>
+                <div className="col-span-2 text-[11px] font-semibold text-gray-500 uppercase tracking-wide text-center">Commissions</div>
+                <div className="col-span-2 text-[11px] font-semibold text-gray-500 uppercase tracking-wide text-right">Earnings</div>
+                <div className="col-span-2 text-[11px] font-semibold text-gray-500 uppercase tracking-wide text-right">Tips</div>
+                <div className="col-span-2 text-[11px] font-semibold text-gray-500 uppercase tracking-wide text-right">Total Payout</div>
+              </div>
 
-              return (
-                <div key={specialist.id} className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl px-4 py-3">
-                  <div className="flex items-center gap-4">
-                    {/* Avatar + Name */}
-                    <div className="flex items-center gap-2.5 w-[140px] flex-shrink-0">
-                      {specialist.image_url ? (
-                        <img src={specialist.image_url} alt={specialist.name} className="w-8 h-8 rounded-full object-cover border border-purple-500/30 flex-shrink-0" />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-purple-500/20 border border-purple-500/30 flex items-center justify-center flex-shrink-0">
-                          <span className="text-xs font-bold text-purple-300">{specialist.name?.charAt(0)}</span>
+              {/* Table Body */}
+              <div className="divide-y divide-gray-100">
+                {filteredSpecs.map(specialist => {
+                  const specCommissions = commissions[specialist.id] || {}
+                  const specEarnings = salaryData[specialist.id] || { salary: 0, tips: 0 }
+                  const serviceEntries = Object.entries(specCommissions)
+                  const specTotal = specEarnings.salary + specEarnings.tips
+
+                  return (
+                    <div key={specialist.id} className="grid grid-cols-12 gap-3 px-5 py-3.5 items-center hover:bg-gray-50/50 transition-all">
+                      {/* Avatar + Name */}
+                      <div className="col-span-4 flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full p-0.5 bg-gradient-to-br from-[#9489E2] to-[#b8b0f0] flex-shrink-0">
+                          {specialist.image_url ? (
+                            <img src={specialist.image_url} alt={specialist.name} className="w-full h-full rounded-full object-cover bg-white" />
+                          ) : (
+                            <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
+                              <span className="text-xs font-bold text-[#9489E2]">{specialist.name?.charAt(0)}</span>
+                            </div>
+                          )}
                         </div>
-                      )}
-                      <div className="min-w-0">
-                        <h3 className="text-xs font-bold text-gray-800 font-[Inter] truncate">{specialist.name}</h3>
-                        <p className="text-[9px] text-gray-500">{serviceEntries.length} service{serviceEntries.length !== 1 ? 's' : ''}</p>
-                      </div>
-                    </div>
-
-                    {/* Commissions - compact inline */}
-                    <div className="flex-1 flex items-center gap-1.5 overflow-x-auto min-w-0">
-                      {serviceEntries.map(([serviceId, data]) => (
-                        <div key={serviceId} className="flex items-center gap-1 bg-purple-950/20 border border-purple-500/[0.06] rounded-md px-2 py-1 flex-shrink-0">
-                          <span className="text-[9px] text-gray-400 truncate max-w-[60px]">{data.serviceName}</span>
-                          <input
-                            type="number" min="0" max="100" value={data.rate}
-                            onChange={(e) => {
-                              const newRate = Math.min(100, Math.max(0, parseInt(e.target.value) || 0))
-                              setCommissions(prev => ({ ...prev, [specialist.id]: { ...prev[specialist.id], [serviceId]: { ...data, rate: newRate } } }))
-                            }}
-                            onBlur={() => updateCommission(specialist.id, serviceId, data.rate)}
-                            className="w-9 px-1 py-0.5 text-[9px] text-center font-bold text-purple-400 bg-purple-950/40 border border-purple-500/20 rounded [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                          />
-                          <span className="text-[8px] text-gray-500">%</span>
+                        <div className="min-w-0">
+                          <h3 className="text-sm font-semibold text-gray-800 font-[Inter] truncate">{specialist.name}</h3>
+                          <p className="text-[10px] text-gray-400">{serviceEntries.length} service{serviceEntries.length !== 1 ? 's' : ''}</p>
                         </div>
-                      ))}
-                    </div>
+                      </div>
 
-                    {/* Earnings + Tips + Total */}
-                    <div className="flex items-center gap-3 flex-shrink-0">
-                      <div className="text-center w-[70px]">
-                        <p className="text-[8px] text-gray-400 uppercase">Earnings</p>
-                        <p className="text-sm font-bold text-purple-400">{specEarnings.salary.toFixed(0)} <span className="text-[8px] text-gray-500">GEL</span></p>
+                      {/* Commission — edit button */}
+                      <div className="col-span-2 flex justify-center">
+                        <button
+                          onClick={() => setCommissionModalSpecialist(specialist)}
+                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-gray-200 bg-gray-50 hover:border-[#9489E2]/40 hover:bg-[#9489E2]/5 transition-all group"
+                          title="Edit commission rates"
+                        >
+                          <Edit className="w-3 h-3 text-gray-400 group-hover:text-[#9489E2]" />
+                          <span className="text-[10px] text-gray-500 group-hover:text-[#9489E2] whitespace-nowrap">Edit Commissions</span>
+                        </button>
                       </div>
-                      <div className="text-center w-[60px]">
-                        <p className="text-[8px] text-green-400/60 uppercase">Tips</p>
-                        <p className="text-sm font-bold text-green-400">{specEarnings.tips.toFixed(0)} <span className="text-[8px] text-green-400/40">GEL</span></p>
+
+                      {/* Earnings */}
+                      <div className="col-span-2 text-right">
+                        <p className="text-lg font-bold text-gray-800">{specEarnings.salary.toFixed(0)} <span className="text-xs font-medium text-gray-400">₾</span></p>
                       </div>
-                      <div className="text-center w-[70px] bg-white/[0.03] rounded-lg py-1">
-                        <p className="text-[8px] text-gray-400 uppercase">Total</p>
-                        <p className="text-sm font-bold text-gray-800">{(specEarnings.salary + specEarnings.tips).toFixed(0)} <span className="text-[8px] text-gray-500">GEL</span></p>
+
+                      {/* Tips */}
+                      <div className="col-span-2 text-right">
+                        <p className="text-lg font-bold text-gray-800">{specEarnings.tips.toFixed(0)} <span className="text-xs font-medium text-gray-400">₾</span></p>
+                      </div>
+
+                      {/* Total */}
+                      <div className="col-span-2 text-right">
+                        <p className="text-lg font-bold text-gray-800">{specTotal.toFixed(0)} <span className="text-xs font-medium text-gray-400">₾</span></p>
                       </div>
                     </div>
+                  )
+                })}
+              </div>
+
+              {/* Table Footer */}
+              {filteredSpecs.length > 0 && (
+                <div className="grid grid-cols-12 gap-3 px-5 py-3 bg-gray-50 border-t border-gray-200">
+                  <div className="col-span-4 text-xs font-semibold text-gray-500">Total ({filteredSpecs.length} specialists)</div>
+                  <div className="col-span-2" />
+                  <div className="col-span-2 text-right">
+                    <p className="text-lg font-bold text-gray-800">{totalSalary.toFixed(0)} <span className="text-xs font-medium text-gray-400">₾</span></p>
+                  </div>
+                  <div className="col-span-2 text-right">
+                    <p className="text-lg font-bold text-gray-800">{totalTips.toFixed(0)} <span className="text-xs font-medium text-gray-400">₾</span></p>
+                  </div>
+                  <div className="col-span-2 text-right">
+                    <p className="text-lg font-bold text-gray-800">{(totalSalary + totalTips).toFixed(0)} <span className="text-xs font-medium text-gray-400">₾</span></p>
                   </div>
                 </div>
-              )
-            })}
+              )}
+            </div>
           </div>
         )
       })()}
 
-      {/* Add/Edit Form */}
-      {showAddForm && (
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg shadow-2xl p-6 mb-6 border border-purple-500/10">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-gray-800 flex items-center space-x-2 font-[Inter]">
-              {editingSpecialist ? <Edit className="w-5 h-5 text-purple-300" /> : <Plus className="w-5 h-5 text-purple-300" />}
-              <span>{editingSpecialist ? 'Edit Specialist' : 'Add New Specialist'}</span>
-            </h3>
-            <button
-              onClick={resetForm}
-              className="text-gray-300 hover:text-gray-800 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Name *
-                </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/45 transition-all placeholder-gray-400"
-                  placeholder="e.g., Nino Kapanadze"
-                  required
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Bio
-                </label>
-                <textarea
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  rows={2}
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/45 transition-all placeholder-gray-400"
-                  placeholder="Tell customers about this specialist..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Experience (years)
-                </label>
-                <input
-                  type="number"
-                  value={experienceYears}
-                  onChange={(e) => setExperienceYears(e.target.value)}
-                  min="0"
-                  step="1"
-                  className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/45 transition-all placeholder-gray-400"
-                  placeholder="5"
-                />
-              </div>
-
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Languages *
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { val: 'ka', label: '🇬🇪 Georgian' },
-                    { val: 'en', label: '🇬🇧 English' },
-                    { val: 'ru', label: '🇷🇺 Russian' },
-                    { val: 'tr', label: '🇹🇷 Turkish' },
-                    { val: 'de', label: '🇩🇪 German' },
-                    { val: 'fr', label: '🇫🇷 French' },
-                    { val: 'es', label: '🇪🇸 Spanish' },
-                    { val: 'ar', label: '🇸🇦 Arabic' },
-                  ].map(l => (
-                    <button
-                      key={l.val}
-                      type="button"
-                      onClick={() => {
-                        setSelectedLanguages(prev =>
-                          prev.includes(l.val)
-                            ? prev.filter(x => x !== l.val)
-                            : [...prev, l.val]
-                        )
-                      }}
-                      className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-all ${
-                        selectedLanguages.includes(l.val)
-                          ? 'bg-purple-600/30 border-purple-500/50 text-gray-800'
-                          : 'bg-white/[0.03] border-white/[0.06] text-gray-400 hover:border-purple-500/30'
-                      }`}
-                    >
-                      {l.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Profile Photo
-                </label>
-                <div className="flex items-center space-x-4">
-                  {imagePreview && (
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className="w-20 h-20 rounded-full object-cover border-2 border-purple-500"
-                    />
-                  )}
-                  <div className="flex-1">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="w-full px-4 py-3 bg-purple-950/12 border border-purple-500/10 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-950/45 transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-700 file:text-gray-800 hover:file:bg-purple-600"
-                    />
-                    <p className="text-xs text-gray-400 mt-1">
-                      Upload a photo (max 5MB). Leave empty for default avatar.
-                    </p>
+      {/* Commission Rates Modal */}
+      {commissionModalSpecialist && (() => {
+        const spec = commissionModalSpecialist
+        const specCommissions = commissions[spec.id] || {}
+        const serviceEntries = Object.entries(specCommissions)
+        return (
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setCommissionModalSpecialist(null)}>
+            <div className="bg-white rounded-2xl border border-gray-200 w-full max-w-md overflow-hidden" style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }} onClick={e => e.stopPropagation()}>
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full p-0.5 bg-gradient-to-br from-[#9489E2] to-[#b8b0f0]">
+                    {spec.image_url ? (
+                      <img src={spec.image_url} alt={spec.name} className="w-full h-full rounded-full object-cover bg-white" />
+                    ) : (
+                      <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
+                        <span className="text-sm font-bold text-[#9489E2]">{spec.name?.charAt(0)}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-800 font-[Inter]">{spec.name}</h3>
+                    <p className="text-[10px] text-gray-400">Commission rates per service</p>
                   </div>
                 </div>
+                <button onClick={() => setCommissionModalSpecialist(null)} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Service list */}
+              <div className="px-5 py-4 space-y-2.5">
+                {serviceEntries.length > 0 ? serviceEntries.map(([serviceId, data]) => (
+                  <div key={serviceId} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-200">
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      <Scissors className="w-3.5 h-3.5 text-[#9489E2] flex-shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-gray-800 truncate">{data.serviceName}</p>
+                        <p className="text-[10px] text-gray-400">{data.servicePrice} GEL per service</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 bg-white border border-[#9489E2]/20 rounded-lg px-1 ml-3">
+                      <input
+                        type="number" min="0" max="100" value={data.rate}
+                        onChange={(e) => {
+                          const newRate = Math.min(100, Math.max(0, parseInt(e.target.value) || 0))
+                          setCommissions(prev => ({ ...prev, [spec.id]: { ...prev[spec.id], [serviceId]: { ...data, rate: newRate } } }))
+                        }}
+                        onBlur={() => updateCommission(spec.id, serviceId, data.rate)}
+                        className="w-10 px-1 py-1.5 text-sm text-center font-bold text-[#9489E2] bg-transparent border-none focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                      <span className="text-xs text-[#9489E2]/60 pr-1">%</span>
+                    </div>
+                  </div>
+                )) : (
+                  <p className="text-sm text-gray-400 text-center py-6">No services assigned to this specialist</p>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="flex justify-end px-5 py-3 border-t border-gray-100 bg-gray-50/50 rounded-b-2xl">
+                <button
+                  onClick={() => setCommissionModalSpecialist(null)}
+                  className="h-7 px-4 text-xs font-medium bg-[#9489E2] text-white rounded-md hover:bg-[#8078d0] transition-all"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* Add/Edit Form Modal — Ruixen Dialog Style */}
+      {showAddForm && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={resetForm}>
+          <div className="bg-white rounded-2xl border border-gray-200 w-full max-w-xl overflow-hidden" style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.15)' }} onClick={e => e.stopPropagation()}>
+
+            {/* Gradient Header Banner */}
+            <div className="relative h-16" style={{ background: 'linear-gradient(135deg, rgba(148,137,226,0.7) 0%, rgba(184,176,240,0.5) 50%, rgba(123,111,212,0.6) 100%)' }}>
+              <button
+                onClick={resetForm}
+                className="absolute top-3 right-3 p-1.5 rounded-full bg-white/80 text-gray-500 hover:bg-white hover:text-gray-700 transition-all"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Centered Avatar overlapping banner */}
+            <div className="-mt-14 flex justify-center relative z-10">
+              <div className="relative">
+                <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white">
+                  {imagePreview ? (
+                    <img src={imagePreview} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-[#9489E2] to-[#b8b0f0] flex items-center justify-center">
+                      <span className="text-2xl font-bold text-white">{name?.charAt(0)?.toUpperCase() || '?'}</span>
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full bg-white border-2 border-[#9489E2] text-[#9489E2] hover:bg-[#9489E2] hover:text-white transition-all shadow-sm"
+                  aria-label="Change profile picture"
+                >
+                  <Camera className="w-3.5 h-3.5" />
+                </button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImageChange}
+                  className="hidden"
+                  accept="image/*"
+                />
               </div>
             </div>
 
-            {/* Services Selection */}
-            {services.length > 0 && (
-              <div className="border-t border-purple-500/10 pt-4 mt-4">
-                <label className="block text-sm font-medium text-gray-300 mb-3">
-                  Assign Services
-                </label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 bg-purple-950/10 rounded-lg border border-purple-500/[0.06]">
-                  {services.map((service) => (
-                    <label
-                      key={service.id}
-                      className="flex items-center space-x-2 p-2 hover:bg-purple-900/15 rounded cursor-pointer transition-all"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedServices.includes(service.id)}
-                        onChange={() => toggleService(service.id)}
-                        className="w-4 h-4 text-purple-600 border-purple-500 rounded focus:ring-purple-500 bg-purple-950/50"
-                      />
-                      <span className="text-sm text-gray-200">{service.name}</span>
-                    </label>
-                  ))}
+            {/* Form Content */}
+            <div className="px-6 py-4">
+              <form onSubmit={handleSubmit} id="specialist-form" className="space-y-3">
+                {/* Name + Experience row */}
+                <div className="flex gap-4">
+                  <div className="flex-1 space-y-1.5">
+                    <label className="text-xs font-medium text-gray-700">Full Name *</label>
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full h-9 px-3 bg-white border border-gray-200 text-gray-800 rounded-lg text-sm shadow-sm shadow-black/5 focus:border-[#9489E2] focus:ring-[3px] focus:ring-[#9489E2]/20 focus:outline-none transition-all placeholder-gray-400"
+                      placeholder="e.g., Nino Kapanadze"
+                      required
+                    />
+                  </div>
+                  <div className="w-[120px] space-y-1.5">
+                    <label className="text-xs font-medium text-gray-700">Experience</label>
+                    <input
+                      type="number"
+                      value={experienceYears}
+                      onChange={(e) => setExperienceYears(e.target.value)}
+                      min="0"
+                      step="1"
+                      className="w-full h-9 px-3 bg-white border border-gray-200 text-gray-800 rounded-lg text-sm shadow-sm shadow-black/5 focus:border-[#9489E2] focus:ring-[3px] focus:ring-[#9489E2]/20 focus:outline-none transition-all placeholder-gray-400"
+                      placeholder="years"
+                    />
+                  </div>
                 </div>
-                {selectedServices.length === 0 && (
-                  <p className="text-xs text-gray-400 mt-2">
-                    Select at least one service this specialist can perform
-                  </p>
-                )}
-              </div>
-            )}
 
-            <div className="flex justify-end space-x-3 pt-2">
+                {/* Bio */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-gray-700">Bio</label>
+                  <textarea
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    rows={2}
+                    maxLength={200}
+                    className="w-full px-3 py-2 bg-white border border-gray-200 text-gray-800 rounded-lg text-sm shadow-sm shadow-black/5 focus:border-[#9489E2] focus:ring-[3px] focus:ring-[#9489E2]/20 focus:outline-none transition-all placeholder-gray-400 resize-none"
+                    placeholder="Tell customers about this specialist..."
+                  />
+                </div>
+
+                {/* Languages */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-gray-700">Languages *</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      { val: 'ka', label: '🇬🇪 Georgian' },
+                      { val: 'en', label: '🇬🇧 English' },
+                      { val: 'ru', label: '🇷🇺 Russian' },
+                      { val: 'tr', label: '🇹🇷 Turkish' },
+                      { val: 'de', label: '🇩🇪 German' },
+                      { val: 'fr', label: '🇫🇷 French' },
+                      { val: 'es', label: '🇪🇸 Spanish' },
+                      { val: 'ar', label: '🇸🇦 Arabic' },
+                    ].map(l => (
+                      <button
+                        key={l.val}
+                        type="button"
+                        onClick={() => {
+                          setSelectedLanguages(prev =>
+                            prev.includes(l.val)
+                              ? prev.filter(x => x !== l.val)
+                              : [...prev, l.val]
+                          )
+                        }}
+                        className={`px-2.5 py-1 text-xs font-medium rounded-lg border transition-all ${
+                          selectedLanguages.includes(l.val)
+                            ? 'bg-[#9489E2]/10 border-[#9489E2] text-gray-800'
+                            : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+                        }`}
+                      >
+                        {l.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Services Selection — Pill Chips */}
+                {services.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-medium text-gray-700">Services</label>
+                      <span className="text-[10px] text-gray-400">{selectedServices.length} selected</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {services.map((service) => {
+                        const isSelected = selectedServices.includes(service.id)
+                        return (
+                          <button
+                            key={service.id}
+                            type="button"
+                            onClick={() => toggleService(service.id)}
+                            className={`group flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 ${
+                              isSelected
+                                ? 'bg-[#9489E2] border-[#9489E2] text-white shadow-sm shadow-[#9489E2]/25'
+                                : 'bg-white border-gray-200 text-gray-500 hover:border-[#9489E2]/40 hover:text-gray-700'
+                            }`}
+                          >
+                            <Scissors className={`w-3 h-3 ${isSelected ? 'text-white/80' : 'text-gray-400 group-hover:text-[#9489E2]'}`} />
+                            <span>{service.name}</span>
+                            {isSelected && (
+                              <X className="w-3 h-3 text-white/70 hover:text-white ml-0.5" />
+                            )}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    {selectedServices.length === 0 && (
+                      <p className="text-[10px] text-gray-400">
+                        Tap services to assign them to this specialist
+                      </p>
+                    )}
+                  </div>
+                )}
+              </form>
+            </div>
+
+            {/* Footer */}
+            <div className="flex justify-end gap-1.5 px-6 py-2.5 border-t border-gray-100 bg-gray-50/50 rounded-b-2xl">
               <button
                 type="button"
                 onClick={resetForm}
-                className="px-6 py-2 border border-purple-500/10 text-gray-200 rounded-lg hover:bg-purple-900/15 transition-all"
+                className="h-7 px-3 text-xs text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-all"
                 disabled={uploading}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-8 py-3 bg-purple-900/15 border border-purple-500/10 text-gray-800 rounded-lg hover:bg-purple-900/20 disabled:opacity-50 font-medium transition-all transform hover:scale-105"
+                form="specialist-form"
+                className="h-7 px-4 text-xs font-medium bg-[#9489E2] text-white rounded-md hover:bg-[#8078d0] disabled:opacity-50 transition-all"
                 disabled={uploading}
               >
-                {uploading ? 'Saving...' : (editingSpecialist ? 'Update Specialist' : 'Add Specialist')}
+                {uploading ? 'Saving...' : (editingSpecialist ? 'Save Changes' : 'Add Specialist')}
               </button>
             </div>
-          </form>
+          </div>
         </div>
       )}
 
       {/* Specialists List */}
       {activeTab === 'specialists' && specialists.length === 0 ? (
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg shadow-2xl p-12 text-center border border-purple-500/10">
+        <div className="relative bg-white rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.08)] p-12 text-center border border-gray-200">
           <div className="flex justify-center mb-4">
-            <Users className="w-16 h-16 text-purple-300" />
+            <Users className="w-16 h-16 text-[#9489E2]" />
           </div>
           <h3 className="text-lg font-bold text-gray-800 mb-2 font-[Inter]">No Specialists Yet</h3>
-          <p className="text-gray-300 mb-6">
+          <p className="text-gray-500 mb-6">
             Start by adding your first team member to appear in the mobile app
           </p>
           <button
             onClick={handleAdd}
-            className="px-8 py-3 bg-purple-900/15 border border-purple-500/10 text-gray-800 rounded-lg hover:bg-purple-900/20 font-medium transition-all transform hover:scale-105"
+            className="px-8 py-3 bg-[#9489E2] border border-[#9489E2] text-white rounded-lg hover:bg-[#8078d0] font-medium transition-all transform hover:scale-105"
           >
             Add Your First Specialist
           </button>
         </div>
       ) : activeTab === 'specialists' && viewMode === 'grid' ? (
-        /* Grid View */
+        /* Grid View — Glassmorphism Profile Cards */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {specialists.map((specialist) => {
             return (
             <div
               key={specialist.id}
-              className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl transition-all p-4"
+              className="relative w-full"
             >
+              <div
+                className="relative flex flex-col items-center p-6 rounded-2xl border border-gray-200/60 transition-all duration-300 ease-out backdrop-blur-xl bg-white/80 hover:shadow-lg hover:border-[#9489E2]/30"
+                style={{ boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)' }}
+              >
+                {/* Avatar with gradient ring */}
+                <div className="w-20 h-20 mb-4 rounded-full p-0.5 bg-gradient-to-br from-[#9489E2] via-[#b8b0f0] to-[#7b6fd4]">
+                  <img
+                    src={specialist.image_url}
+                    alt={specialist.name}
+                    className="w-full h-full rounded-full object-cover bg-white"
+                    onError={(e) => {
+                      e.target.style.display = 'none'
+                      e.target.nextSibling.style.display = 'flex'
+                    }}
+                  />
+                  <div className="w-full h-full rounded-full bg-white items-center justify-center text-lg font-bold text-[#9489E2] hidden">
+                    {specialist.name?.charAt(0)}
+                  </div>
+                </div>
 
-              {/* Profile Image */}
-              <div className="flex justify-center mb-3">
-                <img
-                  src={specialist.image_url}
-                  alt={specialist.name}
-                  className="w-20 h-20 rounded-full object-cover border-2 border-purple-500"
-                  onError={(e) => {
-                    e.target.src = 'https://via.placeholder.com/150?text=' + encodeURIComponent(specialist.name)
-                  }}
-                />
-              </div>
+                {/* Name */}
+                <h3 className="text-lg font-bold text-gray-800 line-clamp-1 font-[Inter]">{specialist.name}</h3>
 
-              {/* Name and Rating */}
-              <div className="text-center mb-3">
-                <h3 className="text-base font-bold text-gray-800 mb-2 line-clamp-1 font-[Inter]">
-                  {specialist.name}
-                </h3>
-                <div className="flex items-center justify-center space-x-1 mb-2">
-                  <Star className={`w-4 h-4 ${specialist.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-500'}`} />
-                  <span className="text-sm font-bold text-gray-800">{specialist.rating ?? '—'}</span>
+                {/* Rating */}
+                <div className="flex items-center gap-1 mt-1">
+                  <Star className={`w-3.5 h-3.5 ${specialist.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} />
+                  <span className="text-sm font-semibold text-gray-700">{specialist.rating ?? '—'}</span>
                   <span className="text-xs text-gray-400">({specialist.reviewCount})</span>
                 </div>
-              </div>
 
-              {/* Bio */}
-              {specialist.bio && (
-                <p className="text-xs text-gray-300 mb-3 line-clamp-2 h-8 text-center">
-                  {specialist.bio}
+                {/* Bio */}
+                <p className="mt-3 text-center text-xs leading-relaxed text-gray-500 line-clamp-2 min-h-[32px]">
+                  {specialist.bio || 'No bio yet'}
                 </p>
-              )}
-              {!specialist.bio && (
-                <div className="mb-3 h-8"></div>
-              )}
 
+                {/* Divider */}
+                <div className="w-1/2 h-px my-4 rounded-full bg-gray-200" />
 
-              {/* Assigned Services */}
-              {specialist.specialist_services && specialist.specialist_services.length > 0 && (
-                <div className="mb-3">
-                  <div className="text-xs font-medium text-purple-200 mb-2">Services:</div>
-                  <div className="flex flex-wrap gap-1">
-                    {specialist.specialist_services.map((ss) => (
+                {/* Services */}
+                {specialist.specialist_services && specialist.specialist_services.length > 0 ? (
+                  <div className="flex flex-wrap justify-center gap-1 mb-4">
+                    {specialist.specialist_services.slice(0, 3).map((ss) => (
                       <span
                         key={ss.service_id}
-                        className="inline-block px-2 py-1 text-xs bg-purple-950/25 text-purple-200 rounded-full font-medium border border-purple-500/10"
+                        className="inline-block px-2 py-0.5 text-[10px] bg-[#9489E2]/8 text-[#9489E2] rounded-full font-medium border border-[#9489E2]/15"
                       >
                         {ss.services?.name || 'Unknown'}
                       </span>
                     ))}
+                    {specialist.specialist_services.length > 3 && (
+                      <span className="text-[10px] text-gray-400 font-medium">+{specialist.specialist_services.length - 3}</span>
+                    )}
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div className="mb-4 text-[10px] text-gray-400">No services assigned</div>
+                )}
 
-              {/* Actions */}
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => handleEdit(specialist)}
-                  className="flex-1 px-3 py-1.5 text-xs border border-purple-600 text-purple-200 rounded-lg hover:bg-purple-800/25 transition-all font-medium flex items-center justify-center gap-1"
-                >
-                  <Edit className="w-3 h-3" /> Edit
-                </button>
-                <NativeDelete
-                  onDelete={() => handleDelete(specialist.id)}
-                />
+                {/* Actions */}
+                <div className="flex gap-2 w-full">
+                  <button
+                    onClick={() => handleEdit(specialist)}
+                    className="flex-1 px-3 py-2 text-xs border border-[#9489E2] text-[#9489E2] rounded-xl hover:bg-[#9489E2]/10 transition-all font-medium flex items-center justify-center gap-1"
+                  >
+                    <Edit className="w-3 h-3" /> Edit
+                  </button>
+                  <NativeDelete
+                    onDelete={() => handleDelete(specialist.id)}
+                  />
+                </div>
               </div>
+
+              {/* Glow effect behind card */}
+              <div className="absolute inset-0 rounded-2xl -z-10 blur-2xl opacity-0 hover:opacity-20 transition-all duration-500 bg-gradient-to-r from-[#9489E2]/30 to-[#b8b0f0]/30" />
             </div>
             )
           })}
         </div>
       ) : activeTab === 'specialists' ? (
         /* List/Table View */
-        <div className="relative bg-gradient-to-r from-purple-900/15 to-violet-900/15 backdrop-blur-xl rounded-lg border border-purple-500/10 shadow-2xl overflow-hidden">
+        <div className="relative bg-white rounded-lg border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.08)] overflow-hidden">
           {/* Table Header */}
-          <div className="grid grid-cols-10 gap-4 px-6 py-4 bg-purple-950/25 border-b border-purple-500/10">
-            <div className="col-span-3 text-sm font-bold text-purple-200">Specialist</div>
-            <div className="col-span-3 text-sm font-bold text-purple-200">Bio</div>
-            <div className="col-span-1 text-sm font-bold text-purple-200 text-center">Rating</div>
-            <div className="col-span-2 text-sm font-bold text-purple-200">Services</div>
-            <div className="col-span-1 text-sm font-bold text-purple-200 text-center">Actions</div>
+          <div className="grid grid-cols-10 gap-4 px-6 py-4 bg-gray-50 border-b border-gray-200">
+            <div className="col-span-3 text-sm font-bold text-gray-500">Specialist</div>
+            <div className="col-span-3 text-sm font-bold text-gray-500">Bio</div>
+            <div className="col-span-1 text-sm font-bold text-gray-500 text-center">Rating</div>
+            <div className="col-span-2 text-sm font-bold text-gray-500">Services</div>
+            <div className="col-span-1 text-sm font-bold text-gray-500 text-center">Actions</div>
           </div>
 
           {/* Table Body */}
-          <div className="divide-y divide-purple-700/30">
+          <div className="divide-y divide-gray-100">
             {specialists.map((specialist) => {
               return (
-              <div key={specialist.id} className="grid grid-cols-10 gap-4 px-6 py-4 hover:bg-purple-900/15 transition-all">
+              <div key={specialist.id} className="grid grid-cols-10 gap-4 px-6 py-4 hover:bg-gray-50 transition-all">
                 <div className="col-span-3 flex items-center space-x-3">
-                  <img
-                    src={specialist.image_url}
-                    alt={specialist.name}
-                    className="w-12 h-12 rounded-full object-cover border-2 border-purple-500"
-                    onError={(e) => {
-                      e.target.src = 'https://via.placeholder.com/150?text=' + encodeURIComponent(specialist.name)
-                    }}
-                  />
+                  <div className="w-10 h-10 rounded-full p-0.5 bg-gradient-to-br from-[#9489E2] via-[#b8b0f0] to-[#7b6fd4] flex-shrink-0">
+                    <img
+                      src={specialist.image_url}
+                      alt={specialist.name}
+                      className="w-full h-full rounded-full object-cover bg-white"
+                      onError={(e) => {
+                        e.target.style.display = 'none'
+                      }}
+                    />
+                  </div>
                   <span className="text-gray-800 font-medium font-[Inter]">
                     {specialist.name}
                   </span>
                 </div>
-                <div className="col-span-3 text-gray-300 text-sm flex items-center">
+                <div className="col-span-3 text-gray-500 text-sm flex items-center">
                   <span className="line-clamp-2">{specialist.bio || '-'}</span>
                 </div>
                 <div className="col-span-1 flex items-center justify-center">
                   <div className="flex items-center space-x-1">
-                    <Star className={`w-4 h-4 ${specialist.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-500'}`} />
+                    <Star className={`w-4 h-4 ${specialist.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} />
                     <span className="text-gray-800 font-bold">{specialist.rating ?? '—'}</span>
                     <span className="text-xs text-gray-400">({specialist.reviewCount})</span>
                   </div>
@@ -1957,7 +2159,7 @@ export default function Specialists() {
                       specialist.specialist_services.slice(0, 2).map((ss) => (
                         <span
                           key={ss.service_id}
-                          className="inline-block px-2 py-1 text-xs bg-purple-950/25 text-purple-200 rounded-full font-medium border border-purple-500/10"
+                          className="inline-block px-2 py-0.5 text-[10px] bg-[#9489E2]/8 text-[#9489E2] rounded-full font-medium border border-[#9489E2]/15"
                         >
                           {ss.services?.name || 'Unknown'}
                         </span>
@@ -1966,14 +2168,14 @@ export default function Specialists() {
                       <span className="text-gray-400 text-sm">-</span>
                     )}
                     {specialist.specialist_services && specialist.specialist_services.length > 2 && (
-                      <span className="text-xs text-purple-300">+{specialist.specialist_services.length - 2}</span>
+                      <span className="text-xs text-[#9489E2]">+{specialist.specialist_services.length - 2}</span>
                     )}
                   </div>
                 </div>
                 <div className="col-span-1 flex items-center justify-center space-x-2">
                   <button
                     onClick={() => handleEdit(specialist)}
-                    className="px-3 py-1.5 text-xs border border-purple-600 text-purple-200 rounded-lg hover:bg-purple-800/25 transition-all font-medium flex items-center gap-1"
+                    className="px-3 py-1.5 text-xs border border-[#9489E2] text-[#9489E2] rounded-lg hover:bg-[#9489E2]/10 transition-all font-medium flex items-center gap-1"
                   >
                     <Edit className="w-3 h-3" /> Edit
                   </button>
@@ -2000,28 +2202,28 @@ export default function Specialists() {
 
       {/* Save options after time picker confirm */}
       {pendingTimeChange && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4">
-          <div className="bg-gradient-to-br from-gray-900 to-gray-950 border border-purple-500/20 rounded-2xl shadow-2xl w-full max-w-xs p-5">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[99999] p-4">
+          <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-xs p-5" style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
             <h3 className="text-sm font-bold text-gray-800 mb-1">Save Working Hours</h3>
-            <p className="text-[11px] text-gray-400 mb-4">
+            <p className="text-[11px] text-gray-500 mb-4">
               {pendingTimeChange.openTime} — {pendingTimeChange.closeTime}
             </p>
             <div className="space-y-2">
               <button
                 onClick={saveThisDayOnly}
-                className="w-full py-2.5 text-xs font-medium text-gray-800 bg-purple-600 rounded-lg hover:bg-purple-500 transition-all"
+                className="w-full py-2.5 text-xs font-medium text-white bg-[#9489E2] rounded-lg hover:bg-[#8078d0] transition-all"
               >
                 Save for this {['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][timePickerModal.day]} only
               </button>
               <button
                 onClick={saveAllSameDays}
-                className="w-full py-2.5 text-xs font-medium text-gray-800 bg-emerald-600 rounded-lg hover:bg-emerald-500 transition-all"
+                className="w-full py-2.5 text-xs font-medium text-white bg-emerald-500 rounded-lg hover:bg-emerald-600 transition-all"
               >
                 Save for all future {['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][timePickerModal.day]}s
               </button>
               <button
                 onClick={cancelTimeChange}
-                className="w-full py-2 text-xs text-gray-400 bg-white/[0.03] border border-white/[0.06] rounded-lg hover:bg-white/[0.06] transition-all"
+                className="w-full py-2 text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-all"
               >
                 Cancel
               </button>

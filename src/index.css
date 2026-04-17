@@ -53,6 +53,22 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
+  /* Chart */
+  --chart-1: #9489E2;
+  --chart-2: #b8b0f0;
+  --chart-3: #9489E2;
+  --chart-background: #ffffff;
+  --chart-foreground: #1a1a1a;
+  --chart-foreground-muted: #6b7280;
+  --chart-line-primary: #9489E2;
+  --chart-line-secondary: #b8b0f0;
+  --chart-crosshair: #9489E2;
+  --chart-grid: #e5e7eb;
+  --chart-tooltip-background: rgba(255, 255, 255, 0.95);
+  --chart-tooltip-foreground: #1a1a1a;
+  --chart-tooltip-muted: #6b7280;
+  --chart-label: #6b7280;
 }
 
 /* Base styles */
@@ -83,6 +99,7 @@ body {
   --color-border: #e0d8d0;
   --color-input: #e0d8d0;
   --color-ring: #9489E2;
+
 }
 
 /* ═══ Features Section Panels ═══ */
