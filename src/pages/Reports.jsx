@@ -15,6 +15,8 @@ export default function Reports() {
   const [reportsCalendarOpen, setReportsCalendarOpen] = useState(false)
   const reportsCalendarAnchorRef = useRef(null)
   const [hoveredSlice, setHoveredSlice] = useState(null)
+  const [hoveredSpecSlice, setHoveredSpecSlice] = useState(null)
+  const [trendMode, setTrendMode] = useState('revenue') // 'revenue' or 'bookings'
 
   // Analytics data
   const [revenueData, setRevenueData] = useState({
@@ -35,6 +37,7 @@ export default function Reports() {
   const [specialistsData, setSpecialistsData] = useState([])
   const [peakHours, setPeakHours] = useState([])
   const [specialistUtilisation, setSpecialistUtilisation] = useState([])
+  const [dailyOccupancy, setDailyOccupancy] = useState([])
   const [workingHours, setWorkingHours] = useState([])
 
   useEffect(() => {
@@ -121,20 +124,37 @@ export default function Reports() {
         0
       )
 
-      // Revenue trend by day (completed only)
+      // Revenue trend by day (completed only) — include all dates in range
       const revenueTrend = {}
+      const trendStart = new Date(start)
+      trendStart.setHours(0, 0, 0, 0)
+      const trendEnd = new Date(end)
+      trendEnd.setHours(23, 59, 59, 999)
+      const trendCursor = new Date(trendStart)
+      while (trendCursor <= trendEnd) {
+        const key = `${trendCursor.getFullYear()}-${String(trendCursor.getMonth() + 1).padStart(2, '0')}-${String(trendCursor.getDate()).padStart(2, '0')}`
+        revenueTrend[key] = { amount: 0, count: 0, label: trendCursor.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) }
+        trendCursor.setDate(trendCursor.getDate() + 1)
+      }
       completedBookings.forEach((booking) => {
-        const d = new Date(booking.created_at)
-        const isoKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-        if (!revenueTrend[isoKey]) revenueTrend[isoKey] = { amount: 0, label: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) }
-        revenueTrend[isoKey].amount += (booking.final_price || booking.service?.price || 0)
+        let key
+        if (booking.booking_date) {
+          key = booking.booking_date
+        } else {
+          const d = new Date(booking.created_at)
+          key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+        }
+        if (revenueTrend[key]) {
+          revenueTrend[key].amount += (booking.final_price || booking.service?.price || 0)
+          revenueTrend[key].count += 1
+        }
       })
 
       setRevenueData({
         total: totalRevenue,
         totalPrevious: previousRevenue,
         trend: Object.entries(revenueTrend)
-          .map(([key, { amount, label }]) => ({ date: label, sortKey: key, amount }))
+          .map(([key, { amount, count, label }]) => ({ date: label, sortKey: key, amount, count }))
           .sort((a, b) => a.sortKey.localeCompare(b.sortKey)),
       })
 
@@ -288,6 +308,53 @@ export default function Reports() {
         })
 
         setSpecialistUtilisation(utilData)
+
+        // Calculate daily occupancy for salon overall chart
+        const numSpecialists = specialistsForUtil.length || 1
+        let totalWeeklyHours = 0
+        workingHoursData.forEach(wh => {
+          if (!wh.is_closed && wh.open_time && wh.close_time) {
+            const [oH, oM] = wh.open_time.substring(0, 5).split(':').map(Number)
+            const [cH, cM] = wh.close_time.substring(0, 5).split(':').map(Number)
+            totalWeeklyHours += (cH * 60 + cM - (oH * 60 + oM)) / 60
+          }
+        })
+        const dailyAvailableMinutes = (totalWeeklyHours / 7) * 60 * numSpecialists
+
+        // Generate all dates in range
+        const dailyMap = {}
+        const rangeStartDate = new Date(start)
+        rangeStartDate.setHours(0, 0, 0, 0)
+        const rangeEndDate = new Date(end)
+        rangeEndDate.setHours(23, 59, 59, 999)
+        const cursor = new Date(rangeStartDate)
+        while (cursor <= rangeEndDate) {
+          const key = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}`
+          const label = cursor.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+          dailyMap[key] = { date: label, sortKey: key, minutes: 0 }
+          cursor.setDate(cursor.getDate() + 1)
+        }
+
+        bookings.forEach(b => {
+          if (!['completed', 'confirmed'].includes(b.status)) return
+          // Use booking_date if available (YYYY-MM-DD), otherwise fall back to created_at
+          let key
+          if (b.booking_date) {
+            key = b.booking_date
+          } else {
+            const d = new Date(b.created_at)
+            key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+          }
+          if (dailyMap[key]) dailyMap[key].minutes += (b.service?.duration_minutes || 0)
+        })
+
+        const dailyArr = Object.values(dailyMap)
+          .sort((a, b) => a.sortKey.localeCompare(b.sortKey))
+          .map(d => ({
+            date: d.date,
+            occupancy: dailyAvailableMinutes > 0 ? Math.min(100, (d.minutes / dailyAvailableMinutes) * 100) : 0
+          }))
+        setDailyOccupancy(dailyArr)
       }
     } catch (error) {
       console.error('Error fetching analytics:', error)
@@ -481,30 +548,35 @@ export default function Reports() {
         </AnimatedCard>
       </div>
 
-      {/* Revenue Trend + Pie Chart */}
-      <div className="flex gap-4 mb-6 z-[1]">
-      <div className="flex-1 bg-white rounded-xl border border-gray-200 p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+      {/* Revenue Trend */}
+      <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4 z-[1]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
         <div className="flex items-center gap-2 mb-2">
           <TrendingUp className="w-5 h-5 text-[#9489E2]" />
-          <h2 className="text-sm font-bold text-gray-800 font-[Inter]">Revenue Trend</h2>
+          <h2 className="text-sm font-bold text-gray-800 font-[Inter]">{trendMode === 'revenue' ? 'Revenue Trend' : 'Bookings Trend'}</h2>
+          <div className="ml-auto flex items-center gap-0.5 bg-gray-100 rounded-md p-0.5">
+            <button onClick={() => setTrendMode('revenue')} className={`px-2.5 py-1 text-[10px] font-medium rounded transition-all ${trendMode === 'revenue' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Revenue</button>
+            <button onClick={() => setTrendMode('bookings')} className={`px-2.5 py-1 text-[10px] font-medium rounded transition-all ${trendMode === 'bookings' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Bookings</button>
+          </div>
         </div>
         {revenueData.trend.length > 0 ? (() => {
           const sorted = revenueData.trend
-          const maxAmount = Math.max(...sorted.map(t => t.amount), 1)
+          const isRevenue = trendMode === 'revenue'
+          const getValue = (item) => isRevenue ? item.amount : item.count
+          const maxAmount = Math.max(...sorted.map(t => getValue(t)), 1)
           const chartH = 220
           const n = sorted.length
-          const padLeftPct = 6
+          const padLeftPct = 4
           const padRightPct = 1
           const padTop = 10
           // Percentage-based x, pixel-based y
           const xPct = (i) => padLeftPct + (n > 1 ? i / (n - 1) : 0.5) * (100 - padLeftPct - padRightPct)
           const yPx = (amount) => padTop + (1 - amount / maxAmount) * (chartH - padTop)
-          const points = sorted.map((item, i) => ({ xPct: xPct(i), yPx: yPx(item.amount) }))
+          const points = sorted.map((item, i) => ({ xPct: xPct(i), yPx: yPx(getValue(item)) }))
 
           // Use a fixed viewBox that matches the container aspect for the SVG overlay
           const vbW = 1000
           const xVb = (i) => (xPct(i) / 100) * vbW
-          const svgPoints = sorted.map((item, i) => ({ x: xVb(i), y: yPx(item.amount) }))
+          const svgPoints = sorted.map((item, i) => ({ x: xVb(i), y: yPx(getValue(item)) }))
           const linePath = svgPoints.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ')
           const areaPath = `${linePath} L${svgPoints[svgPoints.length - 1].x},${chartH} L${svgPoints[0].x},${chartH} Z`
 
@@ -515,7 +587,7 @@ export default function Reports() {
                 {/* Y-axis grid lines + labels */}
                 {[0, 0.25, 0.5, 0.75, 1].map(frac => (
                   <div key={frac} className="absolute left-0 right-0 flex items-center" style={{ top: padTop + (1 - frac) * (chartH - padTop) }}>
-                    <span className="text-[9px] text-gray-800 w-[6%] text-right pr-1.5 -translate-y-1/2">{Math.round(maxAmount * frac).toLocaleString()}</span>
+                    <span className="text-[9px] text-gray-800 w-[4%] text-right pr-1.5 -translate-y-1/2">{Math.round(maxAmount * frac).toLocaleString()}</span>
                     <div className="flex-1 border-t border-gray-200" />
                   </div>
                 ))}
@@ -530,10 +602,14 @@ export default function Reports() {
                   </defs>
                   <path d={areaPath} fill="url(#areaGrad)" />
                   <path d={linePath} fill="none" stroke="#9489E2" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-                  {svgPoints.map((p, i) => (
-                    <circle key={i} cx={p.x} cy={p.y} r="4" fill="#9489E2" stroke="white" strokeWidth="2" vectorEffect="non-scaling-stroke" />
-                  ))}
                 </svg>
+
+                {/* Dots (HTML to avoid stretch) */}
+                {points.map((p, i) => (
+                  <div key={`dot-${i}`} className="absolute w-[9px] h-[9px] rounded-full bg-[#9489E2] border-2 border-white" style={{
+                    left: `${p.xPct}%`, top: p.yPx, transform: 'translate(-50%, -50%)', pointerEvents: 'none', boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                  }} />
+                ))}
 
                 {/* Hover zones */}
                 {sorted.map((item, i) => {
@@ -544,7 +620,7 @@ export default function Reports() {
                       <div className="absolute left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10" style={{ top: points[i].yPx - 45 }}>
                         <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-2.5 py-1.5 whitespace-nowrap">
                           <p className="text-[10px] text-gray-500">{item.date}</p>
-                          <p className="text-xs font-bold text-gray-800">{item.amount.toFixed(0)} ₾</p>
+                          <p className="text-xs font-bold text-gray-800">{isRevenue ? `${item.amount.toFixed(0)} ₾` : `${item.count} bookings`}</p>
                         </div>
                       </div>
                     </div>
@@ -572,173 +648,178 @@ export default function Reports() {
         )}
       </div>
 
-      {/* Pie Chart — Revenue by Service */}
-      <div className="w-[330px] flex-shrink-0 bg-white rounded-xl border border-gray-200 p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-        <div className="flex items-center gap-2 mb-4">
-          <BarChart3 className="w-5 h-5 text-[#9489E2]" />
-          <h2 className="text-sm font-bold text-gray-800 font-[Inter]">Revenue by Service</h2>
-        </div>
+
+
+      {/* Services + Specialists — List + Pie Charts */}
+      <div className="flex gap-4 mb-4 relative z-[1]">
+      <div className="flex-1 bg-white rounded-xl border border-gray-200 p-4" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
         {servicesData.length > 0 ? (() => {
           const colors = ['#9489E2', '#F472B6', '#34D399', '#FBBF24', '#60A5FA', '#FB923C', '#A78BFA', '#F87171']
           const totalRev = servicesData.reduce((s, d) => s + d.revenue, 0) || 1
-          const slices = servicesData.slice(0, 7)
-          const otherRev = servicesData.slice(7).reduce((s, d) => s + d.revenue, 0)
-          if (otherRev > 0) slices.push({ name: 'Other', revenue: otherRev })
-
-          // Build pie segments
-          let cumAngle = -90
-          const segments = slices.map((s, i) => {
-            const pct = (s.revenue / totalRev) * 100
-            const angle = (pct / 100) * 360
-            const startAngle = cumAngle
-            cumAngle += angle
-            return { ...s, pct, startAngle, angle, color: colors[i % colors.length] }
-          })
-
-          const r = 80
-          const cx = 100
-          const cy = 95
-          const toRad = (deg) => (deg * Math.PI) / 180
-
-          const hovered = hoveredSlice !== null ? segments[hoveredSlice] : null
-
           return (
-            <div className="relative" style={{ margin: '0 auto' }}>
-              <svg viewBox="0 0 200 190" className="w-full">
-                {segments.map((seg, i) => {
-                  if (seg.angle <= 0) return null
-                  const a1 = toRad(seg.startAngle)
-                  const a2 = toRad(seg.startAngle + seg.angle)
-                  const x1 = cx + r * Math.cos(a1)
-                  const y1 = cy + r * Math.sin(a1)
-                  const x2 = cx + r * Math.cos(a2)
-                  const y2 = cy + r * Math.sin(a2)
-                  const largeArc = seg.angle > 180 ? 1 : 0
-                  const isHovered = hoveredSlice === i
-                  const isFaded = hoveredSlice !== null && !isHovered
-                  // Explode hovered slice slightly outward
-                  const midAngle = toRad(seg.startAngle + seg.angle / 2)
-                  const explode = isHovered ? 4 : 0
-                  const tx = Math.cos(midAngle) * explode
-                  const ty = Math.sin(midAngle) * explode
-                  const path = seg.angle >= 359.9
-                    ? `M${cx - r},${cy} A${r},${r} 0 1,1 ${cx + r},${cy} A${r},${r} 0 1,1 ${cx - r},${cy}`
-                    : `M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${largeArc},1 ${x2},${y2} Z`
+            <div className="flex gap-6">
+              {/* Left: all services list */}
+              <div className="w-[280px] flex-shrink-0">
+                <div className="flex items-center gap-2 mb-2">
+                  <BarChart3 className="w-4 h-4 text-[#9489E2]" />
+                  <h2 className="text-sm font-bold text-gray-800 font-[Inter]">Revenue by Service</h2>
+                </div>
+              <div className="max-h-[220px] overflow-y-auto">
+                {servicesData.map((service, index) => (
+                  <div key={index} className="flex items-center justify-between py-1.5 border-b border-gray-100 last:border-0">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: colors[index % colors.length] }} />
+                      <span className="text-xs text-gray-800 truncate">{service.name}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
+                      <span className="text-xs font-semibold text-gray-800">{service.revenue.toFixed(0)} ₾</span>
+                      <span className="text-[10px] text-gray-400">{((service.revenue / totalRev) * 100).toFixed(0)}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              </div>
+              {/* Right: pie chart */}
+              <div className="flex-shrink-0 flex items-center">
+                {(() => {
+                  const slices = servicesData.slice(0, 7)
+                  const otherRev = servicesData.slice(7).reduce((s, d) => s + d.revenue, 0)
+                  if (otherRev > 0) slices.push({ name: 'Other', revenue: otherRev })
+                  let cumAngle = -90
+                  const segments = slices.map((s, i) => {
+                    const pct = (s.revenue / totalRev) * 100
+                    const angle = (pct / 100) * 360
+                    const startAngle = cumAngle
+                    cumAngle += angle
+                    return { ...s, pct, startAngle, angle, color: colors[i % colors.length] }
+                  })
+                  const r = 80, cx = 100, cy = 95
+                  const toRad = (deg) => (deg * Math.PI) / 180
+                  const hovered = hoveredSlice !== null ? segments[hoveredSlice] : null
                   return (
-                    <path
-                      key={i}
-                      d={path}
-                      fill={seg.color}
-                      stroke="white"
-                      strokeWidth="2"
-                      className="transition-all duration-200 cursor-pointer"
-                      style={{ opacity: isFaded ? 0.35 : 1, transform: `translate(${tx}px, ${ty}px)` }}
-                      onMouseEnter={() => setHoveredSlice(i)}
-                      onMouseLeave={() => setHoveredSlice(null)}
-                    />
+                    <svg viewBox="0 0 200 190" style={{ width: 242, height: 231 }}>
+                      {segments.map((seg, i) => {
+                        if (seg.angle <= 0) return null
+                        const a1 = toRad(seg.startAngle), a2 = toRad(seg.startAngle + seg.angle)
+                        const x1 = cx + r * Math.cos(a1), y1 = cy + r * Math.sin(a1)
+                        const x2 = cx + r * Math.cos(a2), y2 = cy + r * Math.sin(a2)
+                        const largeArc = seg.angle > 180 ? 1 : 0
+                        const isHovered = hoveredSlice === i, isFaded = hoveredSlice !== null && !isHovered
+                        const midAngle = toRad(seg.startAngle + seg.angle / 2)
+                        const explode = isHovered ? 4 : 0
+                        const path = seg.angle >= 359.9
+                          ? `M${cx - r},${cy} A${r},${r} 0 1,1 ${cx + r},${cy} A${r},${r} 0 1,1 ${cx - r},${cy}`
+                          : `M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${largeArc},1 ${x2},${y2} Z`
+                        return (
+                          <path key={i} d={path} fill={seg.color} stroke="white" strokeWidth="2"
+                            className="transition-all duration-200 cursor-pointer"
+                            style={{ opacity: isFaded ? 0.35 : 1, transform: `translate(${Math.cos(midAngle) * explode}px, ${Math.sin(midAngle) * explode}px)` }}
+                            onMouseEnter={() => setHoveredSlice(i)} onMouseLeave={() => setHoveredSlice(null)} />
+                        )
+                      })}
+                      <circle cx={cx} cy={cy} r="45" fill="white" />
+                      {hovered ? (<>
+                        <text x={cx} y={cy - 14} textAnchor="middle" className="fill-gray-800 font-bold" style={{ fontSize: 9 }}>{hovered.name}</text>
+                        <text x={cx} y={cy + 2} textAnchor="middle" className="fill-gray-800 font-bold" style={{ fontSize: 13 }}>{hovered.revenue.toLocaleString()} ₾</text>
+                        <text x={cx} y={cy + 16} textAnchor="middle" className="fill-gray-800 font-bold" style={{ fontSize: 11 }}>{hovered.pct.toFixed(1)}%</text>
+                      </>) : (<>
+                        <text x={cx} y={cy - 4} textAnchor="middle" className="fill-gray-800 font-bold" style={{ fontSize: 16 }}>{totalRev.toLocaleString()}</text>
+                        <text x={cx} y={cy + 10} textAnchor="middle" className="fill-gray-400" style={{ fontSize: 8 }}>₾ total</text>
+                      </>)}
+                    </svg>
                   )
-                })}
-                {/* Center hole */}
-                <circle cx={cx} cy={cy} r="45" fill="white" />
-                {/* Center text — default or hovered */}
-                {hovered ? (
-                  <>
-                    <text x={cx} y={cy - 14} textAnchor="middle" className="fill-gray-800 font-bold" style={{ fontSize: 9 }}>{hovered.name}</text>
-                    <text x={cx} y={cy + 2} textAnchor="middle" className="fill-gray-800 font-bold" style={{ fontSize: 13 }}>{hovered.revenue.toLocaleString()} ₾</text>
-                    <text x={cx} y={cy + 16} textAnchor="middle" className="fill-gray-800 font-bold" style={{ fontSize: 11 }}>{hovered.pct.toFixed(1)}%</text>
-                  </>
-                ) : (
-                  <>
-                    <text x={cx} y={cy - 4} textAnchor="middle" className="fill-gray-800 font-bold" style={{ fontSize: 16 }}>{totalRev.toLocaleString()}</text>
-                    <text x={cx} y={cy + 10} textAnchor="middle" className="fill-gray-400" style={{ fontSize: 8 }}>₾ total</text>
-                  </>
-                )}
-              </svg>
+                })()}
+              </div>
             </div>
           )
         })() : (
-          <p className="text-gray-400 text-center py-8 text-sm">No data</p>
+          <p className="text-gray-400 text-center py-8 text-sm">No service data</p>
         )}
       </div>
-      </div>
 
-      {/* Booking Status Breakdown */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6 z-[1]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-        <div className="flex items-center gap-2 mb-4">
-          <ClipboardList className="w-5 h-5 text-[#9489E2]" />
-          <h2 className="text-sm font-bold text-gray-800 font-[Inter]">Booking Status</h2>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {Object.entries(bookingsData.byStatus).map(([status, count]) => {
-            const colors = {
-              completed: 'bg-emerald-50 border-emerald-200 text-emerald-700',
-              confirmed: 'bg-blue-50 border-blue-200 text-blue-700',
-              pending: 'bg-amber-50 border-amber-200 text-amber-700',
-              cancelled: 'bg-red-50 border-red-200 text-red-700',
-            }
-            return (
-              <div key={status} className={`text-center p-3 rounded-xl border ${colors[status] || 'bg-gray-50 border-gray-200 text-gray-700'}`}>
-                <p className="text-2xl font-bold">{count}</p>
-                <p className="text-xs mt-0.5 capitalize opacity-70">{status}</p>
+      {/* Specialists — List + Pie Chart */}
+      <div className="flex-1 bg-white rounded-xl border border-gray-200 p-4" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+        {specialistsData.length > 0 ? (() => {
+          const colors = ['#9489E2', '#F472B6', '#34D399', '#FBBF24', '#60A5FA', '#FB923C', '#A78BFA', '#F87171']
+          const totalRev = specialistsData.reduce((s, d) => s + d.revenue, 0) || 1
+          return (
+            <div className="flex gap-6">
+              <div className="w-[280px] flex-shrink-0">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="w-4 h-4 text-[#9489E2]" />
+                  <h2 className="text-sm font-bold text-gray-800 font-[Inter]">Revenue by Specialist</h2>
+                </div>
+                <div className="max-h-[220px] overflow-y-auto">
+                  {specialistsData.map((specialist, index) => (
+                    <div key={index} className="flex items-center justify-between py-1.5 border-b border-gray-100 last:border-0">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: colors[index % colors.length] }} />
+                        <span className="text-xs text-gray-800 truncate">{specialist.name}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
+                        <span className="text-xs font-semibold text-gray-800">{specialist.revenue.toFixed(0)} ₾</span>
+                        <span className="text-[10px] text-gray-400">{((specialist.revenue / totalRev) * 100).toFixed(0)}%</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            )
-          })}
-        </div>
+              <div className="flex-shrink-0 flex items-center">
+                {(() => {
+                  const slices = specialistsData.slice(0, 7)
+                  const otherRev = specialistsData.slice(7).reduce((s, d) => s + d.revenue, 0)
+                  if (otherRev > 0) slices.push({ name: 'Other', revenue: otherRev })
+                  let cumAngle = -90
+                  const segments = slices.map((s, i) => {
+                    const pct = (s.revenue / totalRev) * 100
+                    const angle = (pct / 100) * 360
+                    const startAngle = cumAngle
+                    cumAngle += angle
+                    return { ...s, pct, startAngle, angle, color: colors[i % colors.length] }
+                  })
+                  const r = 80, cx = 100, cy = 95
+                  const toRad = (deg) => (deg * Math.PI) / 180
+                  const hovered = hoveredSpecSlice !== null ? segments[hoveredSpecSlice] : null
+                  return (
+                    <svg viewBox="0 0 200 190" style={{ width: 242, height: 231 }}>
+                      {segments.map((seg, i) => {
+                        if (seg.angle <= 0) return null
+                        const a1 = toRad(seg.startAngle), a2 = toRad(seg.startAngle + seg.angle)
+                        const x1 = cx + r * Math.cos(a1), y1 = cy + r * Math.sin(a1)
+                        const x2 = cx + r * Math.cos(a2), y2 = cy + r * Math.sin(a2)
+                        const largeArc = seg.angle > 180 ? 1 : 0
+                        const isHovered = hoveredSpecSlice === i, isFaded = hoveredSpecSlice !== null && !isHovered
+                        const midAngle = toRad(seg.startAngle + seg.angle / 2)
+                        const explode = isHovered ? 4 : 0
+                        const path = seg.angle >= 359.9
+                          ? `M${cx - r},${cy} A${r},${r} 0 1,1 ${cx + r},${cy} A${r},${r} 0 1,1 ${cx - r},${cy}`
+                          : `M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${largeArc},1 ${x2},${y2} Z`
+                        return (
+                          <path key={i} d={path} fill={seg.color} stroke="white" strokeWidth="2"
+                            className="transition-all duration-200 cursor-pointer"
+                            style={{ opacity: isFaded ? 0.35 : 1, transform: `translate(${Math.cos(midAngle) * explode}px, ${Math.sin(midAngle) * explode}px)` }}
+                            onMouseEnter={() => setHoveredSpecSlice(i)} onMouseLeave={() => setHoveredSpecSlice(null)} />
+                        )
+                      })}
+                      <circle cx={cx} cy={cy} r="45" fill="white" />
+                      {hovered ? (<>
+                        <text x={cx} y={cy - 14} textAnchor="middle" className="fill-gray-800 font-bold" style={{ fontSize: 9 }}>{hovered.name}</text>
+                        <text x={cx} y={cy + 2} textAnchor="middle" className="fill-gray-800 font-bold" style={{ fontSize: 13 }}>{hovered.revenue.toLocaleString()} ₾</text>
+                        <text x={cx} y={cy + 16} textAnchor="middle" className="fill-gray-800 font-bold" style={{ fontSize: 11 }}>{hovered.pct.toFixed(1)}%</text>
+                      </>) : (<>
+                        <text x={cx} y={cy - 4} textAnchor="middle" className="fill-gray-800 font-bold" style={{ fontSize: 16 }}>{totalRev.toLocaleString()}</text>
+                        <text x={cx} y={cy + 10} textAnchor="middle" className="fill-gray-400" style={{ fontSize: 8 }}>₾ total</text>
+                      </>)}
+                    </svg>
+                  )
+                })()}
+              </div>
+            </div>
+          )
+        })() : (
+          <p className="text-gray-400 text-center py-8 text-sm">No specialist data</p>
+        )}
       </div>
-
-      {/* Two Column Layout for Services and Specialists */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6 relative z-[1]">
-        {/* Top Services */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-          <div className="flex items-center gap-2 mb-4">
-            <BarChart3 className="w-5 h-5 text-[#9489E2]" />
-            <h2 className="text-sm font-bold text-gray-800 font-[Inter]">Top Services</h2>
-          </div>
-          {servicesData.length > 0 ? (
-            <div className="space-y-2">
-              {servicesData.slice(0, 5).map((service, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-gray-400 w-5">#{index + 1}</span>
-                    <div>
-                      <p className="text-sm font-medium text-gray-800">{service.name}</p>
-                      <p className="text-[10px] text-gray-400">{service.bookings} bookings</p>
-                    </div>
-                  </div>
-                  <p className="text-sm font-bold text-gray-800">{service.revenue.toFixed(0)} ₾</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-400 text-center py-8 text-sm">No service data</p>
-          )}
-        </div>
-
-        {/* Top Specialists */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="w-5 h-5 text-[#9489E2]" />
-            <h2 className="text-sm font-bold text-gray-800 font-[Inter]">Top Specialists</h2>
-          </div>
-          {specialistsData.length > 0 ? (
-            <div className="space-y-2">
-              {specialistsData.slice(0, 5).map((specialist, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-gray-400 w-5">#{index + 1}</span>
-                    <div>
-                      <p className="text-sm font-medium text-gray-800">{specialist.name}</p>
-                      <p className="text-[10px] text-gray-400">{specialist.bookings} bookings</p>
-                    </div>
-                  </div>
-                  <p className="text-sm font-bold text-gray-800">{specialist.revenue.toFixed(0)} ₾</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-400 text-center py-8 text-sm">No specialist data</p>
-          )}
-        </div>
       </div>
 
       {/* Promo Performance */}
@@ -771,69 +852,271 @@ export default function Reports() {
         </div>
       )}
 
-      {/* Specialist Utilisation Rate */}
+      {/* Occupancy Rate */}
       {specialistUtilisation.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6 z-[1]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="w-5 h-5 text-[#9489E2]" />
-            <h2 className="text-sm font-bold text-gray-800 font-[Inter]">Specialist Utilisation Rate</h2>
+        <div className="flex gap-4 mb-6 relative z-[1]">
+          {/* Per-specialist */}
+          <div className="flex-1 bg-white rounded-xl border border-gray-200 p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+            <div className="flex items-center gap-2 mb-4">
+              <TrendingUp className="w-5 h-5 text-[#9489E2]" />
+              <h2 className="text-sm font-bold text-gray-800 font-[Inter]">Specialist Occupancy Rate</h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-2.5 px-4 text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Specialist</th>
+                    <th className="text-center py-2.5 px-4 text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Day</th>
+                    <th className="text-center py-2.5 px-4 text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Week</th>
+                    <th className="text-center py-2.5 px-4 text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Month</th>
+                    <th className="text-center py-2.5 px-4 text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Quarter</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {specialistUtilisation.map((specialist, index) => (
+                    <tr key={index} className="border-b border-gray-100 hover:bg-gray-50 transition-all">
+                      <td className="py-2.5 px-4 text-sm text-gray-800 font-medium">{specialist.name}</td>
+                      {['day', 'week', 'month', 'quarter'].map(period => {
+                        const val = parseFloat(specialist[period])
+                        return (
+                          <td key={period} className="py-2.5 px-4 text-center">
+                            <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                              val >= 70 ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' :
+                              val >= 40 ? 'bg-amber-50 text-amber-600 border border-amber-200' :
+                              'bg-gray-50 text-gray-500 border border-gray-200'
+                            }`}>
+                              {specialist[period]}%
+                            </span>
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-2.5 px-4 text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Specialist</th>
-                  <th className="text-center py-2.5 px-4 text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Day</th>
-                  <th className="text-center py-2.5 px-4 text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Week</th>
-                  <th className="text-center py-2.5 px-4 text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Month</th>
-                  <th className="text-center py-2.5 px-4 text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Quarter</th>
-                </tr>
-              </thead>
-              <tbody>
-                {specialistUtilisation.map((specialist, index) => (
-                  <tr key={index} className="border-b border-gray-100 hover:bg-gray-50 transition-all">
-                    <td className="py-2.5 px-4 text-sm text-gray-800 font-medium">{specialist.name}</td>
-                    {['day', 'week', 'month', 'quarter'].map(period => {
-                      const val = parseFloat(specialist[period])
+
+          {/* Salon Overall Occupancy — Line Chart */}
+          <div className="flex-1 bg-white rounded-xl border border-gray-200 p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+            <div className="flex items-center gap-2 mb-2">
+              <BarChart3 className="w-5 h-5 text-[#9489E2]" />
+              <h2 className="text-sm font-bold text-gray-800 font-[Inter]">Salon Occupancy Rate</h2>
+              {dailyOccupancy.length > 0 && (() => {
+                const avg = dailyOccupancy.reduce((s, d) => s + d.occupancy, 0) / dailyOccupancy.length
+                return <span className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-full ${avg >= 70 ? 'bg-emerald-50 text-emerald-600' : avg >= 40 ? 'bg-amber-50 text-amber-600' : 'bg-gray-50 text-gray-500'}`}>avg {avg.toFixed(1)}%</span>
+              })()}
+            </div>
+            {dailyOccupancy.length > 0 ? (() => {
+              const data = dailyOccupancy
+              const maxVal = 100 // occupancy is 0-100%
+              const chartH = 280
+              const n = data.length
+              const padLeftPct = 4
+              const padRightPct = 2
+              const padTop = 10
+              const xPct = (i) => padLeftPct + (n > 1 ? i / (n - 1) : 0.5) * (100 - padLeftPct - padRightPct)
+              const yPx = (val) => padTop + (1 - val / maxVal) * (chartH - padTop)
+              const points = data.map((d, i) => ({ xPct: xPct(i), yPx: yPx(d.occupancy) }))
+
+              const vbW = 1000
+              const xVb = (i) => (xPct(i) / 100) * vbW
+              const svgPoints = data.map((d, i) => ({ x: xVb(i), y: yPx(d.occupancy) }))
+              const linePath = svgPoints.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ')
+              const areaPath = `${linePath} L${svgPoints[svgPoints.length - 1].x},${chartH} L${svgPoints[0].x},${chartH} Z`
+
+              return (
+                <div className="mt-2">
+                  <div className="relative" style={{ height: chartH }}>
+                    {/* Grid lines at 0%, 25%, 50%, 75%, 100% */}
+                    {[0, 25, 50, 75, 100].map(val => (
+                      <div key={val} className="absolute left-0 right-0 flex items-center" style={{ top: yPx(val) }}>
+                        <span className="text-[9px] text-gray-800 w-[8%] text-right pr-1.5 -translate-y-1/2">{val}%</span>
+                        <div className="flex-1 border-t border-gray-200" />
+                      </div>
+                    ))}
+
+                    {/* SVG */}
+                    <svg className="absolute inset-0 w-full overflow-visible" viewBox={`0 0 ${vbW} ${chartH}`} preserveAspectRatio="none" style={{ height: chartH, pointerEvents: 'none' }}>
+                      <defs>
+                        <linearGradient id="occAreaGrad" x1="0" x2="0" y1="0" y2="1">
+                          <stop offset="0%" stopColor="#34D399" stopOpacity="0.2" />
+                          <stop offset="100%" stopColor="#34D399" stopOpacity="0.02" />
+                        </linearGradient>
+                      </defs>
+                      <path d={areaPath} fill="url(#occAreaGrad)" />
+                      <path d={linePath} fill="none" stroke="#34D399" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+                    </svg>
+
+                    {/* Dots (HTML to avoid stretch) */}
+                    {points.map((p, i) => (
+                      <div key={`dot-${i}`} className="absolute w-[8px] h-[8px] rounded-full bg-emerald-400 border-2 border-white" style={{
+                        left: `${p.xPct}%`, top: p.yPx, transform: 'translate(-50%, -50%)', pointerEvents: 'none', boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                      }} />
+                    ))}
+
+                    {/* Hover zones */}
+                    {data.map((item, i) => {
+                      const halfGap = n > 1 ? (100 - padLeftPct - padRightPct) / (n - 1) / 2 : 50
                       return (
-                        <td key={period} className="py-2.5 px-4 text-center">
-                          <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                            val >= 70 ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' :
-                            val >= 40 ? 'bg-amber-50 text-amber-600 border border-amber-200' :
-                            'bg-gray-50 text-gray-500 border border-gray-200'
-                          }`}>
-                            {specialist[period]}%
-                          </span>
-                        </td>
+                        <div key={i} className="absolute inset-y-0 group cursor-crosshair" style={{ left: `${points[i].xPct - halfGap}%`, width: `${halfGap * 2}%` }}>
+                          <div className="absolute inset-y-0 left-1/2 w-px bg-emerald-400/30 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <div className="absolute left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10" style={{ top: points[i].yPx - 45 }}>
+                            <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-2.5 py-1.5 whitespace-nowrap">
+                              <p className="text-[10px] text-gray-500">{item.date}</p>
+                              <p className="text-xs font-bold text-gray-800">{item.occupancy.toFixed(1)}%</p>
+                            </div>
+                          </div>
+                        </div>
                       )
                     })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                  </div>
+
+                  {/* X-axis */}
+                  <div className="relative" style={{ height: 40, marginLeft: `${padLeftPct}%`, marginRight: `${padRightPct}%` }}>
+                    {data.map((item, i) => {
+                      const leftPct = n > 1 ? (i / (n - 1)) * 100 : 50
+                      const show = n <= 15 || i % Math.ceil(n / 12) === 0
+                      if (!show) return null
+                      return (
+                        <div key={i} className="absolute" style={{ left: `${leftPct}%`, top: 14, transform: 'translateX(-50%)' }}>
+                          <span className="text-[8px] text-gray-800 whitespace-nowrap" style={{ display: 'inline-block', transform: 'rotate(-45deg)', transformOrigin: 'top left' }}>
+                            {item.date}
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })() : (
+              <p className="text-gray-400 text-center py-8 text-sm">No occupancy data</p>
+            )}
           </div>
         </div>
       )}
 
-      {/* Peak Hours */}
+      {/* Booking Status + Peak Hours */}
+      <div className="flex gap-4 mb-4 relative z-[1]">
+        {/* Booking Status — Horizontal Bars */}
+        <div className="flex-1 bg-white rounded-xl border border-gray-200 p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+          <div className="flex items-center gap-2 mb-6">
+            <ClipboardList className="w-5 h-5 text-[#9489E2]" />
+            <h2 className="text-sm font-bold text-gray-800 font-[Inter]">Booking Status</h2>
+          </div>
+          {(() => {
+            const statuses = Object.entries(bookingsData.byStatus)
+            const total = statuses.reduce((s, [, c]) => s + c, 0) || 1
+            const statusColors = {
+              completed: '#34D399',
+              confirmed: '#60A5FA',
+              pending: '#FBBF24',
+              cancelled: '#F87171',
+            }
+            return (
+              <div>
+                {/* Stacked bar */}
+                <div className="flex rounded-full h-8 overflow-hidden mb-4">
+                  {statuses.map(([status, count]) => (
+                    <div
+                      key={status}
+                      className="flex items-center justify-center text-[10px] font-bold text-white transition-all"
+                      style={{ width: `${(count / total) * 100}%`, backgroundColor: statusColors[status] || '#9ca3af', minWidth: count > 0 ? 20 : 0 }}
+                      title={`${status}: ${count}`}
+                    >
+                      {(count / total) * 100 > 8 ? `${Math.round((count / total) * 100)}%` : ''}
+                    </div>
+                  ))}
+                </div>
+                {/* Legend rows */}
+                <div className="space-y-2.5">
+                  {statuses.map(([status, count]) => {
+                    const pct = (count / total) * 100
+                    return (
+                      <div key={status} className="flex items-center gap-3">
+                        <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: statusColors[status] || '#9ca3af' }} />
+                        <span className="text-xs text-gray-600 capitalize w-20">{status}</span>
+                        <div className="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden">
+                          <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: statusColors[status] || '#9ca3af' }} />
+                        </div>
+                        <span className="text-xs font-bold text-gray-800 w-8 text-right">{count}</span>
+                        <span className="text-[10px] text-gray-400 w-10 text-right">{pct.toFixed(0)}%</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          })()}
+        </div>
+
+        {/* Peak Hours */}
       {peakHours.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-5 z-[1]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-          <div className="flex items-center gap-2 mb-4">
+        <div className="flex-1 bg-white rounded-xl border border-gray-200 p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+          <div className="flex items-center gap-2 mb-6">
             <Calendar className="w-5 h-5 text-[#9489E2]" />
             <h2 className="text-sm font-bold text-gray-800 font-[Inter]">Peak Booking Hours</h2>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            {peakHours.slice(0, 12).map((hour, index) => (
-              <div key={index} className={`text-center p-3 rounded-xl border ${
-                index === 0 ? 'bg-[#9489E2]/5 border-[#9489E2]/20' : 'bg-gray-50 border-gray-200'
-              }`}>
-                <p className="text-lg font-bold text-gray-800">{hour.count}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{hour.hour}</p>
+          {(() => {
+            // Build full hour range from earliest to latest, fill gaps with 0
+            const hourMap = {}
+            peakHours.forEach(h => { hourMap[parseInt(h.hour)] = h.count })
+            const hours = []
+            for (let h = 0; h <= 23; h++) {
+              hours.push({ hour: `${String(h).padStart(2, '0')}:00`, count: hourMap[h] || 0 })
+            }
+            const maxCount = Math.max(...hours.map(h => h.count), 1)
+            const chartH = 192
+            const barGap = 3
+
+            return (
+              <div className="mt-2">
+                <div className="relative" style={{ height: chartH }}>
+                  {/* Grid lines */}
+                  {[0, 0.25, 0.5, 0.75, 1].map(frac => (
+                    <div key={frac} className="absolute left-0 right-0 flex items-center" style={{ bottom: `${frac * 100}%` }}>
+                      <span className="text-[8px] text-gray-800 w-6 text-right pr-1 -translate-y-1/2">{Math.round(maxCount * frac)}</span>
+                      <div className="flex-1 border-t border-gray-100" />
+                    </div>
+                  ))}
+
+                  {/* Bars */}
+                  <div className="absolute left-7 right-0 bottom-0 top-0 flex items-end" style={{ gap: barGap }}>
+                    {hours.map((h, i) => {
+                      const heightPct = (h.count / maxCount) * 100
+                      const isPeak = h.count === maxCount && h.count > 0
+                      return (
+                        <div key={i} className="flex-1 flex flex-col items-center justify-end h-full group relative">
+                          <div className="absolute bottom-full mb-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                            <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-2 py-1 whitespace-nowrap">
+                              <p className="text-[10px] text-gray-500">{h.hour}</p>
+                              <p className="text-xs font-bold text-gray-800">{h.count} bookings</p>
+                            </div>
+                          </div>
+                          <div
+                            className={`w-full rounded-t transition-all cursor-pointer ${isPeak ? 'bg-[#9489E2]' : 'bg-[#9489E2]/40 hover:bg-[#9489E2]/60'}`}
+                            style={{ height: `${Math.max(heightPct, h.count > 0 ? 3 : 0)}%`, minHeight: h.count > 0 ? 3 : 0 }}
+                          />
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* X-axis labels */}
+                <div className="flex ml-7 mt-1" style={{ gap: barGap }}>
+                  {hours.map((h, i) => (
+                    <div key={i} className="flex-1 text-center">
+                      <span className="text-[8px] text-gray-800">{h.hour.split(':')[0]}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            ))}
-          </div>
+            )
+          })()}
         </div>
       )}
+      </div>
     </div>
   )
 }

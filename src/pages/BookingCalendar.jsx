@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { MultiSelect } from '../components/ui/multi-select'
 import CompletionModal from '../components/ui/CompletionModal'
 import { createPortal } from 'react-dom'
+import DatePickerCalendar from '../components/ui/DatePickerCalendar'
 
 // Generate time slots based on working hours and time window
 const generateTimeSlots = (startTime, endTime, intervalMinutes = 30) => {
@@ -64,8 +65,6 @@ export default function BookingCalendar() {
   const [pendingCount, setPendingCount] = useState(0)
   const [showPendingPopout, setShowPendingPopout] = useState(false)
   const [pendingBookings, setPendingBookings] = useState([])
-  const [calendarViewDate, setCalendarViewDate] = useState(new Date())
-  const [calendarPosition, setCalendarPosition] = useState({ top: 0, left: 0 })
   const dateButtonRef = useRef(null)
   const [calendarSize, setCalendarSize] = useState(localStorage.getItem('calendarSize') || 'medium')
   const [timeWindow, setTimeWindow] = useState(parseInt(localStorage.getItem('timeWindow')) || 30)
@@ -159,12 +158,6 @@ export default function BookingCalendar() {
     }
   }, [facilityAccess, selectedDate, timeWindow])
 
-  // Sync calendar view date when calendar opens
-  useEffect(() => {
-    if (isCalendarOpen) {
-      setCalendarViewDate(new Date(selectedDate))
-    }
-  }, [isCalendarOpen, selectedDate])
 
   // Fetch pending bookings count
   useEffect(() => {
@@ -572,16 +565,6 @@ export default function BookingCalendar() {
     return position
   }
 
-  const toggleCalendar = () => {
-    if (!isCalendarOpen && dateButtonRef.current) {
-      const rect = dateButtonRef.current.getBoundingClientRect()
-      setCalendarPosition({
-        top: rect.bottom + 8,
-        left: rect.left
-      })
-    }
-    setIsCalendarOpen(!isCalendarOpen)
-  }
 
   const [slotMenu, setSlotMenu] = useState(null) // { specialistId, timeSlot, x, y }
 
@@ -835,7 +818,7 @@ export default function BookingCalendar() {
             </button>
             <button
               ref={dateButtonRef}
-              onClick={toggleCalendar}
+              onClick={() => setIsCalendarOpen(!isCalendarOpen)}
               className="px-6 py-2 bg-gray-50 border-t border-b border-gray-200 text-gray-800 text-sm font-semibold w-40 text-center hover:bg-white/20 transition-all cursor-pointer"
             >
               {formatDateDisplay(selectedDate)}
@@ -847,211 +830,13 @@ export default function BookingCalendar() {
               <ChevronRight className="w-5 h-5" />
             </button>
 
-              {/* Calendar Popup - Rendered via Portal */}
-              {isCalendarOpen && createPortal(
-                <>
-                  {/* Backdrop */}
-                  <div
-                    className="fixed inset-0 z-[99998]"
-                    onClick={() => setIsCalendarOpen(false)}
-                  />
-
-                  {/* Calendar */}
-                  <div
-                    className="fixed z-[99999] w-[580px] bg-white/95 backdrop-blur-sm rounded-lg border border-gray-200 shadow-2xl p-3"
-                    style={{
-                      top: `${calendarPosition.top}px`,
-                      left: `${calendarPosition.left}px`
-                    }}
-                  >
-                    {/* Header with Navigation and Month Names */}
-                    <div className="flex items-center justify-between mb-3">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const newDate = new Date(calendarViewDate)
-                          newDate.setMonth(newDate.getMonth() - 1)
-                          setCalendarViewDate(newDate)
-                        }}
-                        className="p-1.5 hover:bg-gray-100 rounded-lg transition-all"
-                      >
-                        <ChevronLeft className="w-5 h-5 text-[#9489E2]" />
-                      </button>
-
-                      <div className="flex items-center flex-1">
-                        <div className="flex-1 text-center text-sm font-semibold text-gray-800">
-                          {calendarViewDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                        </div>
-                        <div className="w-px h-6 bg-gray-300 mx-4"></div>
-                        <div className="flex-1 text-center text-sm font-semibold text-gray-800">
-                          {(() => {
-                            const nextMonth = new Date(calendarViewDate)
-                            nextMonth.setMonth(nextMonth.getMonth() + 1)
-                            return nextMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-                          })()}
-                        </div>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const newDate = new Date(calendarViewDate)
-                          newDate.setMonth(newDate.getMonth() + 1)
-                          setCalendarViewDate(newDate)
-                        }}
-                        className="p-1.5 hover:bg-gray-100 rounded-lg transition-all"
-                      >
-                        <ChevronRight className="w-5 h-5 text-[#9489E2]" />
-                      </button>
-                    </div>
-
-                    {/* Two Months with Single Centered Separator */}
-                    <div className="flex gap-4 relative">
-                      {/* Current Month */}
-                      <div className="flex-1">
-                        {/* Day Names */}
-                        <div className="grid grid-cols-7 gap-1.5 mb-2">
-                          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                            <div
-                              key={day}
-                              className="h-7 w-7 flex items-center justify-center text-[10.5px] font-bold text-gray-800"
-                            >
-                              {day}
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* Calendar Grid */}
-                        <div className="grid grid-cols-7 gap-1.5">
-                          {(() => {
-                            const year = calendarViewDate.getFullYear()
-                            const month = calendarViewDate.getMonth()
-                            const firstDay = new Date(year, month, 1).getDay()
-                            const daysInMonth = new Date(year, month + 1, 0).getDate()
-                            const today = new Date()
-                            today.setHours(0, 0, 0, 0)
-                            const selected = new Date(selectedDate)
-                            selected.setHours(0, 0, 0, 0)
-
-                            const days = []
-
-                            // Empty cells before first day
-                            for (let i = 0; i < firstDay; i++) {
-                              days.push(<div key={`empty-${i}`} className="h-8 w-7" />)
-                            }
-
-                            // Days of month
-                            for (let day = 1; day <= daysInMonth; day++) {
-                              const date = new Date(year, month, day)
-                              date.setHours(0, 0, 0, 0)
-                              const isToday = date.getTime() === today.getTime()
-                              const isSelected = date.getTime() === selected.getTime()
-
-                              days.push(
-                                <button
-                                  key={day}
-                                  onClick={() => {
-                                    const newDate = new Date(year, month, day)
-                                    setSelectedDate(newDate.toISOString().split('T')[0])
-                                    setIsCalendarOpen(false)
-                                  }}
-                                  className={`
-                                    h-8 w-7 rounded-lg text-xs font-medium transition-all hover:bg-gray-100 cursor-pointer
-                                    ${isSelected
-                                      ? 'bg-[#9489E2] text-gray-800 shadow-lg shadow-[#9489E2]/20'
-                                      : isToday
-                                      ? 'bg-gray-100 text-[#9489E2] border border-gray-200'
-                                      : 'text-gray-300'
-                                    }
-                                  `}
-                                >
-                                  {day}
-                                </button>
-                              )
-                            }
-
-                            return days
-                          })()}
-                        </div>
-                      </div>
-
-                      {/* Centered Separator */}
-                      <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-px bg-gray-300"></div>
-
-                      {/* Next Month */}
-                      <div className="flex-1">
-                        {/* Day Names */}
-                        <div className="grid grid-cols-7 gap-1.5 mb-2">
-                          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                            <div
-                              key={`next-${day}`}
-                              className="h-7 w-7 flex items-center justify-center text-[10.5px] font-bold text-gray-800"
-                            >
-                              {day}
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* Calendar Grid */}
-                        <div className="grid grid-cols-7 gap-1.5">
-                          {(() => {
-                            const nextMonthDate = new Date(calendarViewDate)
-                            nextMonthDate.setMonth(nextMonthDate.getMonth() + 1)
-                            const year = nextMonthDate.getFullYear()
-                            const month = nextMonthDate.getMonth()
-                            const firstDay = new Date(year, month, 1).getDay()
-                            const daysInMonth = new Date(year, month + 1, 0).getDate()
-                            const today = new Date()
-                            today.setHours(0, 0, 0, 0)
-                            const selected = new Date(selectedDate)
-                            selected.setHours(0, 0, 0, 0)
-
-                            const days = []
-
-                            // Empty cells before first day
-                            for (let i = 0; i < firstDay; i++) {
-                              days.push(<div key={`next-empty-${i}`} className="h-8 w-7" />)
-                            }
-
-                            // Days of month
-                            for (let day = 1; day <= daysInMonth; day++) {
-                              const date = new Date(year, month, day)
-                              date.setHours(0, 0, 0, 0)
-                              const isToday = date.getTime() === today.getTime()
-                              const isSelected = date.getTime() === selected.getTime()
-
-                              days.push(
-                                <button
-                                  key={`next-${day}`}
-                                  onClick={() => {
-                                    const newDate = new Date(year, month, day)
-                                    setSelectedDate(newDate.toISOString().split('T')[0])
-                                    setIsCalendarOpen(false)
-                                  }}
-                                  className={`
-                                    h-8 w-7 rounded-lg text-xs font-medium transition-all hover:bg-gray-100 cursor-pointer
-                                    ${isSelected
-                                      ? 'bg-[#9489E2] text-gray-800 shadow-lg shadow-[#9489E2]/20'
-                                      : isToday
-                                      ? 'bg-gray-100 text-[#9489E2] border border-gray-200'
-                                      : 'text-gray-300'
-                                    }
-                                  `}
-                                >
-                                  {day}
-                                </button>
-                              )
-                            }
-
-                            return days
-                          })()}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </>,
-                document.body
-            )}
+              <DatePickerCalendar
+                isOpen={isCalendarOpen}
+                onClose={() => setIsCalendarOpen(false)}
+                selectedDate={selectedDate}
+                anchorRef={dateButtonRef}
+                onSelect={(date) => setSelectedDate(date)}
+              />
           </div>
           <MultiSelect
             options={specialists.map(s => ({ value: s.id, label: s.name }))}

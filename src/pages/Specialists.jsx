@@ -998,19 +998,8 @@ export default function Specialists() {
         if (error) throw error
       }
 
-      // Update local state
-      const updatedHours = {}
-      workingHours.forEach(facilityHour => {
-        updatedHours[facilityHour.day_of_week] = {
-          open_time: facilityHour.open_time?.substring(0, 5) || '09:00',
-          close_time: facilityHour.close_time?.substring(0, 5) || '18:00'
-        }
-      })
-
-      setAllSpecialistsWorkingHours(prev => ({
-        ...prev,
-        [specialistId]: updatedHours
-      }))
+      // Re-fetch to update local state correctly
+      await fetchAllSpecialistsWorkingHours()
 
       toast.success('Facility hours copied successfully!')
     } catch (error) {
